@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phpcs:
+    name: Standard di codifica
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Predisponi PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          tools: composer
+
+      - name: Installa le dipendenze
+        uses: ramsey/composer-install@v3
+
+      - name: Esegui PHPCS
+        run: composer lint
+
+  phpunit:
+    name: Test (WordPress ${{ matrix.wordpress }}, PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - wordpress: '6.5'
+            php: '8.1'
+          - wordpress: 'latest'
+            php: '8.3'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Predisponi PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          tools: composer
+
+      - name: Installa le dipendenze
+        uses: ramsey/composer-install@v3
+
+      - name: Predisponi Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Avvia l'ambiente di prova
+        env:
+          WP_ENV_CORE: ${{ matrix.wordpress == 'latest' && 'WordPress/WordPress' || format('WordPress/WordPress#{0}', matrix.wordpress) }}
+          WP_ENV_PHP_VERSION: ${{ matrix.php }}
+        run: npx --yes @wordpress/env@latest start
+
+      - name: Esegui PHPUnit
+        run: npx --yes @wordpress/env@latest run tests-cli --env-cwd=wp-content/plugins/wp-trasparenza-pa vendor/bin/phpunit
+
+  publiccode:
+    name: Validazione publiccode.yml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Predisponi Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Installa il validatore ufficiale
+        run: go install github.com/italia/publiccode-parser-go/v5/publiccode-parser@latest
+
+      - name: Valida publiccode.yml
+        run: publiccode-parser publiccode.yml
