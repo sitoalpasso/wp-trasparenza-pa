@@ -1,0 +1,101 @@
+publiccodeYmlVersion: "0"
+
+name: Trasparenza PA
+url: "https://github.com/sitoalpasso/wp-trasparenza-pa"
+landingURL: "https://github.com/sitoalpasso/wp-trasparenza-pa"
+
+releaseDate: "2026-08-16"
+softwareVersion: 0.1.0-alpha
+developmentStatus: development
+softwareType: addon
+
+platforms:
+  - web
+
+categories:
+  - compliance-management
+  - content-management
+  - document-management
+
+dependsOn:
+  open:
+    - name: WordPress
+      versionMin: "6.5"
+      optional: false
+    - name: PHP
+      versionMin: "8.1"
+      optional: false
+    - name: Conformita Core
+      optional: false
+
+description:
+  it:
+    localisedName: Trasparenza PA
+    shortDescription: >-
+      Gestione della sezione Amministrazione trasparente come dati strutturati conformi
+      agli schemi standard di pubblicazione.
+    longDescription: |
+      Componente per siti WordPress che gestisce la sezione "Amministrazione trasparente"
+      come insieme di dati strutturati conformi agli schemi standard di pubblicazione,
+      e non come un albero di pagine libere con documenti allegati.
+
+      Implementa requisiti derivati dalla normativa applicabile ai soggetti dell'art.
+      2-bis del d.lgs. 33/2013, indipendentemente dallo specifico ente: struttura della
+      sezione secondo l'Allegato A del decreto, compilazione degli obblighi tramite campi
+      strutturati con validazione contro i JSON Schema ufficiali, export in formato aperto
+      ai sensi dell'art. 7, durata quinquennale dei dati ai sensi dell'art. 8 con uscita
+      dalla sezione senza cancellazione, indicizzazione della sezione non ostacolata ai
+      sensi dell'art. 9, adempimento per collegamento alle banche dati nazionali dell'art.
+      9-bis e dell'Allegato B con verifica periodica dei rinvii.
+
+      Le fonti sono citate per estremi nella documentazione del repository: d.lgs.
+      33/2013, delibere ANAC n. 495 del 25 settembre 2024, n. 481 e n. 497 del 3 dicembre
+      2025, specifiche tecniche della Guida Online del Portale Servizi di ANAC, d.l.
+      19/2026 convertito con legge 50/2026, deliberazione del Garante per la protezione
+      dei dati personali n. 243 del 15 maggio 2014.
+
+      Gli schemi di pubblicazione sono file di dati con la fonte citata, non codice: una
+      revisione degli schemi si recepisce aggiungendo una versione, senza modificare il
+      programma. Il componente e in sviluppo e non e ancora utilizzabile in esercizio.
+    features:
+      - Struttura della sezione conforme all'Allegato A del d.lgs. 33/2013
+      - Stato dell'obbligo a tre valori con dicitura obbligata per le voci non applicabili
+      - Compilazione degli obblighi in campi strutturati derivati dagli schemi ANAC
+      - Validazione del dato prodotto contro i JSON Schema ufficiali
+      - Export in formato aperto con denominazione dei file conforme alle specifiche
+      - File di mappatura fra nodi dell'alberatura e URL pubblici
+      - Durata quinquennale come proprieta del dato letto, senza cancellazione
+      - Adempimento per collegamento tracciato e verificato periodicamente
+      - Indicizzazione della sezione obbligatoria e dichiarata esplicitamente
+    documentation: "https://github.com/sitoalpasso/wp-trasparenza-pa#readme"
+
+legal:
+  license: GPL-3.0-or-later
+
+organisation:
+  name: sitoalpasso
+  uri: "https://github.com/sitoalpasso"
+
+maintenance:
+  type: internal
+  contacts:
+    - name: sitoalpasso
+
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - it
+
+IT:
+  countryExtensionVersion: "1.0"
+  riuso:
+    # Lasciato deliberatamente vuoto. Il campo dichiara la pubblica amministrazione
+    # titolare del software: qui il titolare e un soggetto privato che pubblica il
+    # componente in licenza aperta, quindi nessun codice IPA e applicabile.
+    codiceIPA: ""
+  piattaforme:
+    spid: false
+    cie: false
+    anpr: false
+    pagopa: false
+    io: false
