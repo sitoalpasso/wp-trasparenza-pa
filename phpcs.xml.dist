@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<ruleset name="Trasparenza PA">
+	<description>Standard di codifica del componente: WordPress Coding Standards.</description>
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/</exclude-pattern>
+	<exclude-pattern>/node_modules/</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<config name="minimum_wp_version" value="6.5"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<rule ref="WordPress"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="trasparenza-pa"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="trasparenza_pa"/>
+				<element value="TrasparenzaPa"/>
+				<element value="TRASPARENZA_PA"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.Files.FileName">
+		<properties>
+			<property name="strict_class_file_names" value="false"/>
+		</properties>
+	</rule>
+
+	<!--
+		L'avvio della suite gira prima che WordPress esista: WP_Filesystem non e
+		ancora disponibile e la diagnostica va scritta sull'errore standard.
+	-->
+	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite">
+		<exclude-pattern>/tests/bootstrap\.php$</exclude-pattern>
+	</rule>
+</ruleset>
