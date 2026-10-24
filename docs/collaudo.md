@@ -92,8 +92,8 @@ arriva come file di dati versionato e ha prove sue.
 |---|---|---|---|
 | T-11 | fatto | File dell'albero valido | caricato; la radice si chiama esattamente "Amministrazione trasparente"; i figli escono nell'ordine del file |
 | T-12 | fatto | File dell'albero difettoso, un caso per difetto: file assente, JSON non valido, formato sconosciuto, dati incompleti, dicitura mancante, identificativo con caratteri non ammessi, identificativo duplicato, voce senza nome, radice assente o doppia, radice con nome diverso, padre inesistente, ciclo | rifiutato con un codice d'errore diverso per ogni difetto; nessun albero parziale |
-| T-13 | da fare | Voce senza stato dichiarato | lo stato e "non dichiarato", non "applicabile"; la voce compare nell'elenco delle non dichiarate (TRASP-27) |
-| T-14 | da fare | Stato impostato su una voce inesistente o con un valore fuori dai tre | rifiutato, niente scritto |
+| T-13 | fatto | Voce senza stato dichiarato | lo stato e "non dichiarato", non "applicabile"; la voce compare nell'elenco delle non dichiarate (TRASP-27) |
+| T-14 | fatto | Stato impostato su una voce inesistente o con un valore fuori dai tre | rifiutato, niente scritto |
 | T-15 | da fare | Voce "non applicabile" | la pagina stampa carattere per carattere "L'obbligo di pubblicazione non è applicabile all'amministrazione", con il testo atteso scritto nella prova e non letto dal file (TRASP-27) |
 | T-16 | da fare | Pagina con il codice breve, visitatore anonimo | 200; la voce chiesta mostra nome, percorso e figli con i loro indirizzi stabili; senza parametro mostra la radice (TRASP-02) |
 | T-17 | da fare | Parametro con una voce che non esiste | risposta 404, non la radice |

@@ -106,5 +106,6 @@ const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/corrente.json';
 
 require_once __DIR__ . '/src/class-avvio.php';
 require_once __DIR__ . '/src/class-alberatura.php';
+require_once __DIR__ . '/src/class-stati-obbligo.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
