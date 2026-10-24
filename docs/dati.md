@@ -10,7 +10,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 
 | Cosa | Contenuto | Chi la cambia |
 |---|---|---|
-| Alberatura | l'albero delle sezioni conforme all'Allegato A: identificativo del nodo, denominazione esatta, articolo di riferimento | solo un aggiornamento del plugin, mai l'utente |
+| Alberatura | l'albero delle sezioni conforme all'Allegato A: identificativo del nodo, denominazione esatta, articolo di riferimento, piu le diciture degli stati che ne richiedono una. File `dati/alberatura/corrente.json`, formato descritto in `docs/implementazione/alberatura.md` | solo un aggiornamento del plugin, mai l'utente |
 | Schemi | una definizione per ogni schema ANAC e per ogni sua versione, con la data di approvazione ANAC e la fonte; accanto, i JSON Schema ufficiali usati per validare | idem: una versione nuova si affianca, non sovrascrive |
 
 **2. I contenuti** (nel database del sito):
@@ -18,7 +18,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 | Dato | Dove sta | Chi lo scrive |
 |---|---|---|
 | Voce pubblicata (il dato compilato di uno schema) | contenuto di tipo dedicato più campi strutturati; porta con sé l'identificativo della versione di schema con cui è stato raccolto | redattore, tramite i moduli generati dallo schema |
-| Nodo dell'albero: stato dell'obbligo (applicabile, non applicabile, sospeso) | configurazione per nodo | responsabile con permesso dedicato |
+| Nodo dell'albero: stato dell'obbligo (applicabile, non applicabile, sospeso) | opzione `trasparenza_pa_stati_obbligo`, una coppia identificativo-stato per nodo; un nodo assente e "non dichiarato", che non e uno dei tre e non ha valore predefinito | responsabile con permesso dedicato |
 | Data di ultimo aggiornamento | per nodo e per voce, scritta dal sistema a ogni pubblicazione | solo il sistema |
 | Stato editoriale (bozza, validato, pubblicabile provvisoriamente, non pubblicabile) | stato della voce, con esito della validazione | il flusso di validazione, mai a mano |
 | Segnalazioni al RPCT | registro proprio: voce, difformità, data, destinatario | solo il sistema, nei due stati di difformità |
