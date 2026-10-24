@@ -95,6 +95,16 @@ const SCADENZA = 'archivio';
  */
 const FILE_PRINCIPALE = __FILE__;
 
+/**
+ * File dell'albero delle voci della sezione.
+ *
+ * E un dato normativo versionato, non codice: si sostituisce con una nuova
+ * versione quando cambia l'Allegato A del d.lgs. 33/2013. Finche manca, la
+ * sezione non si mostra e chi amministra il sito vede un avviso.
+ */
+const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/corrente.json';
+
 require_once __DIR__ . '/src/class-avvio.php';
+require_once __DIR__ . '/src/class-alberatura.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );

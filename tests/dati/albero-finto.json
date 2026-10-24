@@ -1,0 +1,15 @@
+{
+	"formato": 1,
+	"versione": "prova-1",
+	"diciture": {
+		"non_applicabile": "L'obbligo di pubblicazione non è applicabile all'amministrazione",
+		"sospeso": "Obbligo di pubblicazione sospeso"
+	},
+	"nodi": [
+		{ "id": "radice", "nome": "Amministrazione trasparente", "padre": null, "riferimento": "" },
+		{ "id": "zeta", "nome": "Voce Zeta", "padre": "radice", "riferimento": "Riferimento finto 1" },
+		{ "id": "alfa", "nome": "Voce Alfa", "padre": "radice", "riferimento": "" },
+		{ "id": "zeta_uno", "nome": "Voce Zeta Uno", "padre": "zeta", "riferimento": "Riferimento finto 2" },
+		{ "id": "zeta_due", "nome": "Voce Zeta Due", "padre": "zeta", "riferimento": "" }
+	]
+}
