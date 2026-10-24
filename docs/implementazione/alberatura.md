@@ -65,6 +65,8 @@ Formato del file dell'albero, versione 1:
 | `versione` | la versione dell'albero, testo non vuoto |
 | `diciture` | testo per `non_applicabile` e per `sospeso`, entrambi obbligatori |
 | `nodi` | elenco di voci in ordine di visualizzazione: `id` (lettere, cifre e trattino basso, al massimo 80), `nome`, `padre` (nullo solo per la radice), `riferimento` |
+| `fonti` | elenco delle fonti dell'albero: `chiave`, `titolo`, `url` o `estremi`, `consultata` (data), `uso`. Il motore non la legge; la controllano le prove dell'albero normativo (T-25) |
+| `fonte_diciture` | per ogni dicitura, la chiave della fonte o la dichiarazione che e un testo del componente. Idem |
 
 Gli stati si scrivono nell'opzione `trasparenza_pa_stati_obbligo`. Un valore conservato che
 non e fra i tre vale come non dichiarato.
@@ -99,16 +101,17 @@ con gli schemi.
 
 ## 9. Come si prova sul sito vero
 
-Fino all'arrivo dell'albero normativo la pagina con il codice breve resta vuota e chi
-amministra vede l'avviso "l'albero delle voci non e disponibile": e l'esito atteso, e va
-verificato. Con l'albero installato, da visitatore anonimo: la pagina mostra le voci di primo
+Senza il file dell'albero la pagina con il codice breve resta vuota e chi amministra vede
+l'avviso "l'albero delle voci non e disponibile": e l'esito atteso, e va verificato. Con
+l'albero installato (unita T1c, scheda `albero-normativo.md`), da visitatore anonimo: la pagina mostra le voci di primo
 livello nell'ordine dell'Allegato A; un indirizzo con `?voce=` seguito da un identificativo
 inventato risponde 404; il codice della pagina non contiene `noindex`.
 
 ## Dubbi annotati
 
 - Il testo della dicitura per lo stato sospeso viene dal file dell'albero e non da una
-  formula di legge: il file dell'albero normativo dovra citarne la fonte.
+  formula di legge: il file dell'albero normativo lo dichiara in `fonte_diciture` come
+  testo del componente (risolto con l'unita T1c).
 - Il parametro `voce` e generico e potrebbe coincidere con quello di un altro componente
   sulla stessa pagina. Si cambia solo con un nuovo formato degli indirizzi, perche gli
   indirizzi delle voci finiscono nel file di mappatura della sezione.
