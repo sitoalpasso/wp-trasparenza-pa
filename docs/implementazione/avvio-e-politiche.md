@@ -79,7 +79,10 @@ successive. Non offre un'opzione per l'indicizzazione: la norma la impone.
 
 ## 9. Come si prova sul sito vero
 
-Su un'installazione con il componente attivo: disattivo il meccanismo comune e apro la
-bacheca da amministratore. Devo vedere l'avviso "Trasparenza PA resta attivo ma inerte" con
-la versione richiesta; se non lo vedo, il rilascio si annulla. Riattivo il meccanismo comune
-e ricarico: l'avviso deve sparire.
+Da riga di comando, con entrambi i componenti attivi, si rileggono le sezioni registrate e la
+politica della sezione: deve comparire `amministrazione_trasparente` con indicizzazione
+`consentita` e scadenza `archivio`, altrimenti il rilascio si annulla. Su un ambiente
+controllato si toglie poi la cartella del componente comune (dall'elenco dei componenti non
+si puo disattivare, perche altri ne dipendono) e da amministratore si deve vedere l'avviso
+"Trasparenza PA resta attivo ma inerte". Le prove complete stanno nel collaudo di rilascio
+del progetto, unita T1a.
