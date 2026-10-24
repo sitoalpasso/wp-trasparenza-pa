@@ -34,7 +34,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-01 | da fare | Si controllano denominazione e collegamento in home | dicitura esatta, link presente |
 | TRASP-02 | da fare | Si visita ogni pagina della sezione da utente anonimo | tutto accessibile senza autenticazione |
 | TRASP-03 | da fare | Si ispezionano meta robots, robots.txt e sitemap della sezione | nessun noindex, nessun blocco, URL in sitemap |
-| TRASP-04 | da fare | Si confronta l'alberatura generata con l'Allegato A, voce per voce | ogni nodo previsto esiste, denominazione conforme; esiste "Controlli sulle attività economiche" e non esiste "Controlli sulle imprese" |
+| TRASP-04 | fatto | Si confronta l'alberatura generata con l'Allegato A, voce per voce (righe T-20..T-25) | ogni nodo previsto esiste, denominazione conforme; esiste "Controlli sulle attività economiche" e non esiste "Controlli sulle imprese" |
 | TRASP-05 | da fare | Si compilano i tre obblighi; si caricano le fixture ufficiali ANAC, integre e corrotte | solo campi strutturati; il dato valida; le fixture integre passano, le corrotte no con errore sul campo |
 | TRASP-06 | da fare | Si aggiunge uno schema come solo file di definizione | funziona senza modifiche al PHP |
 | TRASP-06 | da fare | [attacco, statico] si cercano i nomi dei campi degli schemi nei sorgenti PHP | assenti |
@@ -99,6 +99,21 @@ arriva come file di dati versionato e ha prove sue.
 | T-17 | fatto | Parametro con una voce che non esiste | risposta 404, non la radice |
 | T-18 | fatto | Pagina della sezione | nessun `noindex` nel metatag e nell'intestazione (TRASP-03); il componente non aggancia `wp_robots` e non aggiunge intestazioni; con il sito impostato a non farsi indicizzare compare un avviso per chi amministra. La politica del meccanismo comune non c'entra: la pagina e una pagina ordinaria |
 | T-19 | fatto | Albero non disponibile all'avvio | avviso riservato a chi attiva i componenti; il codice breve non disegna un albero vuoto o parziale |
+
+## Albero normativo (righe T-20..T-25)
+
+Provano il file `dati/alberatura/corrente.json` contro le fonti: Allegato A del d.lgs.
+33/2013, Allegato 1 della delibera ANAC 1310/2016, art. 23-bis. I nomi attesi sono scritti
+nella prova e non letti dal file, altrimenti la prova confronterebbe il file con se stesso.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-20 | fatto | Il file distribuito con il componente | supera tutti i controlli del motore; la radice e `amministrazione_trasparente` |
+| T-21 | fatto | Voci di primo livello | 23, con nomi e ordine dell'Allegato A, carattere per carattere |
+| T-22 | fatto | Voce dell'art. 23-bis | esiste "Controlli sulle attività economiche" con riferimento all'art. 23-bis; "Controlli sulle imprese" non esiste in nessun livello |
+| T-23 | fatto | Voci di secondo livello | per ogni voce di primo livello, i figli con nomi e ordine dell'Allegato 1 (65 in tutto); le voci sui pagamenti sotto "Pagamenti dell'amministrazione"; nessun terzo livello |
+| T-24 | fatto | Identificativi | i 68 identificativi del modello `at_map` che hanno una voce nelle fonti coincidono con quelli dell'albero |
+| T-25 | fatto | Dicitura e fonti | dicitura del non applicabile carattere per carattere; fonti con titolo, indirizzo o estremi e data di consultazione; fonte dichiarata per ogni dicitura |
 
 ## Collaudo congiunto con l'albo pretorio
 
