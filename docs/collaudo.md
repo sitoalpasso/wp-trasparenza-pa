@@ -82,6 +82,24 @@ processo dove il meccanismo comune e caricato e compatibile.
 | T-09 | fatto | Sezione gia registrata da altri, con politiche diverse e identiche | conflitto in entrambi i casi, componente inerte, politiche altrui intatte, avviso riservato |
 | T-10 | fatto | Filtro di scadenza del meccanismo comune non avviato | errore dedicato restituito, nessuna sezione, avviso presente |
 
+## Motore dell'alberatura (righe T-11..T-19)
+
+Provano il motore con un albero finto scritto per le prove, che non e l'albero
+normativo: il motore conosce la forma del file e non il suo contenuto. L'albero vero
+arriva come file di dati versionato e ha prove sue.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-11 | da fare | File dell'albero valido | caricato; la radice si chiama esattamente "Amministrazione trasparente"; i figli escono nell'ordine del file |
+| T-12 | da fare | File dell'albero difettoso, un caso per difetto: file assente, JSON non valido, formato sconosciuto, dati incompleti, dicitura mancante, identificativo con caratteri non ammessi, identificativo duplicato, voce senza nome, radice assente o doppia, radice con nome diverso, padre inesistente, ciclo | rifiutato con un codice d'errore diverso per ogni difetto; nessun albero parziale |
+| T-13 | da fare | Voce senza stato dichiarato | lo stato e "non dichiarato", non "applicabile"; la voce compare nell'elenco delle non dichiarate (TRASP-27) |
+| T-14 | da fare | Stato impostato su una voce inesistente o con un valore fuori dai tre | rifiutato, niente scritto |
+| T-15 | da fare | Voce "non applicabile" | la pagina stampa carattere per carattere "L'obbligo di pubblicazione non è applicabile all'amministrazione", con il testo atteso scritto nella prova e non letto dal file (TRASP-27) |
+| T-16 | da fare | Pagina con il codice breve, visitatore anonimo | 200; la voce chiesta mostra nome, percorso e figli con i loro indirizzi stabili; senza parametro mostra la radice (TRASP-02) |
+| T-17 | da fare | Parametro con una voce che non esiste | risposta 404, non la radice |
+| T-18 | da fare | Pagina della sezione | nessun `noindex` nel metatag e nell'intestazione (TRASP-03); il componente non aggancia `wp_robots` e non aggiunge intestazioni; con il sito impostato a non farsi indicizzare compare un avviso per chi amministra. La politica del meccanismo comune non c'entra: la pagina e una pagina ordinaria |
+| T-19 | da fare | Albero non disponibile all'avvio | avviso riservato a chi attiva i componenti; il codice breve non disegna un albero vuoto o parziale |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
