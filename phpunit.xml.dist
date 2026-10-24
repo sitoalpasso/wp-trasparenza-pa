@@ -6,11 +6,17 @@
 	convertErrorsToExceptions="true"
 	convertNoticesToExceptions="true"
 	convertWarningsToExceptions="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
 	>
 	<testsuites>
 		<testsuite name="trasparenza-pa">
-			<directory suffix=".php">./tests</directory>
-			<exclude>./tests/bootstrap.php</exclude>
+			<directory suffix="Test.php">./tests</directory>
+			<!--
+				Questi due girano in avvii separati, con un componente comune
+				diverso: raccolti qui girerebbero contro l'ambiente sbagliato.
+			-->
+			<exclude>./tests/SenzaCoreTest.php</exclude>
+			<exclude>./tests/CoreIncompatibileTest.php</exclude>
 		</testsuite>
 	</testsuites>
 </phpunit>

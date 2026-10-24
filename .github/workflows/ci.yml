@@ -2,96 +2,116 @@ name: CI
 
 on:
   push:
+    branches:
+      - "**"
   pull_request:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   phpcs:
     name: Standard di codifica
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Predisponi PHP
+      - name: Predispone PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: "8.1"
           coverage: none
           tools: composer
 
       - name: Installa le dipendenze
-        uses: ramsey/composer-install@v3
+        run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Esegui PHPCS
+      - name: Esegue PHPCS
         run: composer lint
 
   phpunit:
-    name: Test (WordPress ${{ matrix.wordpress }}, PHP ${{ matrix.php }})
+    name: Test (WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - wordpress: '6.5'
-            php: '8.1'
-          - wordpress: 'latest'
-            php: '8.3'
-    steps:
-      - uses: actions/checkout@v5
+          # Le versioni minime dichiarate nell'intestazione del plugin.
+          - wp: "6.5"
+            php: "8.1"
+          # L'ultima stabile, per accorgersi delle rotture in anticipo.
+          - wp: "latest"
+            php: "8.3"
 
-      - name: Predisponi PHP
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Predispone PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: ${{ matrix.php }}
+          extensions: mysqli
           coverage: none
           tools: composer
 
       - name: Installa le dipendenze
-        uses: ramsey/composer-install@v3
+        run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Predisponi Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
+      - name: Installa subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
 
-      # Il componente dichiara "Requires Plugins: conformita-core", quindi non e
-      # attivabile finche quel plugin non e installabile. I test caricano il file
-      # principale dal bootstrap, percio la cartella si mappa senza attivare nulla.
-      - name: Avvia l'ambiente di prova su WordPress corrente
-        if: matrix.wordpress == 'latest'
+      - name: Prepara la suite di test di WordPress
+        run: bin/installa-suite-test.sh wordpress_test root root 127.0.0.1:3306 ${{ matrix.wp }}
+
+      - name: Procura il componente comune alla revisione fissata
+        run: bin/installa-core.sh
+
+      # Tre avvii separati e non uno: la versione dell'interfaccia del componente
+      # comune la dichiara una costante, e una costante si definisce una volta sola
+      # per processo. I tre ambienti non possono quindi convivere nella stessa
+      # esecuzione.
+      - name: Esegue PHPUnit, componente comune presente e compatibile
         env:
-          WP_ENV_PHP_VERSION: ${{ matrix.php }}
-        run: npx --yes @wordpress/env@latest start
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        run: composer test
 
-      - name: Avvia l'ambiente di prova su WordPress ${{ matrix.wordpress }}
-        if: matrix.wordpress != 'latest'
+      - name: Esegue PHPUnit, componente comune assente
         env:
-          WP_ENV_CORE: WordPress/WordPress#${{ matrix.wordpress }}
-          WP_ENV_PHP_VERSION: ${{ matrix.php }}
-        run: npx --yes @wordpress/env@latest start
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        run: composer test:senza-core
 
-      - name: Esegui PHPUnit
-        run: npx --yes @wordpress/env@latest run tests-cli --env-cwd=wp-content/plugins/trasparenza-pa vendor/bin/phpunit
+      - name: Esegue PHPUnit, versione di interfaccia incompatibile
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        run: composer test:core-incompatibile
 
   publiccode:
     name: Validazione publiccode.yml
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Predisponi Go
+      - name: Predispone Go
         uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: "1.24"
 
       - name: Installa il validatore ufficiale
         run: go install github.com/italia/publiccode-parser-go/v5/publiccode-parser@latest
 
-      - name: Valida publiccode.yml
+      - name: Valida la scheda
         run: publiccode-parser publiccode.yml

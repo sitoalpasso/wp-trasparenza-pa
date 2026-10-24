@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<phpunit
+	bootstrap="tests/bootstrap-senza-core.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	>
+	<testsuites>
+		<testsuite name="trasparenza-pa-senza-core">
+			<file>./tests/SenzaCoreTest.php</file>
+		</testsuite>
+	</testsuites>
+</phpunit>
