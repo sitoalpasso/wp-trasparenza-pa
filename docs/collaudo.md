@@ -61,6 +61,27 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-29 | da fare | Voce-rinvio verso una banca dati nazionale | espone amministrazione titolare e destinatario dell'accesso civico; il caso senza banca dati non è configurabile come rinvio |
 | art. 31 | da fare | Ente senza organismo di valutazione; nessun rilievo degli organi di controllo | il dato valida comunque: il campo facoltativo si omette, l'elenco vuoto si emette vuoto |
 
+## Avvio del componente (righe T-01..T-10)
+
+Non chiudono nessun TRASP-xx: costruiscono il piano su cui poggiano TRASP-03 e TRASP-17,
+perche le due politiche della sezione esistono solo se il componente le dichiara al
+meccanismo comune. Le righe T-03 e T-05 girano in avvii separati della suite (`composer
+test:senza-core`, `composer test:core-incompatibile`): il loro caso non esiste in un
+processo dove il meccanismo comune e caricato e compatibile.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-01 | fatto | La dipendenza e dichiarata in due posti: intestazione `Requires Plugins` e versione di interfaccia controllata all'avvio | coerenti; WordPress rifiuta una dipendenza inesistente con il codice dedicato |
+| T-02 | fatto | Il file principale si carica senza il meccanismo comune | nessuna chiamata al caricamento, avvio agganciato a `plugins_loaded` |
+| T-03 | fatto | Avvio senza il meccanismo comune, con il componente fra quelli attivi | resta attivo e inerte; l'avviso nomina componente, meccanismo da installare e la sola versione richiesta; riservato a chi attiva i componenti |
+| T-04 | fatto | Criterio di compatibilita sui tre casi | inferiore con stesso maggiore: no; maggiore diverso: no; superiore: si |
+| T-05 | fatto | Versione di interfaccia incompatibile, in un processo separato | componente disattivato, nessuna sezione, avviso con versione richiesta e trovata |
+| T-06 | fatto | Avvio con versione compatibile | attivo, sezione registrata, nessun avviso |
+| T-07 | fatto | Politiche rilette dal meccanismo comune | indicizzazione consentita, scadenza archivio |
+| T-08 | fatto | Avvio invocato due volte nella stessa richiesta | nessuna seconda registrazione, nessun avviso |
+| T-09 | fatto | Sezione gia registrata da altri, con politiche diverse e identiche | conflitto in entrambi i casi, componente inerte, politiche altrui intatte, avviso riservato |
+| T-10 | fatto | Filtro di scadenza del meccanismo comune non avviato | errore dedicato restituito, nessuna sezione, avviso presente |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
