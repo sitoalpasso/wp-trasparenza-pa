@@ -84,5 +84,5 @@ politica della sezione: deve comparire `amministrazione_trasparente` con indiciz
 `consentita` e scadenza `archivio`, altrimenti il rilascio si annulla. Su un ambiente
 controllato si toglie poi la cartella del componente comune (dall'elenco dei componenti non
 si puo disattivare, perche altri ne dipendono) e da amministratore si deve vedere l'avviso
-"Trasparenza PA resta attivo ma inerte". Le prove complete stanno nel collaudo di rilascio
-del progetto, unita T1a.
+"Trasparenza PA resta attivo ma inerte", e da un utente non amministratore no. Rimessa a
+posto la cartella, la prima rilettura deve dare di nuovo lo stesso esito.
