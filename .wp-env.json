@@ -1,8 +1,7 @@
 {
+	"core": "WordPress/WordPress#6.5",
 	"phpVersion": "8.1",
-	"mappings": {
-		"wp-content/plugins/trasparenza-pa": "."
-	},
+	"plugins": [ ".", "https://github.com/sitoalpasso/wp-conformita-core.git#3b337715f11be12f966a35e5789a503b861eaa92" ],
 	"config": {
 		"WP_DEBUG": true,
 		"WP_DEBUG_LOG": true,

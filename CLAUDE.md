@@ -11,7 +11,9 @@ supportato.
 ## Comandi
 
 - Ambiente: `npx wp-env start` (configurazione in `.wp-env.json`)
-- Test: `composer test` (PHPUnit sulla suite di test di WordPress)
+- Test: `composer test` (PHPUnit sulla suite di test di WordPress, con il componente comune
+  procurato da `bin/installa-core.sh`), piu `composer test:senza-core` e
+  `composer test:core-incompatibile`, che girano in avvii separati
 - Standard: `composer lint` (PHPCS, WordPress Coding Standards)
 
 ## Regole di lavoro
@@ -33,7 +35,9 @@ supportato.
 - Gli schemi ANAC sono file di dati in `schemas/`; i nomi dei loro campi non compaiono
   mai nei sorgenti PHP (c'e un test che lo verifica). Le modifiche agli schemi si fanno
   aggiungendo versioni, mai sovrascrivendo.
-- Richiede il plugin `conformita-core`; la compatibilita di versione e verificata
+- Richiede il plugin `conformita-core`. L'intestazione `Requires Plugins` impedisce
+  l'attivazione quando quel plugin manca, ma accetta slug e non vincoli di versione: la
+  compatibilita di versione si verifica quindi **all'avvio**, su `plugins_loaded`, e non
   all'attivazione.
 - La politica di indicizzazione di questa sezione e l'opposto di quella della pubblicita
   legale: qui l'indicizzazione e obbligatoria e va dichiarata esplicitamente a core, che

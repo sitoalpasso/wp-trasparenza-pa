@@ -24,6 +24,8 @@
     "scripts": {
         "lint": "phpcs",
         "lint:fix": "phpcbf",
-        "test": "phpunit"
+        "test": "phpunit",
+        "test:senza-core": "phpunit --configuration phpunit-senza-core.xml.dist",
+        "test:core-incompatibile": "phpunit --configuration phpunit-core-incompatibile.xml.dist"
     }
 }
