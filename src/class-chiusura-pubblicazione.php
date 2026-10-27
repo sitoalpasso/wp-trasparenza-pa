@@ -90,6 +90,18 @@ final class ChiusuraPubblicazione {
 		$wpdb->update( $wpdb->posts, array( 'post_status' => 'draft' ), array( 'ID' => $articolo->ID ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- riporta in bozza uno stato scritto direttamente.
 		clean_post_cache( $articolo->ID );
 
+		/*
+		 * La scrittura diretta non passa da nessun aggancio, quindi il registro
+		 * del componente comune, che ha gia scritto il passaggio allo stato
+		 * chiuso, non saprebbe del ritorno in bozza. Il ritorno si annuncia
+		 * come ogni cambio di stato, e il registro lo scrive.
+		 */
+		$riletto = get_post( $articolo->ID );
+
+		if ( $riletto instanceof \WP_Post ) {
+			wp_transition_post_status( 'draft', $nuovo, $riletto );
+		}
+
 		self::ricorda_motivo();
 	}
 
