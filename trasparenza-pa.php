@@ -104,10 +104,19 @@ const FILE_PRINCIPALE = __FILE__;
  */
 const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/corrente.json';
 
+/*
+ * La libreria di validazione, nella copia con i nomi prefissati. Se manca, il
+ * motore degli schemi lo dice al primo uso invece di fermare il sito.
+ */
+if ( is_readable( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor-prefixed/autoload.php';
+}
+
 require_once __DIR__ . '/src/class-avvio.php';
 require_once __DIR__ . '/src/class-alberatura.php';
 require_once __DIR__ . '/src/class-stati-obbligo.php';
 require_once __DIR__ . '/src/class-pagina-pubblica.php';
+require_once __DIR__ . '/src/class-catalogo-schemi.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 
