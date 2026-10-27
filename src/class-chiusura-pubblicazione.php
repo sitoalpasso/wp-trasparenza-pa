@@ -39,7 +39,8 @@ final class ChiusuraPubblicazione {
 	 */
 	public static function aggancia(): void {
 		add_filter( 'wp_insert_post_data', array( self::class, 'su_scrittura' ), PHP_INT_MAX, 2 );
-		add_action( 'transition_post_status', array( self::class, 'su_cambio_di_stato' ), PHP_INT_MAX, 3 );
+		// Subito dopo il registro del componente comune, prima di ogni altro ascoltatore.
+		add_action( 'transition_post_status', array( self::class, 'su_cambio_di_stato' ), PHP_INT_MIN + 1, 3 );
 		add_action( 'admin_notices', array( self::class, 'mostra_motivo' ) );
 	}
 

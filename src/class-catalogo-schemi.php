@@ -239,10 +239,45 @@ final class CatalogoSchemi {
 						sprintf( __( 'Lo schema %1$s rimanda a %2$s, che non è fra i file della sua versione.', 'trasparenza-pa' ), $id, $rimando )
 					);
 				}
+
+				// Il frammento, se e un puntatore, deve indicare qualcosa che nel file esiste.
+				$posizione = strpos( $rimando, '#' );
+				$frammento = false === $posizione ? '' : rawurldecode( substr( $rimando, $posizione + 1 ) );
+
+				if ( str_starts_with( $frammento, '/' ) && ! self::punta( $insieme[ '' === $file_rimando ? $id : $file_rimando ], $frammento ) ) {
+					return new WP_Error(
+						'trasparenza_catalogo_frammento',
+						/* translators: 1: identificativo dello schema, 2: rimando. */
+						sprintf( __( 'Lo schema %1$s rimanda a %2$s, che nel file indicato non esiste.', 'trasparenza-pa' ), $id, $rimando )
+					);
+				}
 			}
 		}
 
 		return $insieme;
+	}
+
+	/**
+	 * Il puntatore JSON indica un nodo che esiste.
+	 *
+	 * @param mixed  $nodo      File o nodo da cui partire.
+	 * @param string $puntatore Puntatore, per esempio `/definitions/Nome`.
+	 * @return bool
+	 */
+	private static function punta( $nodo, string $puntatore ): bool {
+		foreach ( array_slice( explode( '/', $puntatore ), 1 ) as $pezzo ) {
+			$pezzo = str_replace( array( '~1', '~0' ), array( '/', '~' ), $pezzo );
+
+			if ( is_object( $nodo ) && property_exists( $nodo, $pezzo ) ) {
+				$nodo = $nodo->{$pezzo};
+			} elseif ( is_array( $nodo ) && ctype_digit( $pezzo ) && array_key_exists( (int) $pezzo, $nodo ) ) {
+				$nodo = $nodo[ (int) $pezzo ];
+			} else {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

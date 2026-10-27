@@ -87,6 +87,16 @@ final class SchedaVoce {
 	private static $motore = null;
 
 	/**
+	 * L'azione del nonce di una voce: un nonce vale per una voce sola.
+	 *
+	 * @param int $voce Voce.
+	 * @return string
+	 */
+	public static function azione_nonce( int $voce ): string {
+		return self::NONCE . ':' . $voce;
+	}
+
+	/**
 	 * Aggancia il riquadro e il salvataggio a WordPress.
 	 */
 	public static function aggancia(): void {
@@ -141,7 +151,11 @@ final class SchedaVoce {
 	}
 
 	/**
-	 * L'esito dell'ultimo controllo, o nullo se il dato non e mai stato controllato.
+	 * L'esito dell'ultimo controllo, o nullo se il dato salvato non e stato controllato.
+	 *
+	 * L'esito porta l'impronta del dato da cui e nato: se il dato salvato e
+	 * cambiato per un'altra strada, per esempio due salvataggi intrecciati,
+	 * l'esito non gli appartiene e il dato risulta non controllato.
 	 *
 	 * @param int $voce Voce.
 	 * @return array{conforme: bool, messaggio: string, difetti: array<int, array{percorso: string, regola: string, messaggio: string}>}|null
@@ -149,7 +163,7 @@ final class SchedaVoce {
 	public static function esito( int $voce ): ?array {
 		$esito = get_post_meta( $voce, self::META_ESITO, true );
 
-		if ( ! is_array( $esito ) ) {
+		if ( ! is_array( $esito ) || ! is_string( $esito['impronta'] ?? null ) || ! hash_equals( $esito['impronta'], self::impronta( (string) get_post_meta( $voce, self::META_DATO, true ) ) ) ) {
 			return null;
 		}
 
@@ -183,7 +197,7 @@ final class SchedaVoce {
 	 * @return string
 	 */
 	public static function riquadro( WP_Post $voce ): string {
-		$html   = wp_nonce_field( self::NONCE, self::CAMPO_NONCE, true, false );
+		$html   = wp_nonce_field( self::azione_nonce( $voce->ID ), self::CAMPO_NONCE, true, false );
 		$motore = self::motore();
 
 		if ( is_wp_error( $motore ) ) {
@@ -228,7 +242,7 @@ final class SchedaVoce {
 			return;
 		}
 
-		if ( ! isset( $_POST[ self::CAMPO_NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::CAMPO_NONCE ] ) ), self::NONCE ) ) {
+		if ( ! isset( $_POST[ self::CAMPO_NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::CAMPO_NONCE ] ) ), self::azione_nonce( $id ) ) ) {
 			return;
 		}
 
@@ -244,14 +258,17 @@ final class SchedaVoce {
 
 		$obbligo = (string) get_post_meta( $id, self::META_OBBLIGO, true );
 
-		// Il legame si scrive una volta sola: dopo, nessun valore inviato lo cambia.
+		/*
+		 * Il legame si scrive una volta sola: dopo, nessun valore inviato lo
+		 * cambia. Si aggiunge come unico, cosi una richiesta che ha letto i
+		 * metadati vuoti mentre un'altra li scriveva non li sovrascrive.
+		 */
 		if ( '' === $obbligo ) {
 			$scelto = isset( $_POST[ self::CAMPO_OBBLIGO ] ) ? sanitize_key( wp_unslash( $_POST[ self::CAMPO_OBBLIGO ] ) ) : '';
 			$codice = '' === $scelto ? null : $motore->versione_in_vigore( $scelto );
 
-			if ( null !== $codice ) {
-				update_post_meta( $id, self::META_OBBLIGO, $scelto );
-				update_post_meta( $id, self::META_VERSIONE, $codice );
+			if ( null !== $codice && false !== add_post_meta( $id, self::META_OBBLIGO, $scelto, true ) ) {
+				add_post_meta( $id, self::META_VERSIONE, $codice, true );
 			}
 
 			return;
@@ -267,19 +284,31 @@ final class SchedaVoce {
 		$modulo = new ModuloSchema( $motore->catalogo()->contenuti( $obbligo, $codice ), $versione['id'] );
 		$dato   = $modulo->dato( wp_unslash( $_POST[ self::CAMPO_DATO ] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ogni valore si ripulisce nel modulo, secondo lo schema.
 		$esito  = $motore->valida( $obbligo, $codice, $dato );
+		$testo  = (string) wp_json_encode( $dato, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
-		update_post_meta( $id, self::META_DATO, wp_slash( (string) wp_json_encode( $dato, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		update_post_meta( $id, self::META_DATO, wp_slash( $testo ) );
 		update_post_meta(
 			$id,
 			self::META_ESITO,
 			wp_slash(
 				array(
+					'impronta'  => self::impronta( $testo ),
 					'conforme'  => true === $esito,
 					'messaggio' => is_wp_error( $esito ) ? $esito->get_error_message() : '',
 					'difetti'   => is_wp_error( $esito ) && is_array( $esito->get_error_data() ) ? array_values( $esito->get_error_data() ) : array(),
 				)
 			)
 		);
+	}
+
+	/**
+	 * L'impronta del dato salvato, per legargli l'esito.
+	 *
+	 * @param string $testo Dato in JSON, come salvato.
+	 * @return string
+	 */
+	private static function impronta( string $testo ): string {
+		return hash( 'sha256', $testo );
 	}
 
 	/**

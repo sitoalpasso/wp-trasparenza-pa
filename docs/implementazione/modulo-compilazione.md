@@ -68,7 +68,9 @@ avviso dice perche. Un utente con il ruolo Autore o Redattore di WordPress non v
 
 Regole del passaggio dai valori al dato: un campo lasciato vuoto non entra nel dato (non
 diventa un testo vuoto); un gruppo con tutti i campi vuoti non entra; un elenco tiene solo
-gli elementi compilati; un numero intero si converte solo se il valore e un intero scritto
+gli elementi compilati, e un elenco che lo schema richiede resta un elenco vuoto anche senza
+elementi; un valore perde i marcatori HTML e gli spazi in eccesso ma non i caratteri
+codificati come `%20`, che in un indirizzo fanno parte del valore; un numero intero si converte solo se il valore e un intero scritto
 in cifre, altrimenti resta testo e lo schema lo segnala. Il campo `$schema` del dato si
 riempie da solo con l'identificativo dello schema della versione, se lo schema lo prevede.
 
@@ -99,6 +101,9 @@ dallo scarico (T4, T8).
 | Obbligo della voce non piu nel catalogo | il modulo dice che lo schema manca; il dato salvato resta com'e |
 | Salvataggio senza nonce valido o senza permesso | niente scritto |
 | Dato difforme | salvato come bozza con i difetti |
+| Dato cambiato per un'altra strada dopo il controllo | l'esito porta l'impronta del dato da cui e nato: con un dato diverso la voce risulta non controllata |
+| Due richieste che legano la voce nello stesso momento | il legame si aggiunge come unico: vince la prima, la seconda non lo cambia |
+| Nonce di un'altra voce | niente scritto: il nonce vale per una voce sola |
 | Tentativo di pubblicare | la voce resta in bozza, avviso con il motivo |
 
 ## 7. Test
@@ -132,3 +137,9 @@ Premere Pubblica: la voce resta in bozza.
   successivi. Il modulo offre a tutti gli uffici gli stessi campi del primo, ma il controllo
   resta quello dello schema: un errore nel secondo ufficio non viene segnalato. Il
   componente non corregge lo schema dell'Autorita; il limite va dichiarato.
+- **Agganci della pubblicazione.** Con la pubblicazione chiesta da codice WordPress scrive
+  lo stato pubblicato prima di qualunque aggancio. La chiusura lo riporta in bozza subito
+  dopo il registro del componente comune, quindi chi ascolta il cambio di stato trova gia la
+  bozza; gli agganci specifici del passaggio a pubblicata (per esempio quello del tipo
+  pubblicato) partono pero ancora, con il contenuto che dice pubblicata. Limite dichiarato
+  fino agli stati editoriali (T5), che chiuderanno la strada prima della scrittura.

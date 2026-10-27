@@ -393,7 +393,26 @@ final class ModuloSchema {
 				}
 			}
 
-			return array() === $dato ? null : (object) $dato;
+			if ( array() === $dato ) {
+				return null;
+			}
+
+			// Un elenco richiesto e lasciato vuoto resta un elenco vuoto: e un valore, non un'assenza.
+			$tutte = $this->proprieta( $nodo, $base_nodo, $livello );
+
+			foreach ( is_array( $nodo->required ?? null ) ? $nodo->required : array() as $richiesto ) {
+				if ( ! is_string( $richiesto ) || isset( $dato[ $richiesto ] ) || ! isset( $tutte[ $richiesto ] ) ) {
+					continue;
+				}
+
+				list( $figlio ) = $this->risolvi( $tutte[ $richiesto ][0][0], $tutte[ $richiesto ][0][1], $livello + 1 );
+
+				if ( 'array' === ( $figlio->type ?? null ) ) {
+					$dato[ $richiesto ] = array();
+				}
+			}
+
+			return (object) $dato;
 		}
 
 		if ( array() === $scelte && 'array' === ( $nodo->type ?? null ) ) {
@@ -420,7 +439,7 @@ final class ModuloSchema {
 			return null;
 		}
 
-		$testo = sanitize_text_field( (string) $inviato );
+		$testo = self::pulisci( (string) $inviato );
 
 		if ( '' === $testo ) {
 			return null;
@@ -435,6 +454,22 @@ final class ModuloSchema {
 		}
 
 		return $testo;
+	}
+
+	/**
+	 * Un valore inviato, ripulito.
+	 *
+	 * Toglie i marcatori HTML, i caratteri non validi e gli spazi in eccesso,
+	 * ma lascia i caratteri codificati come %20: in un indirizzo fanno parte
+	 * del valore, e toglierli lo cambierebbe senza che lo schema se ne accorga.
+	 *
+	 * @param string $valore Valore.
+	 * @return string
+	 */
+	private static function pulisci( string $valore ): string {
+		$testo = wp_strip_all_tags( wp_check_invalid_utf8( $valore ), true );
+
+		return trim( (string) preg_replace( '/[\r\n\t ]+/', ' ', $testo ) );
 	}
 
 	/**
