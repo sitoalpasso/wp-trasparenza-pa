@@ -146,6 +146,21 @@ esempio ufficiale non passa, il difetto e nostro.
 | T-36 | fatto | Esempi ufficiali rotti apposta (TRASP-05), un caso per rottura: campo obbligatorio tolto, data non GG/MM/AAAA, campo non previsto, valore fuori elenco, recapito senza posta elettronica, importo senza decimali, trimestre fuori intervallo, indirizzo del documento senza protocollo | ciascuno respinto, con il percorso del campo sbagliato e la regola violata |
 | T-37 | fatto | Stesso numero di versione, stesso identificativo, contenuto diverso (TRASP-26) | due versioni "1.0" dello stesso obbligo con date di approvazione diverse, file con lo stesso `$id` e un file comune ripubblicato anch'esso con lo stesso `$id`, si caricano insieme; la versione si indica con numero e data (`1.0@AAAA-MM-GG`, il solo numero non basta); ogni versione si controlla solo con i suoi file, quindi un dato passa con una e non con l'altra; ogni versione si dice a parole con la sua data, per esempio "versione 1.0 del 10 giugno 2026" |
 
+## Voce e modulo di compilazione (righe T-38..T-45)
+
+Il tipo della voce, i permessi, la pubblicazione chiusa (T2c-1), poi il modulo generato dallo schema (T2c-2). La pubblicazione si apre con gli stati editoriali (T5).
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-38 | da fare | Tipo della voce di trasparenza (TRASP-05) | registrato attraverso il componente comune nella sezione della trasparenza, con `show_in_rest` dichiarato falso; una richiesta anonima all'indirizzo di una voce non la mostra; il menu compare in amministrazione |
+| T-39 | da fare | Permessi della voce | chiesti al componente comune e assegnati all'amministratore a ogni cambio della versione installata; un utente Autore o Redattore di WordPress non vede e non modifica le voci. [statico] i nomi dei permessi derivati non compaiono nei sorgenti |
+| T-40 | da fare | Pubblicazione chiusa fino agli stati editoriali (TRASP-28) | ogni tentativo di pubblicare, dalla schermata, da codice o per programmazione, lascia la voce in bozza con il motivo |
+| T-41 | da fare | Modulo generato dallo schema (TRASP-05, TRASP-06) | per l'art. 13 il modulo ha un campo per ogni proprieta raggiunta dallo schema, con gruppi per gli oggetti, serie per gli elenchi, scelta per gli elenchi chiusi di valori ed etichetta presa dallo schema; un quarto schema finto, aggiunto come solo file, produce il suo modulo senza toccare il PHP |
+| T-42 | da fare | Giro completo con l'esempio ufficiale (TRASP-05, TRASP-26) | l'esempio dell'art. 13 inserito nel modulo e salvato da un dato identico all'esempio, conforme; la voce conserva obbligo e codice di versione; il riquadro dice con quale versione, per esempio "versione 1.0 del 10/06/2026" |
+| T-43 | da fare | Dato difforme dal modulo | salvato in bozza con i difetti, ciascuno mostrato in italiano accanto al campo del suo percorso; un campo vuoto non entra nel dato come testo vuoto |
+| T-44 | da fare | Versione fissata alla raccolta (TRASP-26) | una voce raccolta con una versione si ricontrolla con quella anche quando ne entra in vigore una nuova; il modulo non cambia obbligo ne versione di una voce gia legata |
+| T-45 | da fare | Sicurezza del salvataggio | senza nonce valido o senza il permesso sulla voce non si scrive niente; un valore con marcatori HTML esce come testo, non come marcatori |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
