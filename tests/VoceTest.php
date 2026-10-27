@@ -271,6 +271,30 @@ class VoceTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-40: chi ascolta il cambio di stato con priorita normale trova gia la bozza nella banca dati.
+	 */
+	public function test_t40_bozza_prima_degli_altri_ascoltatori(): void {
+		global $wpdb;
+
+		$voce  = $this->voce();
+		$letti = array();
+
+		$osservatore = static function ( $nuovo, $vecchio, $articolo ) use ( $voce, $wpdb, &$letti ) {
+			unset( $vecchio );
+
+			if ( 'publish' === $nuovo && $articolo->ID === $voce ) {
+				$letti[] = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $voce ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- legge apposta la banca dati, non la cache.
+			}
+		};
+
+		add_action( 'transition_post_status', $osservatore, 10, 3 );
+		wp_publish_post( $voce );
+		remove_action( 'transition_post_status', $osservatore, 10 );
+
+		$this->assertSame( array( 'draft' ), $letti );
+	}
+
+	/**
 	 * T-40: gli altri tipi di contenuto non sono toccati.
 	 */
 	public function test_t40_altri_tipi_liberi(): void {

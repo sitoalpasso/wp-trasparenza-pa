@@ -117,11 +117,33 @@ class CatalogoSchemiTest extends WP_UnitTestCase {
 			),
 		);
 
+		// Rimandi a una definizione che non esiste: in un altro file e nello stesso.
+		foreach ( array(
+			'esterno' => self::$base_finta . '/comuni-finto-v1.0.schema.json#/definitions/Inesistente',
+			'interno' => '#/definitions/Inesistente',
+		) as $caso => $rimando ) {
+			$schema = array(
+				'$schema'     => 'http://json-schema.org/draft-07/schema#',
+				'$id'         => self::$base_finta . '/frammento-' . $caso . '.schema.json',
+				'type'        => 'object',
+				'properties'  => array( 'zafferanoTitolo' => array( '$ref' => $rimando ) ),
+				'definitions' => array( 'Esistente' => array( 'type' => 'string' ) ),
+			);
+
+			$casi[ 'trasparenza_catalogo_frammento ' . $caso ] = $this->guasta(
+				static function ( array $c ) use ( $caso ): array {
+					$c['schemi'][0]['file'] = 'frammento-' . $caso . '.schema.json';
+					return $c;
+				},
+				array( 'frammento-' . $caso . '.schema.json' => (string) wp_json_encode( $schema ) )
+			);
+		}
+
 		$this->assertInstanceOf( CatalogoSchemi::class, $this->guasta( null ), 'La base dei guasti deve essere valida.' );
 
 		foreach ( $casi as $atteso => $esito ) {
 			$this->assertWPError( $esito, "Il caso {$atteso} deve essere rifiutato." );
-			$this->assertSame( $atteso, $esito->get_error_code() );
+			$this->assertSame( strtok( $atteso, ' ' ), $esito->get_error_code(), $atteso );
 		}
 	}
 }

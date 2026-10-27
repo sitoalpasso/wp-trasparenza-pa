@@ -123,7 +123,7 @@ class ModuloTest extends WP_UnitTestCase {
 	 * @param string|null          $nonce Nonce; nullo per uno valido.
 	 */
 	private function salva( int $voce, array $campi, ?string $nonce = null ): void {
-		$campi[ SchedaVoce::CAMPO_NONCE ] = $nonce ?? wp_create_nonce( SchedaVoce::NONCE );
+		$campi[ SchedaVoce::CAMPO_NONCE ] = $nonce ?? wp_create_nonce( SchedaVoce::azione_nonce( $voce ) );
 
 		// WordPress aggiunge le barre ai valori inviati: il salvataggio deve toglierle.
 		$_POST = wp_slash( $campi );
@@ -757,5 +757,124 @@ class ModuloTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( $attacco, $html );
 		$this->assertSame( 0, $xpath->query( '//script' )->length );
 		$this->assertSame( $attacco, self::valore_mostrato( $xpath, $percorso ) );
+	}
+
+	/**
+	 * T-42: indirizzi con %20 e caratteri codificati tornano identici.
+	 */
+	public function test_t42_indirizzi_codificati(): void {
+		$esempio = self::esempio( 'art.13-pa-YYYYMMDD-YYYYMMDD.v1.0.json' );
+
+		$esempio->orgPubblicheAmministrazioni->organigramma          = 'https://esempio.invalid/doc/Relazione%20annuale%C3%A8.pdf';
+		$esempio->orgPubblicheAmministrazioni->organi[0]->competenze = 'Sconto del 100% e codice %41';
+
+		$this->giro_stabile( $esempio );
+	}
+
+	/**
+	 * T-42: un organo senza uffici, con l'elenco obbligatorio vuoto, resta conforme e stabile.
+	 */
+	public function test_t42_elenco_obbligatorio_vuoto(): void {
+		$esempio = self::esempio( 'art.13-pa-YYYYMMDD-YYYYMMDD.v1.0.json' );
+
+		$esempio->orgPubblicheAmministrazioni->organi[0]->uffici = array();
+
+		$this->giro_stabile( $esempio );
+	}
+
+	/**
+	 * Un dato dell'art. 13 inserito nel modulo e rimandato due volte dal riquadro resta identico e conforme.
+	 *
+	 * @param object $esempio Dato.
+	 */
+	private function giro_stabile( object $esempio ): void {
+		$voce  = $this->voce();
+		$campi = self::inviato( $esempio );
+
+		unset( $campi['$schema'] );
+
+		$this->lega( $voce, 'art_13' );
+		$this->salva( $voce, array( SchedaVoce::CAMPO_DATO => $campi ) );
+
+		$this->assertSame( self::canonico( $esempio ), self::canonico( self::salvato( $voce ) ), 'Primo salvataggio.' );
+		$this->assertTrue( SchedaVoce::esito( $voce )['conforme'], wp_json_encode( SchedaVoce::esito( $voce ) ) );
+
+		foreach ( array( 'Secondo', 'Terzo' ) as $giro ) {
+			$this->salva( $voce, self::invio_del_riquadro( self::riquadro( $voce ) ) );
+
+			$this->assertSame( self::canonico( $esempio ), self::canonico( self::salvato( $voce ) ), "{$giro} salvataggio." );
+			$this->assertTrue( SchedaVoce::esito( $voce )['conforme'] );
+		}
+	}
+
+	/**
+	 * T-43: l'esito vale solo per il dato da cui e nato.
+	 */
+	public function test_t43_esito_legato_al_dato(): void {
+		$voce  = $this->voce();
+		$campi = self::inviato( self::esempio( 'art.13-pa-YYYYMMDD-YYYYMMDD.v1.0.json' ) );
+
+		unset( $campi['$schema'] );
+
+		$this->lega( $voce, 'art_13' );
+		$this->salva( $voce, array( SchedaVoce::CAMPO_DATO => $campi ) );
+		$this->assertTrue( SchedaVoce::esito( $voce )['conforme'] );
+
+		// Il dato cambia per un'altra strada, per esempio un salvataggio intrecciato: l'esito non gli appartiene.
+		update_post_meta( $voce, SchedaVoce::META_DATO, '{"altro":"dato"}' );
+
+		$this->assertNull( SchedaVoce::esito( $voce ) );
+
+		$xpath = self::riquadro( $voce );
+
+		$this->assertSame( 0, $xpath->query( '//*[contains(@class, "trasparenza-esito-conforme")]' )->length );
+	}
+
+	/**
+	 * T-44: il primo legame non si scrive se un'altra richiesta l'ha gia scritto.
+	 */
+	public function test_t44_primo_legame_una_volta(): void {
+		$voce = $this->voce();
+
+		// Un'altra richiesta ha legato la voce dopo che questa ha letto i metadati, ancora vuoti.
+		update_post_meta( $voce, SchedaVoce::META_OBBLIGO, 'art_31' );
+		update_post_meta( $voce, SchedaVoce::META_VERSIONE, self::$in_vigore );
+
+		$letto_vuoto = static function ( $valore, $id, $chiave ) use ( $voce ) {
+			return $id === $voce && in_array( $chiave, array( SchedaVoce::META_OBBLIGO, SchedaVoce::META_VERSIONE ), true ) ? array( '' ) : $valore;
+		};
+
+		add_filter( 'get_post_metadata', $letto_vuoto, 10, 3 );
+		$this->salva( $voce, array( SchedaVoce::CAMPO_OBBLIGO => 'art_13' ) );
+		remove_filter( 'get_post_metadata', $letto_vuoto, 10 );
+
+		$this->assertSame( array( 'art_31' ), get_post_meta( $voce, SchedaVoce::META_OBBLIGO, false ) );
+		$this->assertSame( array( self::$in_vigore ), get_post_meta( $voce, SchedaVoce::META_VERSIONE, false ) );
+	}
+
+	/**
+	 * T-45: il nonce di una voce non scrive su un'altra.
+	 */
+	public function test_t45_nonce_di_una_sola_voce(): void {
+		$prima   = $this->voce();
+		$seconda = $this->voce();
+		$altrui  = wp_create_nonce( SchedaVoce::azione_nonce( $prima ) );
+
+		$this->salva( $seconda, array( SchedaVoce::CAMPO_OBBLIGO => 'art_13' ), $altrui );
+
+		$this->assertSame( '', get_post_meta( $seconda, SchedaVoce::META_OBBLIGO, true ) );
+		$this->assertSame( '', get_post_meta( $seconda, SchedaVoce::META_VERSIONE, true ) );
+
+		$this->lega( $seconda, 'art_13' );
+		$this->salva( $seconda, array( SchedaVoce::CAMPO_DATO => array( 'intestazione' => array( 'dataUltimaModifica' => '01/01/2026' ) ) ), $altrui );
+
+		$this->assertSame( '', get_post_meta( $seconda, SchedaVoce::META_DATO, true ) );
+		$this->assertSame( '', get_post_meta( $seconda, SchedaVoce::META_ESITO, true ) );
+
+		// Il riquadro porta il nonce della sua voce.
+		$campo = self::riquadro( $seconda )->query( '//input[@name="' . SchedaVoce::CAMPO_NONCE . '"]' )->item( 0 );
+
+		$this->assertSame( 1, wp_verify_nonce( $campo->getAttribute( 'value' ), SchedaVoce::azione_nonce( $seconda ) ) );
+		$this->assertFalse( wp_verify_nonce( $campo->getAttribute( 'value' ), SchedaVoce::azione_nonce( $prima ) ) );
 	}
 }
