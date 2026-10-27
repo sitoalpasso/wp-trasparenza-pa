@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Il catalogo elenca i file degli schemi e i file di definizioni comuni a cui
  * gli schemi rimandano. Questa classe conosce la forma del catalogo e la forma
- * minima di un file di schema (un oggetto con il proprio identificativo), e non
+ * minima di un file di schema (un JSON con il proprio identificativo), e non
  * il contenuto di nessuno schema: i campi stanno solo nei file.
  *
  * Come per l'albero, il catalogo si accetta tutto o niente. Un rimando che non
@@ -120,9 +120,9 @@ final class CatalogoSchemi {
 
 		foreach ( $contenuti as $id => $contenuto ) {
 			foreach ( self::rimandi( $contenuto ) as $rimando ) {
-				$documento = self::documento( $rimando );
+				$file_rimando = self::senza_frammento( $rimando );
 
-				if ( '' !== $documento && ! isset( $contenuti[ $documento ] ) ) {
+				if ( '' !== $file_rimando && ! isset( $contenuti[ $file_rimando ] ) ) {
 					return new WP_Error(
 						'trasparenza_catalogo_rimando',
 						/* translators: 1: identificativo dello schema, 2: rimando. */
@@ -246,7 +246,7 @@ final class CatalogoSchemi {
 		}
 
 		$contenuto = self::decodifica( $percorso, false );
-		$id        = is_object( $contenuto ) ? self::documento( (string) ( $contenuto->{'$id'} ?? '' ) ) : '';
+		$id        = is_object( $contenuto ) ? self::senza_frammento( (string) ( $contenuto->{'$id'} ?? '' ) ) : '';
 
 		if ( '' === $id ) {
 			/* translators: %s: nome del file. */
@@ -334,14 +334,14 @@ final class CatalogoSchemi {
 	}
 
 	/**
-	 * La parte di un indirizzo che indica il documento, senza il frammento.
+	 * La parte di un indirizzo che indica il file, senza il frammento.
 	 *
 	 * Vuota per un rimando interno allo stesso schema.
 	 *
 	 * @param string $indirizzo Indirizzo o rimando.
 	 * @return string
 	 */
-	private static function documento( string $indirizzo ): string {
+	private static function senza_frammento( string $indirizzo ): string {
 		$posizione = strpos( $indirizzo, '#' );
 
 		return false === $posizione ? $indirizzo : substr( $indirizzo, 0, $posizione );

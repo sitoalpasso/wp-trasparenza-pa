@@ -41,14 +41,14 @@ const PHP_MINIMO = '8.1';
 /**
  * Versione dell'interfaccia di conformita-core richiesta.
  *
- * L'intestazione `Requires Plugins` garantisce la presenza del componente
+ * La riga `Requires Plugins` dell'header garantisce la presenza del componente
  * comune e non la sua versione, perche accetta slug e non vincoli di versione:
  * il vincolo di versione vive qui e si verifica a ogni avvio.
  */
 const CORE_API_RICHIESTA = '1.7.0';
 
 /**
- * Nome visibile del componente, come compare negli avvisi in amministrazione.
+ * Nome visibile del componente, come compare negli avvisi della bacheca.
  */
 const NOME = 'Trasparenza PA';
 

@@ -99,13 +99,13 @@ final class MotoreSchemi {
 	 * La versione la dice chi chiama: un dato gia raccolto si controlla con la
 	 * versione con cui e nato, non con l'ultima.
 	 *
-	 * Il dato arriva come testo JSON o come oggetto. Un elenco PHP si rifiuta,
-	 * perche vuoto non dice se e un oggetto vuoto o una lista vuota, e lo schema
-	 * li distingue.
+	 * Il dato arriva come testo JSON o come stdClass. Un elenco PHP si rifiuta,
+	 * perche vuoto non dice se in JSON e {} oppure [], e lo schema li
+	 * distingue.
 	 *
 	 * @param string $obbligo  Identificativo dell'obbligo.
 	 * @param string $versione Versione dello schema.
-	 * @param mixed  $dato     Testo JSON o oggetto.
+	 * @param mixed  $dato     Testo JSON o stdClass.
 	 * @return true|WP_Error
 	 */
 	public function valida( string $obbligo, string $versione, $dato ) {
@@ -117,7 +117,7 @@ final class MotoreSchemi {
 		}
 
 		if ( is_array( $dato ) ) {
-			return new WP_Error( 'trasparenza_dato_forma', __( 'Il dato va passato come testo JSON o come oggetto, non come elenco PHP.', 'trasparenza-pa' ) );
+			return new WP_Error( 'trasparenza_dato_forma', __( 'Il dato va passato come testo JSON o come stdClass, non come elenco PHP.', 'trasparenza-pa' ) );
 		}
 
 		if ( is_string( $dato ) ) {

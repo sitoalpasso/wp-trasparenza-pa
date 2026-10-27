@@ -52,7 +52,7 @@ final class Avvio {
 	private static $registrata = false;
 
 	/**
-	 * Avvisi da mostrare in amministrazione, in ordine di emissione.
+	 * Avvisi da mostrare nella bacheca, in ordine di emissione.
 	 *
 	 * @var array<int, string>
 	 */
@@ -72,11 +72,11 @@ final class Avvio {
 	/**
 	 * Esegue l'avvio, una volta sola per richiesta.
 	 *
-	 * Valore restituito: `true` se l'avvio e arrivato in fondo; l'oggetto errore
+	 * Valore restituito: `true` se l'avvio e arrivato in fondo; il WP_Error
 	 * del meccanismo comune quando e quello a rifiutare, cosi il codice
 	 * dell'errore non si perde; `false` quando e questo componente a fermarsi da
 	 * se, cioe quando il meccanismo comune non e caricato o quando la sua
-	 * guardia di versione lo ha disattivato, casi in cui nessun oggetto errore
+	 * guardia di versione lo ha disattivato, casi in cui nessun WP_Error
 	 * esiste.
 	 *
 	 * @return true|false|WP_Error

@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Il codice breve della sezione e le regole della sua risposta.
  *
- * Come per la pubblicita legale, la pagina e quella che l'amministrazione
+ * Come per la pubblicita legale, la pagina e quella che l'ente
  * crea e in cui scrive il codice breve: nessuna impostazione, nessun tipo di
  * contenuto proprio per le pagine. La voce si sceglie con un parametro
  * dell'indirizzo, che resta stabile anche se l'albero cambia forma: e
