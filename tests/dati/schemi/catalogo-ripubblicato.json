@@ -1,0 +1,53 @@
+{
+	"formato": 1,
+	"comuni": [
+		{
+			"file": "comuni-finto-v1.0.schema.json",
+			"fonte": {
+				"titolo": "Definizioni comuni finte",
+				"indirizzo": "https://schemi.esempio.invalid/",
+				"consultato_il": "2026-10-27"
+			}
+		},
+		{
+			"file": "comuni-finto-v1.0-ripubblicato.schema.json",
+			"fonte": {
+				"titolo": "Definizioni comuni finte, ripubblicate con lo stesso identificativo",
+				"indirizzo": "https://schemi.esempio.invalid/",
+				"consultato_il": "2026-10-27"
+			}
+		}
+	],
+	"schemi": [
+		{
+			"obbligo": "finto",
+			"versione": "1.0",
+			"approvato_il": "2026-06-10",
+			"in_vigore_dal": "2026-06-10",
+			"file": "finto-v1.0-ripubblicato.schema.json",
+			"comuni": [
+				"comuni-finto-v1.0-ripubblicato.schema.json"
+			],
+			"fonte": {
+				"titolo": "Schema finto, versione 1.0 ripubblicata",
+				"indirizzo": "https://schemi.esempio.invalid/",
+				"consultato_il": "2026-10-27"
+			}
+		},
+		{
+			"obbligo": "finto",
+			"versione": "1.0",
+			"approvato_il": "2019-12-01",
+			"in_vigore_dal": "2020-01-01",
+			"file": "finto-v1.0.schema.json",
+			"comuni": [
+				"comuni-finto-v1.0.schema.json"
+			],
+			"fonte": {
+				"titolo": "Schema finto, versione 1.0",
+				"indirizzo": "https://schemi.esempio.invalid/",
+				"consultato_il": "2026-10-27"
+			}
+		}
+	]
+}

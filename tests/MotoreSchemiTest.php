@@ -100,24 +100,27 @@ class MotoreSchemiTest extends WP_UnitTestCase {
 		// La copia senza prefisso, caricata dagli strumenti di sviluppo, fa la parte dell'altro componente.
 		$this->assertTrue( class_exists( 'Opis\\JsonSchema\\Validator' ), 'Serve una seconda copia della libreria per provare la convivenza.' );
 
-		$this->assertTrue( $this->motore->valida( 'finto', '1.0', json_decode( (string) wp_json_encode( $this->dato_conforme() ) ) ) );
+		$this->assertTrue( $this->motore->valida( 'finto', '1.0@2019-12-01', json_decode( (string) wp_json_encode( $this->dato_conforme() ) ) ) );
 
-		$proprieta = new \ReflectionProperty( MotoreSchemi::class, 'validatore' );
+		$proprieta = new \ReflectionProperty( MotoreSchemi::class, 'validatori' );
 		$proprieta->setAccessible( true );
 
-		$this->assertStringStartsWith( 'TrasparenzaPa\\Vendor\\', get_class( $proprieta->getValue( $this->motore ) ) );
+		$validatori = $proprieta->getValue( $this->motore );
+
+		$this->assertCount( 1, $validatori );
+		$this->assertStringStartsWith( 'TrasparenzaPa\\Vendor\\', get_class( reset( $validatori ) ) );
 	}
 
 	/**
 	 * T-29: il dato conforme passa, quello difforme dice dove e perche.
 	 */
 	public function test_t29_dato_conforme_e_difforme(): void {
-		$this->assertTrue( $this->motore->valida( 'finto', '1.0', (string) wp_json_encode( $this->dato_conforme() ) ) );
+		$this->assertTrue( $this->motore->valida( 'finto', '1.0@2019-12-01', (string) wp_json_encode( $this->dato_conforme() ) ) );
 
 		$difforme                     = $this->dato_conforme();
 		$difforme['zafferanoTitolo']  = '';
 		$difforme['zafferanoVoci'][1] = new \stdClass();
-		$esito                        = $this->motore->valida( 'finto', '1.0', (string) wp_json_encode( $difforme ) );
+		$esito                        = $this->motore->valida( 'finto', '1.0@2019-12-01', (string) wp_json_encode( $difforme ) );
 
 		$this->assertWPError( $esito );
 		$this->assertSame( 'trasparenza_dato_difforme', $esito->get_error_code() );
@@ -142,8 +145,8 @@ class MotoreSchemiTest extends WP_UnitTestCase {
 	 * T-29: dato in forma ambigua, obbligo o versione sconosciuti.
 	 */
 	public function test_t29_rifiuti_prima_della_validazione(): void {
-		$this->assertSame( 'trasparenza_dato_forma', $this->motore->valida( 'finto', '1.0', $this->dato_conforme() )->get_error_code() );
-		$this->assertSame( 'trasparenza_dato_forma', $this->motore->valida( 'finto', '1.0', '{ non e json' )->get_error_code() );
+		$this->assertSame( 'trasparenza_dato_forma', $this->motore->valida( 'finto', '1.0@2019-12-01', $this->dato_conforme() )->get_error_code() );
+		$this->assertSame( 'trasparenza_dato_forma', $this->motore->valida( 'finto', '1.0@2019-12-01', '{ non e json' )->get_error_code() );
 		$this->assertSame( 'trasparenza_schema_sconosciuto', $this->motore->valida( 'finto', '9.9', '{}' )->get_error_code() );
 		$this->assertSame( 'trasparenza_schema_sconosciuto', $this->motore->valida( 'inesistente', '1.0', '{}' )->get_error_code() );
 	}
@@ -153,13 +156,13 @@ class MotoreSchemiTest extends WP_UnitTestCase {
 	 */
 	public function test_t30_validazione_senza_rete(): void {
 		// Il titolo rimanda al file comune con un indirizzo assoluto: se il rimando non si risolvesse, il controllo non scatterebbe.
-		$esito = $this->motore->valida( 'finto', '1.0', '{"zafferanoTitolo":"","zafferanoQuantita":1}' );
+		$esito = $this->motore->valida( 'finto', '1.0@2019-12-01', '{"zafferanoTitolo":"","zafferanoQuantita":1}' );
 
 		$this->assertWPError( $esito );
 		$this->assertSame( '/zafferanoTitolo', $esito->get_error_data()[0]['percorso'] );
 		$this->assertSame( 'minLength', $esito->get_error_data()[0]['regola'] );
 
-		$this->assertTrue( $this->motore->valida( 'finto', '1.0', json_decode( (string) wp_json_encode( $this->dato_conforme() ) ) ) );
+		$this->assertTrue( $this->motore->valida( 'finto', '1.0@2019-12-01', json_decode( (string) wp_json_encode( $this->dato_conforme() ) ) ) );
 		$this->assertSame( array(), $this->richieste, 'Nessuna richiesta di rete deve partire.' );
 	}
 
@@ -167,22 +170,22 @@ class MotoreSchemiTest extends WP_UnitTestCase {
 	 * T-31: la versione si sceglie per data, e il dato vecchio resta valido con la sua.
 	 */
 	public function test_t31_versioni_affiancate(): void {
-		$this->assertSame( '1.0', $this->motore->versione_in_vigore( 'finto' ), 'La 1.1 non e ancora in vigore.' );
+		$this->assertSame( '1.0@2019-12-01', $this->motore->versione_in_vigore( 'finto' ), 'La 1.1 non e ancora in vigore.' );
 		$this->assertNull( $this->motore->versione_in_vigore( 'finto', '2019-12-31' ) );
-		$this->assertSame( '1.0', $this->motore->versione_in_vigore( 'finto', '2098-12-31' ) );
-		$this->assertSame( '1.1', $this->motore->versione_in_vigore( 'finto', '2099-01-01' ) );
+		$this->assertSame( '1.0@2019-12-01', $this->motore->versione_in_vigore( 'finto', '2098-12-31' ) );
+		$this->assertSame( '1.1@2098-12-01', $this->motore->versione_in_vigore( 'finto', '2099-01-01' ) );
 
 		// Quantita 500: valida per la 1.0, oltre il massimo della 1.1.
 		$vecchio = '{"zafferanoTitolo":"Titolo","zafferanoQuantita":500}';
 
-		$this->assertTrue( $this->motore->valida( 'finto', '1.0', $vecchio ) );
-		$this->assertWPError( $this->motore->valida( 'finto', '1.1', $vecchio ) );
+		$this->assertTrue( $this->motore->valida( 'finto', '1.0@2019-12-01', $vecchio ) );
+		$this->assertWPError( $this->motore->valida( 'finto', '1.1@2098-12-01', $vecchio ) );
 
 		// Il campo nuovo della 1.1 non esiste nella 1.0.
 		$nuovo = '{"zafferanoTitolo":"Titolo","zafferanoQuantita":5,"zafferanoNota":"n"}';
 
-		$this->assertTrue( $this->motore->valida( 'finto', '1.1', $nuovo ) );
-		$this->assertWPError( $this->motore->valida( 'finto', '1.0', $nuovo ) );
+		$this->assertTrue( $this->motore->valida( 'finto', '1.1@2098-12-01', $nuovo ) );
+		$this->assertWPError( $this->motore->valida( 'finto', '1.0@2019-12-01', $nuovo ) );
 	}
 
 	/**
@@ -200,8 +203,8 @@ class MotoreSchemiTest extends WP_UnitTestCase {
 			$domani = $oggi->modify( '+1 day' );
 
 			foreach ( array(
-				'1.1' => $oggi,
-				'1.0' => $domani,
+				'1.1@2098-12-01' => $oggi,
+				'1.0@2019-12-01' => $domani,
 			) as $attesa => $vigore ) {
 				$motore = new MotoreSchemi(
 					$this->guasta(
@@ -227,8 +230,8 @@ class MotoreSchemiTest extends WP_UnitTestCase {
 
 		$motore = new MotoreSchemi( $catalogo );
 
-		$this->assertSame( '1.0', $motore->versione_in_vigore( 'altro_finto' ) );
-		$this->assertTrue( $motore->valida( 'altro_finto', '1.0', '{"cardamomoValore":"x"}' ) );
-		$this->assertWPError( $motore->valida( 'altro_finto', '1.0', '{"cardamomoValore":""}' ) );
+		$this->assertSame( '1.0@2019-12-01', $motore->versione_in_vigore( 'altro_finto' ) );
+		$this->assertTrue( $motore->valida( 'altro_finto', '1.0@2019-12-01', '{"cardamomoValore":"x"}' ) );
+		$this->assertWPError( $motore->valida( 'altro_finto', '1.0@2019-12-01', '{"cardamomoValore":""}' ) );
 	}
 }

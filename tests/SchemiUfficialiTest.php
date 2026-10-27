@@ -145,7 +145,7 @@ class SchemiUfficialiTest extends WP_UnitTestCase {
 		foreach ( $obblighi as $obbligo ) {
 			$versione = $this->motore->versione_in_vigore( $obbligo );
 
-			$this->assertNotNull( $versione, "Nessuna versione in vigore oggi per {$obbligo}." );
+			$this->assertSame( '1.0@2026-06-10', $versione, "La versione in vigore oggi per {$obbligo} e la 1.0 del 10 giugno 2026." );
 
 			$voce = $catalogo->versione( $obbligo, $versione );
 

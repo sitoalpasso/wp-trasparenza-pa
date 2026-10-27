@@ -32,6 +32,7 @@ class CatalogoSchemiTest extends WP_UnitTestCase {
 		$versioni = $catalogo->versioni( 'finto' );
 
 		$this->assertSame( array( '1.0', '1.1' ), array_column( $versioni, 'versione' ) );
+		$this->assertSame( array( '1.0@2019-12-01', '1.1@2098-12-01' ), array_column( $versioni, 'codice' ) );
 		$this->assertSame( '2019-12-01', $versioni[0]['approvato_il'] );
 		$this->assertSame( '2020-01-01', $versioni[0]['in_vigore_dal'] );
 		$this->assertSame( 'finto-v1.0.schema.json', $versioni[0]['file'] );
@@ -39,7 +40,7 @@ class CatalogoSchemiTest extends WP_UnitTestCase {
 
 		// Il file comune comincia con il segno BOM, come i file ufficiali.
 		$this->assertStringStartsWith( "\xEF\xBB\xBF", (string) file_get_contents( dirname( $this->catalogo_finto() ) . '/comuni-finto-v1.0.schema.json' ) );
-		$this->assertArrayHasKey( self::$base_finta . '/comuni-finto-v1.0.schema.json', $catalogo->contenuti() );
+		$this->assertArrayHasKey( self::$base_finta . '/comuni-finto-v1.0.schema.json', $catalogo->contenuti( 'finto', '1.0@2019-12-01' ) );
 	}
 
 	/**
@@ -63,7 +64,8 @@ class CatalogoSchemiTest extends WP_UnitTestCase {
 			),
 			'trasparenza_catalogo_versione_doppia'    => $this->guasta(
 				static function ( array $c ): array {
-					$c['schemi'][1]['versione'] = '1.1';
+					$c['schemi'][1]['versione']     = '1.1';
+					$c['schemi'][1]['approvato_il'] = '2098-12-01';
 					return $c;
 				}
 			),
@@ -100,6 +102,12 @@ class CatalogoSchemiTest extends WP_UnitTestCase {
 					return $c;
 				},
 				array( 'rotto.schema.json' => 'non e uno schema' )
+			),
+			'trasparenza_catalogo_comune_sconosciuto' => $this->guasta(
+				static function ( array $c ): array {
+					$c['schemi'][0]['comuni'] = array( 'manca.schema.json' );
+					return $c;
+				}
 			),
 			'trasparenza_catalogo_rimando'            => $this->guasta(
 				static function ( array $c ): array {
