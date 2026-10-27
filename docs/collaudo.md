@@ -133,6 +133,18 @@ distribuita con i nomi prefissati.
 | T-32 | fatto | [statico] nomi dei campi di tutti gli schemi, quelli di `schemas/` e quelli finti delle prove, nei sorgenti PHP (TRASP-06) | assenti. Non vacuita: un nome di campo scritto in un commento di `src/` rende rossa la prova |
 | T-33 | fatto | Schema in piu aggiunto come solo file (TRASP-06) | un terzo schema finto, aggiunto al catalogo delle prove senza toccare il PHP, si carica e valida |
 
+## Schemi ufficiali ANAC (righe T-34..T-36)
+
+I file dell'Autorita come dati, scaricati dalla Guida Online del Portale Servizi ANAC, e gli
+esempi compilati che la stessa guida pubblica. Si valida sempre contro quei file: se un
+esempio ufficiale non passa, il difetto e nostro.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-34 | fatto | Catalogo ufficiale (TRASP-05, TRASP-26) | `schemas/catalogo.json` si carica; ha gli obblighi degli artt. 4-bis, 13 e 31, ciascuno con una versione in vigore oggi, date e fonte all'indirizzo ANAC; ogni file e identico byte per byte a quello scaricato (impronta SHA-256 nel catalogo) e il suo nome coincide con la fine del suo `$id`. Non vacuita: un byte cambiato in uno schema rende rossa la prova |
+| T-35 | fatto | Esempi ufficiali ANAC (TRASP-05) | i sette esempi compilati della guida (art. 13: pubbliche amministrazioni, ordini e collegi, societa ed enti; art. 31: organismo indipendente di valutazione, organi di revisione, Corte dei conti; art. 4-bis), cosi come scaricati e quindi con il segno BOM, passano senza nessuna richiesta di rete |
+| T-36 | fatto | Esempi ufficiali rotti apposta (TRASP-05), un caso per rottura: campo obbligatorio tolto, data non GG/MM/AAAA, campo non previsto, valore fuori elenco, recapito senza posta elettronica, importo senza decimali, trimestre fuori intervallo, indirizzo del documento senza protocollo | ciascuno respinto, con il percorso del campo sbagliato e la regola violata |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
