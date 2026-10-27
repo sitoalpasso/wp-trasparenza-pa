@@ -115,6 +115,24 @@ nella prova e non letti dal file, altrimenti la prova confronterebbe il file con
 | T-24 | fatto | Identificativi | i 68 identificativi del modello `at_map` che hanno una voce nelle fonti coincidono con quelli dell'albero |
 | T-25 | fatto | Dicitura e fonti | dicitura del non applicabile carattere per carattere; fonti con titolo, indirizzo o estremi e data di consultazione; fonte dichiarata per ogni dicitura |
 
+## Motore degli schemi (righe T-26..T-33)
+
+Provano il motore con schemi finti scritti per le prove, nella stessa forma dei file ANAC
+(draft-07, riferimenti esterni a indirizzi assoluti). Gli schemi ufficiali entrano come file
+di dati e hanno prove loro. La libreria di validazione e opis/json-schema (Apache-2.0),
+distribuita con i nomi prefissati.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-26 | da fare | Libreria nel pacchetto distribuito | presente solo con i nomi prefissati; con una seconda copia della stessa libreria gia caricata da un altro componente la validazione funziona e usa la propria |
+| T-27 | da fare | Catalogo degli schemi valido | caricato; per ogni versione: obbligo, versione, data di approvazione ANAC, data di entrata in vigore, fonte, file; versioni dello stesso obbligo in ordine di entrata in vigore |
+| T-28 | da fare | Catalogo difettoso, un caso per difetto: file assente, JSON non valido, formato sconosciuto, versione doppia per lo stesso obbligo, data non valida, fonte mancante, file dello schema assente, schema non JSON, riferimento esterno senza file locale | rifiutato con un codice d'errore diverso per ogni difetto; nessun catalogo parziale |
+| T-29 | da fare | Dato contro lo schema finto | il dato conforme passa; un dato difforme e respinto e l'errore indica il percorso del campo e la regola violata |
+| T-30 | da fare | Validazione senza rete | i riferimenti a indirizzi esterni si risolvono solo sui file locali del catalogo; nessuna richiesta di rete parte, anche quando la rete e disponibile |
+| T-31 | da fare | Due versioni dello stesso obbligo (TRASP-26) | il dato nuovo prende la versione in vigore alla data di oggi nel fuso del sito; il dato raccolto con la versione precedente resta valido e si valida con la sua; una versione non ancora in vigore non si sceglie da sola |
+| T-32 | da fare | [statico] nomi dei campi di tutti gli schemi, quelli di `schemas/` e quelli finti delle prove, nei sorgenti PHP (TRASP-06) | assenti. Non vacuita: un nome di campo scritto in un commento di `src/` rende rossa la prova |
+| T-33 | da fare | Schema in piu aggiunto come solo file (TRASP-06) | un terzo schema finto, aggiunto al catalogo delle prove senza toccare il PHP, si carica e valida |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
