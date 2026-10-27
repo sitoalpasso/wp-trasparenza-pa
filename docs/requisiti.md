@@ -140,7 +140,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-02 | da fare | Accesso senza autenticazione | art. 9 |
 | TRASP-03 | da fare | Indicizzazione consentita e non ostacolata | art. 9 |
 | TRASP-04 | fatto | Albero conforme all'Allegato A | Allegato A, delibera ANAC 1310/2016, d.lgs. 103/2024 |
-| TRASP-05 | da fare | Schemi obbligatori per artt. 4-bis, 13, 31 | art. 48, delibere ANAC 495/2024 e 481/2025 |
+| TRASP-05 | in corso | Schemi obbligatori per artt. 4-bis, 13, 31 | art. 48, delibere ANAC 495/2024 e 481/2025 |
 | TRASP-06 | da fare | Estensibilità dichiarativa ai nuovi schemi | delibere ANAC 495/2024 e 497/2025 |
 | TRASP-07 | da fare | Formato aperto e riutilizzabile | art. 7 |
 | TRASP-08 | da fare | Durata quinquennale calcolata dall'obbligo | art. 8 |
@@ -161,7 +161,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-23 | da fare | Direttiva ATmap nel robots, opzionale | specifiche tecniche ANAC (raccomandazione) |
 | TRASP-24 | da fare | HTTPS ovunque, senza filtri | specifiche tecniche ANAC |
 | TRASP-25 | da fare | Rinvii tracciati e verificati | art. 9-bis, d.l. 19/2026 art. 8 |
-| TRASP-26 | da fare | Schemi versionati con la data ANAC | delibere ANAC 495/2024, 481/2025 |
+| TRASP-26 | in corso | Schemi versionati con la data ANAC | delibere ANAC 495/2024, 481/2025 |
 | TRASP-27 | da fare | Stato dell'obbligo a tre valori, dicitura esatta | schemi ANAC |
 | TRASP-28 | da fare | Stati editoriali con segnalazione al RPCT | istruzioni operative ANAC |
 | TRASP-29 | da fare | Titolare dell'accesso civico sulle voci-rinvio | art. 9-bis commi 3 e 4 |

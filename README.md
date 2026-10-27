@@ -49,6 +49,9 @@ citate per estremi:
   volontaria;
 - ANAC, Guida Online del Portale Servizi, sezione Amministrazione trasparente: specifiche
   tecniche di pubblicazione, denominazione dei file, file di mappatura degli URL, HTTPS;
+  da qui vengono i JSON Schema degli artt. 4-bis, 13 e 31 e il file di definizioni comuni,
+  distribuiti senza modifiche nella cartella `schemas/` con la fonte e l'impronta di
+  ciascun file nel catalogo;
 - d.l. 19 febbraio 2026, n. 19, art. 8, convertito con legge 20 aprile 2026, n. 50:
   adempimento per collegamento;
 - d.l. 9 giugno 2021, n. 80, art. 6: il PIAO assorbe il piano triennale di prevenzione
