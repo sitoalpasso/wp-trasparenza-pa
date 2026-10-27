@@ -137,11 +137,14 @@ require_once __DIR__ . '/src/class-tipo-voce.php';
 require_once __DIR__ . '/src/class-permessi.php';
 require_once __DIR__ . '/src/class-installazione.php';
 require_once __DIR__ . '/src/class-chiusura-pubblicazione.php';
+require_once __DIR__ . '/src/class-modulo-schema.php';
+require_once __DIR__ . '/src/class-scheda-voce.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );
 add_action( 'init', array( Installazione::class, 'da_init' ), 6 );
 
 ChiusuraPubblicazione::aggancia();
+SchedaVoce::aggancia();
 
 PaginaPubblica::aggancia();

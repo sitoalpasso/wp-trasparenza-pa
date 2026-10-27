@@ -66,6 +66,8 @@ viene segnalato.
 | `TipoVoce` | Registra il tipo della voce di trasparenza attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-05 |
 | `Permessi`, `Installazione` | Permessi della voce chiesti al componente comune e assegnati all'amministratore a ogni cambio di versione installata | trasversale |
 | `ChiusuraPubblicazione` | Ogni tentativo di pubblicare una voce la lascia in bozza finche non ci sono gli stati editoriali | TRASP-28 |
+| `ModuloSchema` | Costruisce i campi del modulo leggendo lo schema di una versione, e dai valori inviati ricostruisce il dato; non conosce nessun campo di nessuno schema | TRASP-05, TRASP-06 |
+| `SchedaVoce` | Riquadro dei dati nella schermata della voce: scelta dell'obbligo, legame con la versione in vigore scritto una volta sola, salvataggio con nonce e permesso, esito del controllo e difetti accanto ai campi | TRASP-05, TRASP-26 |
 | `PoliticaTrasparenza` | Dichiara a core: indicizzazione consentita, scadenza quinquennale con uscita senza cancellazione, calcolo della decorrenza dal 1° gennaio successivo | TRASP-03, TRASP-08, TRASP-09 |
 | `StatiEditoriali` | Bozza, validato, pubblicabile provvisoriamente, non pubblicabile; segnalazione al RPCT nei casi di difformità | TRASP-28 |
 | `VociRinvio` | Le voci assolte per collegamento: etichetta, data, amministrazione titolare, destinatario dell'accesso civico; registra i collegamenti presso il verificatore di core | TRASP-11, TRASP-25, TRASP-29 |

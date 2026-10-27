@@ -126,3 +126,9 @@ Premere Pubblica: la voce resta in bozza.
 - **Messaggi della libreria.** La libreria di validazione scrive in inglese. Il modulo mostra
   un messaggio italiano per ogni tipo di regola violata, con il dettaglio originale fra
   parentesi.
+- **Elenchi descritti per posizione.** Nell'art. 13 gli uffici di un organo sono descritti
+  con un elenco di schemi, uno per posizione, e ce n'e uno solo: per le regole di JSON
+  Schema (draft-07) lo schema controlla il primo ufficio e lascia libero il secondo e i
+  successivi. Il modulo offre a tutti gli uffici gli stessi campi del primo, ma il controllo
+  resta quello dello schema: un errore nel secondo ufficio non viene segnalato. Il
+  componente non corregge lo schema dell'Autorita; il limite va dichiarato.
