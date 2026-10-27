@@ -63,6 +63,9 @@ viene segnalato.
 | `Alberatura` | Costruisce l'albero delle sezioni dal file di definizione conforme all'Allegato A; denominazioni esatte, data di aggiornamento per nodo, stato dell'obbligo per nodo | TRASP-01, TRASP-04, TRASP-10, TRASP-27 |
 | `CatalogoSchemi` | Legge e controlla il catalogo `schemas/catalogo.json`: versioni per obbligo con date e fonte, file degli schemi e delle definizioni comuni, rimandi risolti in locale | TRASP-06, TRASP-26 |
 | `MotoreSchemi` | Sceglie la versione in vigore, valida contro i JSON Schema ufficiali con la libreria opis/json-schema nella copia prefissata, restituisce i difetti con percorso e regola; i moduli di compilazione arrivano dopo | TRASP-05, TRASP-06, TRASP-26 |
+| `TipoVoce` | Registra il tipo della voce di trasparenza attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-05 |
+| `Permessi`, `Installazione` | Permessi della voce chiesti al componente comune e assegnati all'amministratore a ogni cambio di versione installata | trasversale |
+| `ChiusuraPubblicazione` | Ogni tentativo di pubblicare una voce la lascia in bozza finche non ci sono gli stati editoriali | TRASP-28 |
 | `PoliticaTrasparenza` | Dichiara a core: indicizzazione consentita, scadenza quinquennale con uscita senza cancellazione, calcolo della decorrenza dal 1° gennaio successivo | TRASP-03, TRASP-08, TRASP-09 |
 | `StatiEditoriali` | Bozza, validato, pubblicabile provvisoriamente, non pubblicabile; segnalazione al RPCT nei casi di difformità | TRASP-28 |
 | `VociRinvio` | Le voci assolte per collegamento: etichetta, data, amministrazione titolare, destinatario dell'accesso civico; registra i collegamenti presso il verificatore di core | TRASP-11, TRASP-25, TRASP-29 |

@@ -152,9 +152,9 @@ Il tipo della voce, i permessi, la pubblicazione chiusa (T2c-1), poi il modulo g
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-38 | da fare | Tipo della voce di trasparenza (TRASP-05) | registrato attraverso il componente comune nella sezione della trasparenza, con `show_in_rest` dichiarato falso; una richiesta anonima all'indirizzo di una voce non la mostra; il menu compare in amministrazione |
-| T-39 | da fare | Permessi della voce | chiesti al componente comune e assegnati all'amministratore a ogni cambio della versione installata; un utente Autore o Redattore di WordPress non vede e non modifica le voci. [statico] i nomi dei permessi derivati non compaiono nei sorgenti |
-| T-40 | da fare | Pubblicazione chiusa fino agli stati editoriali (TRASP-28) | ogni tentativo di pubblicare, dalla schermata, da codice o per programmazione, lascia la voce in bozza con il motivo |
+| T-38 | fatto | Tipo della voce di trasparenza (TRASP-05) | registrato attraverso il componente comune nella sezione della trasparenza, con `show_in_rest` dichiarato falso; una richiesta anonima all'indirizzo di una voce non la mostra; il menu compare in amministrazione |
+| T-39 | fatto | Permessi della voce | chiesti al componente comune e assegnati all'amministratore a ogni cambio della versione installata; un utente Autore o Redattore di WordPress non vede e non modifica le voci. [statico] i nomi dei permessi derivati non compaiono nei sorgenti |
+| T-40 | fatto | Pubblicazione chiusa fino agli stati editoriali (TRASP-28) | ogni tentativo di pubblicare, dalla schermata, da codice o per programmazione, lascia la voce in bozza con il motivo |
 | T-41 | da fare | Modulo generato dallo schema (TRASP-05, TRASP-06) | per l'art. 13 il modulo ha un campo per ogni proprieta raggiunta dallo schema, con gruppi per gli oggetti, serie per gli elenchi, scelta per gli elenchi chiusi di valori ed etichetta presa dallo schema; un quarto schema finto, aggiunto come solo file, produce il suo modulo senza toccare il PHP |
 | T-42 | da fare | Giro completo con l'esempio ufficiale (TRASP-05, TRASP-26) | l'esempio dell'art. 13 inserito nel modulo e salvato da un dato identico all'esempio, conforme; la voce conserva obbligo e codice di versione; il riquadro dice con quale versione, per esempio "versione 1.0 del 10/06/2026" |
 | T-43 | da fare | Dato difforme dal modulo | salvato in bozza con i difetti, ciascuno mostrato in italiano accanto al campo del suo percorso; un campo vuoto non entra nel dato come testo vuoto |
