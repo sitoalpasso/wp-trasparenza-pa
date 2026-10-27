@@ -27,6 +27,9 @@ dependsOn:
       optional: false
     - name: Conformita Core
       optional: false
+    - name: opis/json-schema (Apache-2.0, inclusa nel pacchetto)
+      versionMin: "2.6"
+      optional: false
 
 description:
   it:

@@ -66,11 +66,20 @@ ciascuno, sara pubblicato in `docs/requisiti.md`.
 - PHP 8.1 o superiore
 - sito singolo: multisite non supportato
 - plugin `conformita-core` attivo; la compatibilita di versione e verificata
-  all'attivazione
+  all'avvio
 
 ## Licenza
 
 GPL-3.0-or-later. Il testo integrale e in [LICENSE](LICENSE).
+
+## Componenti di terze parti
+
+Il pacchetto distribuito contiene la libreria di validazione
+[opis/json-schema](https://github.com/opis/json-schema) e le sue dipendenze
+`opis/string` e `opis/uri`, rilasciate in licenza Apache-2.0, compatibile con la
+GPL-3.0. Sono incluse con i nomi prefissati (`TrasparenzaPa\Vendor\`) nella cartella
+`vendor-prefixed/`, che si genera con `composer install`; ogni libreria vi porta il
+proprio testo di licenza e, dove esiste, il proprio file NOTICE.
 
 Il componente e disponibile in licenza aperta, senza costo di licenza ne canone
 ricorrente.

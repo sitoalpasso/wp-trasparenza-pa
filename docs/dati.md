@@ -11,7 +11,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 | Cosa | Contenuto | Chi la cambia |
 |---|---|---|
 | Alberatura | l'albero delle sezioni conforme all'Allegato A: identificativo del nodo, denominazione esatta, articolo di riferimento, piu le diciture degli stati che ne richiedono una. File `dati/alberatura/corrente.json`, formato descritto in `docs/implementazione/alberatura.md` | solo un aggiornamento del plugin, mai l'utente |
-| Schemi | una definizione per ogni schema ANAC e per ogni sua versione, con la data di approvazione ANAC e la fonte; accanto, i JSON Schema ufficiali usati per validare | idem: una versione nuova si affianca, non sovrascrive |
+| Schemi | una definizione per ogni schema ANAC e per ogni sua versione, con la data di approvazione ANAC e la fonte; accanto, i JSON Schema ufficiali usati per validare. Catalogo `schemas/catalogo.json`, formato descritto in `docs/implementazione/motore-schemi.md` | idem: una versione nuova si affianca, non sovrascrive |
 
 **2. I contenuti** (nel database del sito):
 
