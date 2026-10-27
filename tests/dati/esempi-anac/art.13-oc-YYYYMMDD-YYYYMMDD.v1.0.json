@@ -1,0 +1,18 @@
+﻿{
+    "$schema": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.13-v1.0.schema.json",
+    "intestazione": {
+        "amministrazione": {
+            "codiceFiscale": "12345678633",
+            "denominazione": "Amministrazione provinciale..."
+        },
+        "dataPrimaPubblicazione": "22/05/2026",
+        "dataUltimaModifica": "22/05/2026"
+    },
+    "orgOrdiniCollegi": {
+        "organigramma": "https://mysite/organizzazione.jpg",
+        "contatti": {
+            "recapitoTelefonico": "06 123456",
+            "postaElettronicaOrdinaria": "email@email.it" 
+        }
+    }
+}

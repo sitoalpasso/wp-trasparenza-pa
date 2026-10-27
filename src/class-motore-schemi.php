@@ -99,9 +99,9 @@ final class MotoreSchemi {
 	 * La versione la dice chi chiama: un dato gia raccolto si controlla con la
 	 * versione con cui e nato, non con l'ultima.
 	 *
-	 * Il dato arriva come testo JSON o come stdClass. Un elenco PHP si rifiuta,
-	 * perche vuoto non dice se in JSON e {} oppure [], e lo schema li
-	 * distingue.
+	 * Il dato arriva come testo JSON, anche con il segno BOM iniziale, o come
+	 * stdClass. Un elenco PHP si rifiuta, perche vuoto non dice se in JSON e {}
+	 * oppure [], e lo schema li distingue.
 	 *
 	 * @param string $obbligo  Identificativo dell'obbligo.
 	 * @param string $versione Versione dello schema.
@@ -121,6 +121,11 @@ final class MotoreSchemi {
 		}
 
 		if ( is_string( $dato ) ) {
+			// I file ufficiali cominciano con il segno BOM, e un dato preso da uno di loro anche.
+			if ( str_starts_with( $dato, "\xEF\xBB\xBF" ) ) {
+				$dato = substr( $dato, 3 );
+			}
+
 			$dato = json_decode( $dato, false );
 
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
