@@ -184,6 +184,29 @@ class VoceTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Lo stato che dice l'ultima voce di cambio di stato del registro del componente comune.
+	 *
+	 * @param int $voce Voce.
+	 * @return string|null
+	 */
+	private static function stato_nel_registro( int $voce ): ?string {
+		$voci = conformita_core_voci_registro(
+			array(
+				'contenuto' => $voce,
+				'ordine'    => 'decrescente',
+			)
+		);
+
+		foreach ( is_array( $voci ) ? $voci : array() as $riga ) {
+			if ( isset( $riga['dettagli']['stato_nuovo'] ) ) {
+				return (string) $riga['dettagli']['stato_nuovo'];
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * T-40: ogni strada verso la pubblicazione lascia la voce in bozza.
 	 */
 	public function test_t40_pubblicazione_chiusa(): void {
@@ -196,6 +219,7 @@ class VoceTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'draft', get_post_status( $diretta ), 'Creazione gia pubblicata.' );
+		$this->assertSame( 'draft', self::stato_nel_registro( $diretta ), 'Il registro del componente comune dice lo stesso stato: Creazione gia pubblicata.' );
 
 		$aggiornata = $this->voce();
 
@@ -207,6 +231,7 @@ class VoceTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'draft', get_post_status( $aggiornata ), 'Aggiornamento a pubblicata.' );
+		$this->assertSame( 'draft', self::stato_nel_registro( $aggiornata ), 'Il registro del componente comune dice lo stesso stato: Aggiornamento a pubblicata.' );
 
 		$programmata = (int) wp_insert_post(
 			array(
@@ -218,6 +243,7 @@ class VoceTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'draft', get_post_status( $programmata ), 'Pubblicazione programmata.' );
+		$this->assertSame( 'draft', self::stato_nel_registro( $programmata ), 'Il registro del componente comune dice lo stesso stato: Pubblicazione programmata.' );
 
 		$privata = (int) wp_insert_post(
 			array(
@@ -228,6 +254,7 @@ class VoceTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'draft', get_post_status( $privata ), 'Pubblicazione privata.' );
+		$this->assertSame( 'draft', self::stato_nel_registro( $privata ), 'Il registro del componente comune dice lo stesso stato: Pubblicazione privata.' );
 
 		$da_codice = $this->voce();
 
@@ -235,6 +262,7 @@ class VoceTest extends WP_UnitTestCase {
 
 		$this->assertSame( 'draft', get_post_status( $da_codice ), 'Pubblicazione diretta da codice.' );
 		$this->assertSame( 'draft', get_post( $da_codice )->post_status, 'Lo stato riletto dalla banca dati.' );
+		$this->assertSame( 'draft', self::stato_nel_registro( $da_codice ), 'Il registro del componente comune dice lo stesso stato: Lo stato riletto dalla banca dati.' );
 
 		$avvisi = $this->avvisi_in_bacheca();
 

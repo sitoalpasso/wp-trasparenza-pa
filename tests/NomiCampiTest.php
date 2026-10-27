@@ -52,14 +52,26 @@ class NomiCampiTest extends WP_UnitTestCase {
 		$nomi   = array();
 
 		foreach ( $schemi as $file ) {
-			$testo = (string) file_get_contents( $file );
-			$testo = str_starts_with( $testo, "\xEF\xBB\xBF" ) ? substr( $testo, 3 ) : $testo;
-			$nomi  = array_merge( $nomi, $this->nomi( json_decode( $testo, true ) ) );
+			$testo  = (string) file_get_contents( $file );
+			$testo  = str_starts_with( $testo, "\xEF\xBB\xBF" ) ? substr( $testo, 3 ) : $testo;
+			$propri = $this->nomi( json_decode( $testo, true ) );
+
+			// Un file che non da nomi renderebbe la prova vuota senza farsi notare.
+			if ( str_starts_with( $file, $radice . '/schemas/' ) && str_ends_with( $file, '.schema.json' ) ) {
+				$this->assertNotEmpty( $propri, 'Nessun nome raccolto da ' . basename( $file ) );
+			}
+
+			$nomi = array_merge( $nomi, $propri );
 		}
 
 		$nomi = array_unique( $nomi );
 
 		$this->assertContains( 'zafferanoTitolo', $nomi, 'La raccolta dei nomi deve trovare almeno quelli degli schemi finti.' );
+
+		$ufficiali = array_filter( (array) glob( $radice . '/schemas/*.schema.json' ) );
+
+		$this->assertGreaterThanOrEqual( 4, count( $ufficiali ), 'La raccolta deve leggere gli schemi ufficiali.' );
+		$this->assertContains( 'orgPubblicheAmministrazioni', $nomi, 'La raccolta dei nomi deve trovare anche quelli degli schemi ufficiali.' );
 
 		$sorgenti = array_merge( array( $radice . '/trasparenza-pa.php' ), (array) glob( $radice . '/src/*.php' ) );
 
