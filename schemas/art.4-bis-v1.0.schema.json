@@ -1,0 +1,133 @@
+﻿{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.4-bis-v1.0.schema.json",
+    "type": "object",
+    "title": "Trasparenza nell'utilizzo delle risorse pubbliche (art. 4-bis d.lgs. 33/2013)",
+    "additionalProperties": false,
+    "properties": {
+        "$schema": {
+            "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Url"
+        },
+        "intestazione": {
+            "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Intestazione"
+        },
+        "datiSuiPagamenti": {
+            "type": "array",
+            "description": "Dati identificativi dei pagamenti",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "description": "Dati del pagamento della categoria “uscite correnti”",
+                        "additionalProperties": false,
+                        "properties": {
+                            "anno": {
+                                "$comment": "Anno di riferimento del pagamento",
+                                "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Anno"
+                            },
+                            "trimestre": {
+                                "$comment": "Trimestre (1, 2, 3, 4 trimestre dell’anno di riferimento)",
+                                "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Trimestre"
+                            },
+                            "categoria": {
+                                "type": "string",
+                                "const": "uscite correnti"
+                            },
+                            "tipologia": {
+                                "$ref": "#/definitions/UscitaCorrente"
+                            },
+                            "importo": {
+                                "$comment": "Importo del singolo pagamento per il trimestre di riferimento per singolo beneficiario",
+                                "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Importo"
+                            },
+                            "beneficiario": {
+                                "$comment": "Beneficiario del pagamento",
+                                "$ref": "#/definitions/Beneficiario"
+                            }
+                        },
+                        "required": [
+                            "anno",
+                            "trimestre",
+                            "categoria",
+                            "tipologia",
+                            "importo",
+                            "beneficiario"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "description": "Dati del pagamento della categoria “uscite in conto capitale”",
+                        "additionalProperties": false,
+                        "properties": {
+                            "anno": {
+                                "$comment": "Anno di riferimento del pagamento",
+                                "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Anno"
+                            },
+                            "trimestre": {
+                                "$comment": "Trimestre (1, 2, 3, 4 trimestre dell’anno di riferimento)",
+                                "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Trimestre"
+                            },
+                            "categoria": {
+                                "type": "string",
+                                "const": "uscite in conto capitale"
+                            },
+                            "tipologia": {
+                                "$ref": "#/definitions/UscitaInContoCapitale"
+                            },
+                            "importo": {
+                                "$comment": "Importo del singolo pagamento per il trimestre di riferimento per singolo beneficiario",
+                                "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Importo"
+                            },
+                            "beneficiario": {
+                                "$comment": "Beneficiario del pagamento",
+                                "$ref": "#/definitions/Beneficiario"
+                            }
+                        },
+                        "required": [
+                            "anno",
+                            "trimestre",
+                            "categoria",
+                            "tipologia",
+                            "importo",
+                            "beneficiario"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "required": [
+        "$schema",
+        "intestazione",
+        "datiSuiPagamenti"
+    ],
+    "definitions": {
+        "UscitaCorrente": {
+            "enum": [
+                "Acquisto di beni e di servizi",
+                "Contributi in conto esercizio",
+                "Interessi passivi",
+                "Altre spese per attività finanziarie",
+                "Altre spese correnti"
+            ]
+        },
+        "UscitaInContoCapitale": {
+            "enum": [
+                "Investimenti in beni materiali",
+                "Investimenti in beni immateriali",
+                "Investimenti in attività finanziarie",
+                "Contributi in conto capitale",
+                "Altre spese in conto capitale"
+            ]
+        },
+        "Beneficiario": {
+            "enum": [
+                "Persona fisica",
+                "Altro soggetto pubblico e privato",
+                "Soggetto estero"
+            ]
+        }
+    }
+}
