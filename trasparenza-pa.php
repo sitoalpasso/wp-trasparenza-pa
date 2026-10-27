@@ -117,6 +117,7 @@ require_once __DIR__ . '/src/class-alberatura.php';
 require_once __DIR__ . '/src/class-stati-obbligo.php';
 require_once __DIR__ . '/src/class-pagina-pubblica.php';
 require_once __DIR__ . '/src/class-catalogo-schemi.php';
+require_once __DIR__ . '/src/class-motore-schemi.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 

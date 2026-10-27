@@ -124,14 +124,14 @@ distribuita con i nomi prefissati.
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-26 | da fare | Libreria nel pacchetto distribuito | presente solo con i nomi prefissati; con una seconda copia della stessa libreria gia caricata da un altro componente la validazione funziona e usa la propria |
+| T-26 | fatto | Libreria nel pacchetto distribuito | presente solo con i nomi prefissati; con una seconda copia della stessa libreria gia caricata da un altro componente la validazione funziona e usa la propria |
 | T-27 | fatto | Catalogo degli schemi valido | caricato; per ogni versione: obbligo, versione, data di approvazione ANAC, data di entrata in vigore, fonte, file; versioni dello stesso obbligo in ordine di entrata in vigore; un file che comincia con il segno BOM, come quelli ufficiali, si legge |
 | T-28 | fatto | Catalogo difettoso, un caso per difetto: file assente, JSON non valido, formato sconosciuto, versione doppia per lo stesso obbligo, due file con lo stesso identificativo di schema, data non valida, fonte mancante, file dello schema assente, schema non JSON, riferimento esterno senza file locale | rifiutato con un codice d'errore diverso per ogni difetto; nessun catalogo parziale |
-| T-29 | da fare | Dato contro lo schema finto | il dato conforme passa; un dato difforme e respinto e l'errore indica il percorso del campo e la regola violata |
-| T-30 | da fare | Validazione senza rete | i riferimenti a indirizzi esterni si risolvono solo sui file locali del catalogo; nessuna richiesta di rete parte, anche quando la rete e disponibile |
-| T-31 | da fare | Due versioni dello stesso obbligo (TRASP-26) | il dato nuovo prende la versione in vigore alla data di oggi nel fuso del sito; il dato raccolto con la versione precedente resta valido e si valida con la sua; una versione non ancora in vigore non si sceglie da sola |
-| T-32 | da fare | [statico] nomi dei campi di tutti gli schemi, quelli di `schemas/` e quelli finti delle prove, nei sorgenti PHP (TRASP-06) | assenti. Non vacuita: un nome di campo scritto in un commento di `src/` rende rossa la prova |
-| T-33 | da fare | Schema in piu aggiunto come solo file (TRASP-06) | un terzo schema finto, aggiunto al catalogo delle prove senza toccare il PHP, si carica e valida |
+| T-29 | fatto | Dato contro lo schema finto | il dato conforme passa; un dato difforme e respinto e l'errore indica il percorso del campo e la regola violata |
+| T-30 | fatto | Validazione senza rete | i riferimenti a indirizzi esterni si risolvono solo sui file locali del catalogo; nessuna richiesta di rete parte, anche quando la rete e disponibile |
+| T-31 | fatto | Due versioni dello stesso obbligo (TRASP-26) | il dato nuovo prende la versione in vigore alla data di oggi nel fuso del sito; il dato raccolto con la versione precedente resta valido e si valida con la sua; una versione non ancora in vigore non si sceglie da sola |
+| T-32 | fatto | [statico] nomi dei campi di tutti gli schemi, quelli di `schemas/` e quelli finti delle prove, nei sorgenti PHP (TRASP-06) | assenti. Non vacuita: un nome di campo scritto in un commento di `src/` rende rossa la prova |
+| T-33 | fatto | Schema in piu aggiunto come solo file (TRASP-06) | un terzo schema finto, aggiunto al catalogo delle prove senza toccare il PHP, si carica e valida |
 
 ## Collaudo congiunto con l'albo pretorio
 
