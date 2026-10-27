@@ -25,6 +25,12 @@ defined( 'ABSPATH' ) || exit;
  *
  * Come per l'albero, il catalogo si accetta tutto o niente. Un rimando che non
  * trova il suo file si scopre qui, al caricamento, e non al primo dato.
+ *
+ * Una versione si riconosce dal numero e dalla data di approvazione, il suo
+ * codice: l'Autorita ha gia ripubblicato file diversi con lo stesso numero.
+ * Ogni versione ha i suoi file, cioe il suo schema e i file comuni che usa, e
+ * l'identificativo di ogni file deve essere unico solo fra quelli: due versioni
+ * possono quindi avere file diversi con lo stesso identificativo.
  */
 final class CatalogoSchemi {
 
@@ -36,22 +42,22 @@ final class CatalogoSchemi {
 	/**
 	 * Versioni per obbligo, in ordine di entrata in vigore.
 	 *
-	 * @var array<string, array<int, array{obbligo: string, versione: string, approvato_il: string, in_vigore_dal: string, file: string, fonte: array<string, string>, id: string}>>
+	 * @var array<string, array<int, array{obbligo: string, versione: string, approvato_il: string, in_vigore_dal: string, codice: string, file: string, comuni: array<int, string>, fonte: array<string, string>, id: string}>>
 	 */
 	private $versioni;
 
 	/**
-	 * Contenuto decodificato di ogni file, per identificativo dello schema.
+	 * Contenuto decodificato dei file di ogni versione, per identificativo.
 	 *
-	 * @var array<string, object>
+	 * @var array<string, array<string, array<string, object>>>
 	 */
 	private $contenuti;
 
 	/**
 	 * Costruito solo da `carica()`, a controlli superati.
 	 *
-	 * @param array<string, array<int, array<string, mixed>>> $versioni  Versioni per obbligo.
-	 * @param array<string, object>                           $contenuti Contenuti per identificativo.
+	 * @param array<string, array<int, array<string, mixed>>>     $versioni  Versioni per obbligo.
+	 * @param array<string, array<string, array<string, object>>> $contenuti Contenuti per obbligo, codice e identificativo.
 	 */
 	private function __construct( array $versioni, array $contenuti ) {
 		$this->versioni  = $versioni;
@@ -86,50 +92,58 @@ final class CatalogoSchemi {
 			return new WP_Error( 'trasparenza_catalogo_incompleto', __( 'Il catalogo degli schemi non elenca le definizioni comuni e almeno uno schema.', 'trasparenza-pa' ) );
 		}
 
-		$cartella  = dirname( $file );
-		$contenuti = array();
-		$versioni  = array();
+		$cartella = dirname( $file );
+		$letti    = array();
+		$versioni = array();
+		$insiemi  = array();
 
 		foreach ( $comuni as $voce ) {
-			$esito = self::leggi_voce( $voce, $cartella, false, $contenuti );
+			$esito = self::leggi_voce( $voce, $cartella, false, $letti );
 
 			if ( is_wp_error( $esito ) ) {
 				return $esito;
 			}
 		}
 
+		$nomi_comuni = array_keys( $letti );
+
 		foreach ( $schemi as $voce ) {
-			$esito = self::leggi_voce( $voce, $cartella, true, $contenuti );
+			$esito = self::leggi_voce( $voce, $cartella, true, $letti );
 
 			if ( is_wp_error( $esito ) ) {
 				return $esito;
 			}
 
 			foreach ( $versioni[ $esito['obbligo'] ] ?? array() as $altra ) {
-				if ( $altra['versione'] === $esito['versione'] ) {
+				if ( $altra['codice'] === $esito['codice'] ) {
 					return new WP_Error(
 						'trasparenza_catalogo_versione_doppia',
-						/* translators: 1: versione, 2: obbligo. */
-						sprintf( __( 'La versione %1$s dell\'obbligo %2$s compare due volte nel catalogo.', 'trasparenza-pa' ), $esito['versione'], $esito['obbligo'] )
+						/* translators: 1: versione, 2: data di approvazione, 3: obbligo. */
+						sprintf( __( 'La versione %1$s approvata il %2$s dell\'obbligo %3$s compare due volte nel catalogo.', 'trasparenza-pa' ), $esito['versione'], $esito['approvato_il'], $esito['obbligo'] )
 					);
 				}
 			}
 
-			$versioni[ $esito['obbligo'] ][] = $esito;
-		}
+			$esito['comuni'] = $esito['comuni'] ?? $nomi_comuni;
 
-		foreach ( $contenuti as $id => $contenuto ) {
-			foreach ( self::rimandi( $contenuto ) as $rimando ) {
-				$file_rimando = self::senza_frammento( $rimando );
-
-				if ( '' !== $file_rimando && ! isset( $contenuti[ $file_rimando ] ) ) {
+			foreach ( $esito['comuni'] as $nome ) {
+				if ( ! in_array( $nome, $nomi_comuni, true ) ) {
 					return new WP_Error(
-						'trasparenza_catalogo_rimando',
-						/* translators: 1: identificativo dello schema, 2: rimando. */
-						sprintf( __( 'Lo schema %1$s rimanda a %2$s, che non è fra i file del catalogo.', 'trasparenza-pa' ), $id, $rimando )
+						'trasparenza_catalogo_comune_sconosciuto',
+						/* translators: 1: file comune, 2: file dello schema. */
+						sprintf( __( 'Il file comune %1$s, indicato per %2$s, non è fra i file comuni del catalogo.', 'trasparenza-pa' ), $nome, $esito['file'] )
 					);
 				}
 			}
+
+			$insieme = self::insieme( array_merge( array( $esito['file'] ), $esito['comuni'] ), $letti );
+
+			if ( is_wp_error( $insieme ) ) {
+				return $insieme;
+			}
+
+			$versioni[ $esito['obbligo'] ][]                  = $esito;
+			$insiemi[ $esito['obbligo'] ][ $esito['codice'] ] = $insieme;
 		}
 
 		foreach ( $versioni as $obbligo => $elenco ) {
@@ -143,7 +157,7 @@ final class CatalogoSchemi {
 			$versioni[ $obbligo ] = $elenco;
 		}
 
-		return new self( $versioni, $contenuti );
+		return new self( $versioni, $insiemi );
 	}
 
 	/**
@@ -168,13 +182,13 @@ final class CatalogoSchemi {
 	/**
 	 * Una versione di un obbligo, o nullo se non esiste.
 	 *
-	 * @param string $obbligo  Identificativo dell'obbligo.
-	 * @param string $versione Versione.
+	 * @param string $obbligo Identificativo dell'obbligo.
+	 * @param string $codice  Codice della versione, numero e data di approvazione.
 	 * @return array<string, mixed>|null
 	 */
-	public function versione( string $obbligo, string $versione ): ?array {
+	public function versione( string $obbligo, string $codice ): ?array {
 		foreach ( $this->versioni( $obbligo ) as $voce ) {
-			if ( $voce['versione'] === $versione ) {
+			if ( $voce['codice'] === $codice ) {
 				return $voce;
 			}
 		}
@@ -183,24 +197,64 @@ final class CatalogoSchemi {
 	}
 
 	/**
-	 * Contenuto decodificato di ogni file, per identificativo dello schema.
+	 * Contenuto decodificato dei file di una versione, per identificativo.
 	 *
+	 * @param string $obbligo Identificativo dell'obbligo.
+	 * @param string $codice  Codice della versione.
 	 * @return array<string, object>
 	 */
-	public function contenuti(): array {
-		return $this->contenuti;
+	public function contenuti( string $obbligo, string $codice ): array {
+		return $this->contenuti[ $obbligo ][ $codice ] ?? array();
+	}
+
+	/**
+	 * I file di una versione, con identificativi unici e rimandi tutti risolti.
+	 *
+	 * @param array<int, string>                                  $nomi  File della versione.
+	 * @param array<string, array{id: string, contenuto: object}> $letti File letti, per nome.
+	 * @return array<string, object>|WP_Error
+	 */
+	private static function insieme( array $nomi, array $letti ) {
+		$insieme = array();
+
+		foreach ( $nomi as $nome ) {
+			$id = $letti[ $nome ]['id'];
+
+			if ( isset( $insieme[ $id ] ) ) {
+				/* translators: %s: identificativo dello schema. */
+				return new WP_Error( 'trasparenza_catalogo_id_doppio', sprintf( __( 'Due file della stessa versione dichiarano lo stesso identificativo %s.', 'trasparenza-pa' ), $id ) );
+			}
+
+			$insieme[ $id ] = $letti[ $nome ]['contenuto'];
+		}
+
+		foreach ( $insieme as $id => $contenuto ) {
+			foreach ( self::rimandi( $contenuto ) as $rimando ) {
+				$file_rimando = self::senza_frammento( $rimando );
+
+				if ( '' !== $file_rimando && ! isset( $insieme[ $file_rimando ] ) ) {
+					return new WP_Error(
+						'trasparenza_catalogo_rimando',
+						/* translators: 1: identificativo dello schema, 2: rimando. */
+						sprintf( __( 'Lo schema %1$s rimanda a %2$s, che non è fra i file della sua versione.', 'trasparenza-pa' ), $id, $rimando )
+					);
+				}
+			}
+		}
+
+		return $insieme;
 	}
 
 	/**
 	 * Controlla una voce del catalogo e legge il suo file.
 	 *
-	 * @param mixed                 $voce      Voce del catalogo.
-	 * @param string                $cartella  Cartella del catalogo.
-	 * @param bool                  $schema    La voce e una versione di un obbligo, non un file comune.
-	 * @param array<string, object> $contenuti Contenuti gia letti, aggiornati qui.
+	 * @param mixed                $voce      Voce del catalogo.
+	 * @param string               $cartella  Cartella del catalogo.
+	 * @param bool                 $schema    La voce e una versione di un obbligo, non un file comune.
+	 * @param array<string, array> $letti     File gia letti, per nome, aggiornati qui.
 	 * @return array<string, mixed>|WP_Error
 	 */
-	private static function leggi_voce( $voce, string $cartella, bool $schema, array &$contenuti ) {
+	private static function leggi_voce( $voce, string $cartella, bool $schema, array &$letti ) {
 		if ( ! is_array( $voce ) || ! is_string( $voce['file'] ?? null ) || '' === $voce['file'] ) {
 			return new WP_Error( 'trasparenza_catalogo_incompleto', __( 'Una voce del catalogo non indica il suo file.', 'trasparenza-pa' ) );
 		}
@@ -221,6 +275,13 @@ final class CatalogoSchemi {
 					/* translators: 1: nome del campo, 2: nome del file. */
 					return new WP_Error( 'trasparenza_catalogo_data', sprintf( __( 'La data %1$s della voce per %2$s non è nella forma AAAA-MM-GG.', 'trasparenza-pa' ), $chiave, $nome ) );
 				}
+			}
+
+			$elenco = $voce['comuni'] ?? null;
+
+			if ( null !== $elenco && ( ! is_array( $elenco ) || array_filter( $elenco, 'is_string' ) !== $elenco ) ) {
+				/* translators: %s: nome del file. */
+				return new WP_Error( 'trasparenza_catalogo_incompleto', sprintf( __( 'La voce del catalogo per %s elenca i file comuni in una forma non valida.', 'trasparenza-pa' ), $nome ) );
 			}
 		}
 
@@ -253,12 +314,10 @@ final class CatalogoSchemi {
 			return new WP_Error( 'trasparenza_catalogo_schema_illeggibile', sprintf( __( 'Il file %s non è uno schema JSON con il proprio identificativo.', 'trasparenza-pa' ), $nome ) );
 		}
 
-		if ( isset( $contenuti[ $id ] ) ) {
-			/* translators: %s: identificativo dello schema. */
-			return new WP_Error( 'trasparenza_catalogo_id_doppio', sprintf( __( 'Due file del catalogo dichiarano lo stesso identificativo %s.', 'trasparenza-pa' ), $id ) );
-		}
-
-		$contenuti[ $id ] = $contenuto;
+		$letti[ $nome ] = array(
+			'id'        => $id,
+			'contenuto' => $contenuto,
+		);
 
 		if ( ! $schema ) {
 			return array();
@@ -269,7 +328,9 @@ final class CatalogoSchemi {
 			'versione'      => $versione,
 			'approvato_il'  => $voce['approvato_il'],
 			'in_vigore_dal' => $voce['in_vigore_dal'],
+			'codice'        => $versione . '@' . $voce['approvato_il'],
 			'file'          => $nome,
+			'comuni'        => $elenco,
 			'fonte'         => $fonte,
 			'id'            => $id,
 		);

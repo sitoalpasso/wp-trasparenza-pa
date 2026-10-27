@@ -66,7 +66,9 @@ Formato del catalogo, versione 1, file `schemas/catalogo.json`:
 | `schemi` | elenco delle versioni: `obbligo` (stesso alfabeto degli identificativi dell'albero), `versione`, `approvato_il` e `in_vigore_dal` (date AAAA-MM-GG), `file`, `fonte` |
 | `fonte` | `titolo`, `indirizzo`, `consultato_il` |
 
-Ogni file di schema porta il proprio identificativo (`$id`), che deve essere unico. Il
+Ogni file di schema porta il proprio identificativo (`$id`). Dal 2026-10-27 una versione si
+riconosce dal codice `versione@approvato_il`, puo elencare i suoi file comuni e l'identificativo
+deve essere unico solo dentro la versione: `docs/implementazione/versioni-per-data.md`. Il
 motore non scrive niente: il dato da controllare arriva da chi lo chiama.
 
 ## 5. Permessi

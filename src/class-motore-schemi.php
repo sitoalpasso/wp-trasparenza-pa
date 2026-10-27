@@ -45,11 +45,14 @@ final class MotoreSchemi {
 	private $catalogo;
 
 	/**
-	 * Validatore, creato al primo uso.
+	 * Un validatore per versione, creato al primo uso.
 	 *
-	 * @var Validator|null
+	 * Uno per versione e non uno solo: due versioni possono avere file diversi
+	 * con lo stesso identificativo, e ciascuna deve vedere solo i suoi.
+	 *
+	 * @var array<string, Validator>
 	 */
-	private $validatore = null;
+	private $validatori = array();
 
 	/**
 	 * Motore su un catalogo gia controllato.
@@ -78,7 +81,7 @@ final class MotoreSchemi {
 	 *
 	 * @param string      $obbligo Identificativo dell'obbligo.
 	 * @param string|null $data    Data nella forma AAAA-MM-GG.
-	 * @return string|null
+	 * @return string|null Codice della versione, numero e data di approvazione.
 	 */
 	public function versione_in_vigore( string $obbligo, ?string $data = null ): ?string {
 		$data   = $data ?? ( new DateTimeImmutable( 'now', wp_timezone() ) )->format( 'Y-m-d' );
@@ -86,11 +89,34 @@ final class MotoreSchemi {
 
 		foreach ( $this->catalogo->versioni( $obbligo ) as $voce ) {
 			if ( strcmp( $voce['in_vigore_dal'], $data ) <= 0 ) {
-				$scelta = $voce['versione'];
+				$scelta = $voce['codice'];
 			}
 		}
 
 		return $scelta;
+	}
+
+	/**
+	 * La versione detta a parole, con la sua data, o nullo se non esiste.
+	 *
+	 * E la frase da mostrare accanto a un dato salvato: con quale schema e
+	 * stato controllato.
+	 *
+	 * @param string $obbligo Identificativo dell'obbligo.
+	 * @param string $codice  Codice della versione.
+	 * @return string|null
+	 */
+	public function descrivi( string $obbligo, string $codice ): ?string {
+		$voce = $this->catalogo->versione( $obbligo, $codice );
+
+		if ( null === $voce ) {
+			return null;
+		}
+
+		$data = DateTimeImmutable::createFromFormat( '!Y-m-d', $voce['approvato_il'], wp_timezone() );
+
+		/* translators: 1: numero di versione, 2: data di approvazione. */
+		return sprintf( __( 'versione %1$s del %2$s', 'trasparenza-pa' ), $voce['versione'], wp_date( (string) get_option( 'date_format' ), $data->getTimestamp(), wp_timezone() ) );
 	}
 
 	/**
@@ -104,7 +130,7 @@ final class MotoreSchemi {
 	 * oppure [], e lo schema li distingue.
 	 *
 	 * @param string $obbligo  Identificativo dell'obbligo.
-	 * @param string $versione Versione dello schema.
+	 * @param string $versione Codice della versione, numero e data di approvazione.
 	 * @param mixed  $dato     Testo JSON o stdClass.
 	 * @return true|WP_Error
 	 */
@@ -133,7 +159,7 @@ final class MotoreSchemi {
 			}
 		}
 
-		$validatore = $this->validatore();
+		$validatore = $this->validatore( $obbligo, $voce['codice'] );
 
 		if ( is_wp_error( $validatore ) ) {
 			return $validatore;
@@ -164,13 +190,17 @@ final class MotoreSchemi {
 	}
 
 	/**
-	 * Il validatore, con tutti i file del catalogo registrati.
+	 * Il validatore di una versione, con i soli file di quella versione.
 	 *
+	 * @param string $obbligo Identificativo dell'obbligo.
+	 * @param string $codice  Codice della versione.
 	 * @return Validator|WP_Error
 	 */
-	private function validatore() {
-		if ( null !== $this->validatore ) {
-			return $this->validatore;
+	private function validatore( string $obbligo, string $codice ) {
+		$chiave = $obbligo . '|' . $codice;
+
+		if ( isset( $this->validatori[ $chiave ] ) ) {
+			return $this->validatori[ $chiave ];
 		}
 
 		if ( ! class_exists( Validator::class ) ) {
@@ -179,11 +209,11 @@ final class MotoreSchemi {
 
 		$validatore = new Validator( null, self::ERRORI_MASSIMI, false );
 
-		foreach ( $this->catalogo->contenuti() as $id => $contenuto ) {
+		foreach ( $this->catalogo->contenuti( $obbligo, $codice ) as $id => $contenuto ) {
 			$validatore->resolver()->registerRaw( $contenuto, $id );
 		}
 
-		$this->validatore = $validatore;
+		$this->validatori[ $chiave ] = $validatore;
 
 		return $validatore;
 	}

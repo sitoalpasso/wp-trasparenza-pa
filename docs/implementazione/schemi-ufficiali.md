@@ -96,11 +96,10 @@ modulo e vederlo accettato.
   28/08/2026 (31), senza un atto nuovo trovato dopo il 10 giugno 2026. Si e scelto il 10
   giugno 2026, l'ultima approvazione nota. Se l'Autorita ha approvato i ritocchi di
   settembre con un atto proprio, la data va corretta.
-- **Stesso numero, contenuto diverso.** Due file con lo stesso `$id` non possono stare nello
-  stesso catalogo (lo rifiuta T-28), quindi se l'Autorita ripubblica di nuovo `v1.0` con un
-  contenuto diverso, la versione vecchia e quella nuova non si possono affiancare cosi come
-  sono. Questa volta il problema non si pone, perche e cambiato anche l'`$id`. Da decidere
-  prima che accada: come affiancare due file ufficiali con lo stesso identificativo.
+- **Stesso numero, contenuto diverso.** Risolto il 2026-10-27 su decisione di Andrea: una
+  versione si riconosce da numero e data, e due versioni possono avere file con lo stesso
+  `$id` (`docs/implementazione/versioni-per-data.md`, riga T-37). La versione in vigore dei
+  tre schemi e quindi `1.0@2026-06-10`.
 - **Nomi dei campi nei commenti.** La prova T-32 cerca i nomi ufficiali anche nei commenti,
   e molti sono parole comuni (amministrazione, documento, oggetto, intestazione, anno). Per
   rispettarla sono stati riscritti alcuni commenti. Uno schema futuro con un campo come
