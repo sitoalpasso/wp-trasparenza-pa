@@ -12,22 +12,29 @@
 
 declare( strict_types = 1 );
 
-$radice     = dirname( __DIR__ );
-$rinominate = $radice . '/vendor-prefixed';
+/**
+ * Esegue la copia; esce con codice 1 al primo guasto.
+ */
+function trasparenza_pa_copia_avvisi(): void {
+	$radice     = dirname( __DIR__ );
+	$rinominate = $radice . '/vendor-prefixed';
 
-if ( ! is_dir( $rinominate ) ) {
-	fwrite( STDERR, "Cartella vendor-prefixed assente: eseguire prima strauss.\n" );
-
-	exit( 1 );
-}
-
-foreach ( glob( $rinominate . '/*/*', GLOB_ONLYDIR ) as $pacchetto ) {
-	$nome    = substr( $pacchetto, strlen( $rinominate ) + 1 );
-	$origine = $radice . '/vendor/' . $nome . '/NOTICE';
-
-	if ( is_file( $origine ) && ! copy( $origine, $pacchetto . '/NOTICE' ) ) {
-		fwrite( STDERR, "Copia del NOTICE di {$nome} non riuscita.\n" );
+	if ( ! is_dir( $rinominate ) ) {
+		fwrite( STDERR, "Cartella vendor-prefixed assente: eseguire prima strauss.\n" );
 
 		exit( 1 );
 	}
+
+	foreach ( glob( $rinominate . '/*/*', GLOB_ONLYDIR ) as $pacchetto ) {
+		$nome    = substr( $pacchetto, strlen( $rinominate ) + 1 );
+		$origine = $radice . '/vendor/' . $nome . '/NOTICE';
+
+		if ( is_file( $origine ) && ! copy( $origine, $pacchetto . '/NOTICE' ) ) {
+			fwrite( STDERR, "Copia del NOTICE di {$nome} non riuscita.\n" );
+
+			exit( 1 );
+		}
+	}
 }
+
+trasparenza_pa_copia_avvisi();
