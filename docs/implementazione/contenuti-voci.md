@@ -35,12 +35,15 @@ lettura dalla banca dati che distingue "assente" da "lettura fallita", stato di 
 modulo per non cancellare il cambio di un altro, un salvataggio alla volta, prima il registro
 e poi il dato, e il dato riletto.
 
-**Come si prova, e come si prova che la prova è vera.** Tredici prove nuove (righe
-T-59..T-62). Ventidue rotture volute, una per volta e poi tolte, le fanno diventare rosse:
+**Come si prova, e come si prova che la prova è vera.** Sedici prove nuove (righe
+T-59..T-62). Trenta rotture volute, una per volta e poi tolte, le fanno diventare rosse:
 radice ammessa, voci con sottovoci ammesse, controllo della voce tolto, nonce non
 controllato, nonce non legato al contenuto, permesso non controllato, tipo del contenuto non
-controllato, conflitto non controllato, lettura con `get_post_meta()`, due valori accettati,
-registro scritto dopo il dato, rilettura tolta, blocco tolto, stessa voce trattata come
+controllato, conflitto non controllato, lettura con `get_post_meta()`, più voci memorizzate
+rifiutate come una lettura fallita, partenza non controllata nel riordino, voci trovate non
+registrate, righe vecchie cancellate prima del registro, righe vecchie lasciate, rilettura del
+riordino tolta, avviso delle più voci tolto, esito legato al solo utente, esito mostrato su
+ogni schermata, registro scritto dopo il dato, rilettura tolta, blocco tolto, stessa voce trattata come
 cambio, partenza tolta dal riquadro, esito mostrato a ogni richiesta, tipo aperto al
 pubblico, tipo esposto a REST, permessi assegnati solo alla voce, tipo registrato senza
 sezione, nomi delle voci senza escaping, voce memorizzata non controllata contro l'albero.
@@ -77,9 +80,9 @@ non comparirà nella sezione.
 | Dato | Lettura e scrittura |
 |---|---|
 | Contenuto | tipo `trasparenza_testo` (il componente comune ammette al massimo venti caratteri); titolo, testo, autore, revisioni |
-| Metadato `_trasparenza_pa_collocazione` | nuovo; l'identificativo della voce dell'albero. Letto dalla banca dati prima e dopo ogni scrittura, con un solo valore ammesso |
+| Metadato `_trasparenza_pa_collocazione` | nuovo; l'identificativo della voce dell'albero. Letto dalla banca dati prima e dopo ogni scrittura. Vale una riga sola: con più righe, che il riquadro non crea, il contenuto non ha una voce valida finché una scelta dal riquadro non le sostituisce con una |
 | Registro di core | le righe automatiche del componente comune su ogni cambio del contenuto; una riga del componente per ogni cambio di voce: sezione `amministrazione_trasparente`, azione `collocazione_contenuto`, dettagli con la voce di prima e quella nuova. Utente e istante li mette core |
-| Dato temporaneo `trasparenza_pa_esito_collocazione_<utente>` | l'esito della scelta della voce, per un minuto; letto e cancellato dalla schermata |
+| Dato temporaneo `trasparenza_pa_esito_collocazione_<utente>_<contenuto>` | l'esito della scelta della voce, per un minuto; letto e cancellato solo dalla schermata di quel contenuto, così due salvataggi vicini di contenuti diversi non si confondono |
 | Blocco della banca dati | lo stesso delle altre schermate, per la durata della scrittura |
 
 ## 5. Permessi
@@ -97,7 +100,8 @@ non comparirà nella sezione.
 | Voce inesistente, radice, voce con sottovoci, valore non testuale | niente scritto, niente nel registro, messaggio |
 | Nonce mancante o di un altro contenuto, utente senza permesso | niente scritto, niente nel registro |
 | Albero non disponibile | niente scritto, messaggio; il riquadro lo dice |
-| Lettura del metadato fallita, o più di un valore | niente scritto, niente nel registro, messaggio |
+| Lettura del metadato fallita | niente scritto, niente nel registro, messaggio |
+| Più di una voce memorizzata | il riquadro lo dice e mostra "Da scegliere"; una voce scelta da lì sostituisce tutte le righe con una, dopo una voce di registro che conserva quelle trovate. Se il modulo mostrava una voce è un conflitto; se la voce nuova non risulta scritta, il messaggio dice che il contenuto non ha una voce e che il registro ha un cambio non avvenuto |
 | La voce è stata cambiata da un altro dopo l'apertura del modulo | conflitto: niente scritto, messaggio che chiede di ricaricare |
 | Registro che rifiuta | niente scritto, messaggio con il motivo |
 | Dato non scritto dopo la voce di registro | messaggio che dice del cambio non avvenuto |
@@ -133,3 +137,9 @@ aggiornare.
 - La lettura di TRASP-28 qui sopra (stati editoriali solo per i dati su schema) è la più
   stretta fra quelle possibili. Se l'ente o una fonte successiva li volesse anche per i
   contenuti liberi, si aggiungono sullo stesso tipo senza cambiare il dato.
+- **Domanda di perimetro per Andrea, da chiudere prima del passo 4 (pagina pubblica).** I
+  contenuti liberi si possono collocare anche nelle voci coperte dagli schemi ANAC (art. 13,
+  4-bis, 31). Lì un contenuto libero pubblicato scavalcherebbe gli stati editoriali di
+  TRASP-28, che valgono per i dati su schema. Le strade sono due: escludere quelle voci dal
+  riquadro, finché i moduli su schema non sono pronti, oppure ammetterle dichiarando che il
+  contenuto libero non sostituisce il dato su schema.
