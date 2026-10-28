@@ -18,14 +18,16 @@ del responsabile. Finché il responsabile non è indicato, chi può rimediare ve
 dice il file dell'albero, con una chiave nuova, `collocazioni`, accanto alla fonte che la
 giustifica. La schermata usa lo stesso permesso e le stesse regole della schermata degli
 stati: nonce, tutto controllato prima di scrivere, un salvataggio alla volta, prima il
-registro e poi i dati, e i dati riletti dopo averli scritti. Il registro dice quali campi
+registro e poi i dati, e i dati riletti dopo averli scritti. Il modulo porta, nascosti, i valori
+che mostrava all'apertura: si salvano solo i campi cambiati, così due persone che lavorano
+insieme non si cancellano i dati a vicenda. Il registro dice quali campi
 sono cambiati, non i valori: nome e recapiti sono dati personali, e il registro li
 conserverebbe anche dopo che l'amministrazione li ha cambiati. Un campo che la pulizia
 cambierebbe, come un nome con un pezzo di codice, si rifiuta invece di salvarlo diverso da
 come è stato scritto.
 
-**Come si prova, e come si prova che la prova è vera.** Venti prove nuove (righe
-T-54..T-58). Ventuno rotture volute, una per volta e poi tolte, le fanno diventare
+**Come si prova, e come si prova che la prova è vera.** Ventitré prove nuove (righe
+T-54..T-58). Ventisei rotture volute, una per volta e poi tolte, le fanno diventare
 rosse: collocazione verso la radice accettata, collocazione verso una voce inesistente
 accettata, nome non confrontato con la sua versione ripulita, schema dell'atto di nomina
 non controllato, telefono non controllato, nome stampato senza escaping, controllo del
@@ -34,7 +36,9 @@ del registro, rilettura tolta, blocco tolto, avviso su tutte le schermate, dati 
 registrati come cambio, menu aperto con il permesso generico delle impostazioni, riquadro
 in ogni voce, collocazione normativa spostata su un'altra voce, lettura fallita presa per
 "responsabile mai indicato", file della versione 2026-10-24 ritoccato, versione nuova con lo
-stesso identificativo della vecchia, albero in vigore riportato alla versione vecchia.
+stesso identificativo della vecchia, albero in vigore riportato alla versione vecchia, tutti i campi inviati applicati anche se non
+cambiati, conflitto non controllato, partenza mancante accettata, partenza presa dai valori
+rimostrati dopo un rifiuto, campi nascosti della partenza tolti.
 
 ## 1. File toccati
 
@@ -94,6 +98,9 @@ e i valori stessi sono stati rifiutati all'ingresso se contenevano codice.
 
 | Caso | Esito |
 |---|---|
+| Due moduli aperti insieme, che cambiano campi diversi | si applicano solo i campi cambiati da ciascuno: il secondo salvataggio non riporta indietro quelli del primo |
+| Due moduli aperti insieme, che cambiano lo stesso campo | il secondo è un conflitto: niente scritto, niente nel registro, messaggio che chiede di ricaricare |
+| Richiesta senza i valori di partenza | niente scritto, messaggio |
 | Lettura dei dati attuali fallita | niente scritto, niente nel registro, messaggio; i dati di prima restano e il modulo rimostra quanto inviato |
 | Campo sbagliato, campo non testuale, richiesta senza i dati | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
 | Registro che rifiuta il cambio | niente scritto; il messaggio riporta il motivo |
