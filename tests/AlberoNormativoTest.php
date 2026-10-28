@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove dell'albero normativo: righe T-20..T-25.
+ * Prove dell'albero normativo: righe T-20..T-25 e T-35.
  *
  * I nomi attesi sono scritti qui, trascritti dalle fonti, e non letti dal file:
  * una prova che confrontasse il file con se stesso passerebbe sempre.
@@ -366,5 +366,27 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 		foreach ( Alberatura::DICITURE as $stato ) {
 			$this->assertNotEmpty( $dati['fonte_diciture'][ $stato ] ?? '', $stato );
 		}
+	}
+
+	/**
+	 * Riga T-35: il responsabile della trasparenza sta in "Prevenzione della Corruzione", sotto "Altri contenuti", con la fonte dichiarata.
+	 *
+	 * La collocazione e quella dell'Allegato 1 della delibera ANAC 1310/2016,
+	 * dove la riga del responsabile sta nella sottosezione "Prevenzione della
+	 * Corruzione" di "Altri contenuti".
+	 */
+	public function test_t35_collocazione_del_responsabile(): void {
+		$albero = $this->albero();
+		$voce   = $albero->collocazione( 'responsabile_trasparenza' );
+
+		$this->assertNotNull( $voce );
+		$this->assertSame( 'Prevenzione della Corruzione', $albero->voce( $voce )['nome'] );
+		$this->assertSame( 'Altri contenuti', $albero->voce( $albero->percorso( $voce )[1] )['nome'] );
+
+		$dati   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$chiavi = wp_list_pluck( $dati['fonti'], 'chiave' );
+
+		$this->assertSame( 'anac_1310_2016_all_1', $dati['fonte_collocazioni']['responsabile_trasparenza'] ?? null );
+		$this->assertContains( $dati['fonte_collocazioni']['responsabile_trasparenza'], $chiavi, 'La fonte citata deve essere fra le fonti del file.' );
 	}
 }

@@ -9,6 +9,12 @@
 		"non_applicabile": "anac_495_2024",
 		"sospeso": "testo redazionale del componente: la norma prevede lo stato ma non una formula"
 	},
+	"collocazioni": {
+		"responsabile_trasparenza": "prevenzione_della_corruzione"
+	},
+	"fonte_collocazioni": {
+		"responsabile_trasparenza": "anac_1310_2016_all_1"
+	},
 	"fonti": [
 		{
 			"chiave": "allegato_a",
