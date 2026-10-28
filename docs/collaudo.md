@@ -44,7 +44,8 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-10 | da fare | Ogni sottosezione e ogni voce | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
 | TRASP-12 | da fare | Si invia una richiesta di accesso civico di prova | modulo raggiungibile, destinatari indicati, richiesta nel registro |
-| TRASP-13/14 | da fare | Campi RPCT e PIAO | configurabili e mostrati dove previsto |
+| TRASP-13 | fatto | Responsabile della trasparenza (righe T-34..T-38) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
+| TRASP-14 | da fare | Campo PIAO | configurabile e mostrato dove previsto |
 | TRASP-15 | da fare | Si carica un PDF che sembra una scansione | avviso al redattore, dichiarato come indizio |
 | TRASP-16 | da fare | Flusso di pubblicazione senza la conferma sui dati personali | non si conclude |
 | TRASP-17 | da fare | Collaudo congiunto con l'albo (vedi sotto) | politiche invertite entrambe corrette |
@@ -131,6 +132,21 @@ comune. Scheda: `docs/implementazione/gestione-stati.md`.
 | T-31 | fatto | Cambi di stato, stato rimandato uguale, registro che rifiuta la seconda scrittura, stato non scritto alla seconda scrittura | una voce di registro per cambio, con voce, stato prima e dopo, utente, senza contenuto; lo stato uguale non si registra; il rifiuto del registro ferma quel cambio e i successivi, l'esito dice quanti sono passati; lo stato non scritto ferma il salvataggio, l'esito non è "salvato" e dice che il registro ha un cambio non avvenuto |
 | T-32 | fatto | Albero non disponibile; sezione non registrata | salvataggio rifiutato e schermata senza modulo, con il motivo; senza sezione nessuna voce di menu e nessun permesso assegnato |
 | T-33 | fatto | [attacco] Un altro salvataggio tiene il blocco; lo stato cambia nella banca dati dopo che la richiesta lo ha letto | rifiutato dopo l'attesa, niente scritto, poi di nuovo possibile; lo stato di partenza si rilegge dalla banca dati, quindi il "prima" del registro e quello vero e il cambio dell'altra richiesta resta |
+
+## Responsabile della trasparenza (righe T-34..T-38)
+
+Provano dove il file dell'albero dice di mostrare i dati che non sono voci, la schermata
+in cui l'amministrazione indica il responsabile della prevenzione della corruzione e della
+trasparenza, e il riquadro che la pagina pubblica ne mostra. Scheda:
+`docs/implementazione/responsabile.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-34 | fatto | File dell'albero con collocazioni, senza, e con collocazioni sbagliate: non elenco, voce inesistente, radice, nome del dato non valido o numerico, voce non testuale | lette quelle valide; senza, nessuna collocazione inventata; ogni sbaglio rifiuta il file con `trasparenza_albero_collocazione` |
+| T-35 | fatto | Collocazione del responsabile nell'albero distribuito | voce "Prevenzione della Corruzione" sotto "Altri contenuti", con il testo atteso scritto nella prova; fonte dichiarata e presente fra le fonti del file |
+| T-36 | fatto | Dati validi, minimi, [attacco] sbagliati: nome vuoto, con codice, su due righe, oltre 200 caratteri, non testuale; email vuota, non valida, con codice; telefono con lettere o codice; atto di nomina con schema `javascript:`, senza schema, relativo, senza protocollo, con virgolette o spazi; dati conservati estranei | i validi passano ripuliti dagli spazi ai bordi, telefono e nomina facoltativi; ogni sbaglio si rifiuta invece di salvarlo cambiato; i dati conservati estranei valgono come non indicati |
+| T-37 | fatto | Menu e schermata con e senza permesso; [attacco] salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, non testuale o di un altro utente; salvataggio valido, uguale, sbagliato; registro che rifiuta; dati non scritti; [attacco] un altro salvataggio tiene il blocco; avviso | sottovoce con il permesso della sezione, schermata rifiutata senza; rifiuti senza scrivere niente; una voce di registro per salvataggio con i soli nomi dei campi cambiati e nessun valore personale; dati uguali non registrati; con uno sbaglio niente scritto e il modulo rimostra quanto inviato; registro che rifiuta: niente scritto; dati non scritti: esito di errore che dice del cambio non avvenuto; blocco tenuto: rinuncia senza scrivere; avviso solo a chi ha il permesso, sulla bacheca e sulle schermate della sezione, finché il responsabile manca |
+| T-38 | fatto | Pagina pubblica con il responsabile indicato, senza campi facoltativi, non indicato, albero senza collocazione | riquadro solo nella voce indicata, dati in uscita sicura, recapito email come collegamento; righe facoltative assenti se vuote; nessun riquadro senza dati o senza collocazione |
 
 ## Collaudo congiunto con l'albo pretorio
 

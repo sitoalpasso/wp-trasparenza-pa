@@ -240,6 +240,11 @@ final class PaginaPubblica {
 			$html .= '<p class="trasparenza-pa-dicitura">' . esc_html( $albero->dicitura( $stato ) ) . '</p>';
 		}
 
+		// Il responsabile si mostra nella voce che il file dell'albero indica, qualunque ne sia lo stato.
+		if ( $albero->collocazione( Responsabile::DATO ) === $voce ) {
+			$html .= Responsabile::html();
+		}
+
 		$figli = $albero->figli( $voce );
 
 		if ( array() !== $figli ) {

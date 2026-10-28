@@ -10,7 +10,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 
 | Cosa | Contenuto | Chi la cambia |
 |---|---|---|
-| Alberatura | l'albero delle sezioni conforme all'Allegato A: identificativo del nodo, denominazione esatta, articolo di riferimento, piu le diciture degli stati che ne richiedono una. File `dati/alberatura/corrente.json`, formato descritto in `docs/implementazione/alberatura.md` | solo un aggiornamento del plugin, mai l'utente |
+| Alberatura | l'albero delle sezioni conforme all'Allegato A: identificativo del nodo, denominazione esatta, articolo di riferimento, piu le diciture degli stati che ne richiedono una e la voce in cui si mostrano i dati che non sono voci, come il responsabile della trasparenza. File `dati/alberatura/corrente.json`, formato descritto in `docs/implementazione/alberatura.md` | solo un aggiornamento del plugin, mai l'utente |
 | Schemi | una definizione per ogni schema ANAC e per ogni sua versione, con la data di approvazione ANAC e la fonte; accanto, i JSON Schema ufficiali usati per validare | idem: una versione nuova si affianca, non sovrascrive |
 
 **2. I contenuti** (nel database del sito):
@@ -19,6 +19,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 |---|---|---|
 | Voce pubblicata (il dato compilato di uno schema) | contenuto di tipo dedicato più campi strutturati; porta con sé l'identificativo della versione di schema con cui è stato raccolto | redattore, tramite i moduli generati dallo schema |
 | Nodo dell'albero: stato dell'obbligo (applicabile, non applicabile, sospeso) | opzione `trasparenza_pa_stati_obbligo`, una coppia identificativo-stato per nodo; un nodo assente e "non dichiarato", che non e uno dei tre e non ha valore predefinito. Ogni cambio lascia una voce `stato_obbligo` nel registro di core, con voce, stato prima e dopo | chi ha il permesso `trasparenza_pa_amministrazione`, dalla schermata "Stato delle voci" |
+| Responsabile della prevenzione della corruzione e della trasparenza | opzione `trasparenza_pa_responsabile`: nome, email, telefono, indirizzo dell'atto di nomina. Nessun valore predefinito: assente vuol dire non indicato. Ogni salvataggio che cambia qualcosa lascia una voce `responsabile_trasparenza` nel registro di core con i soli nomi dei campi cambiati, mai i valori, che sono dati personali | chi ha il permesso `trasparenza_pa_amministrazione`, dalla schermata "Responsabile" |
 | Data di ultimo aggiornamento | per nodo e per voce, scritta dal sistema a ogni pubblicazione | solo il sistema |
 | Stato editoriale (bozza, validato, pubblicabile provvisoriamente, non pubblicabile) | stato della voce, con esito della validazione | il flusso di validazione, mai a mano |
 | Segnalazioni al RPCT | registro proprio: voce, difformità, data, destinatario | solo il sistema, nei due stati di difformità |
@@ -66,7 +67,7 @@ autenticazione perché è un requisito di legge.
 |---|---|---|
 | Compilare bozze delle voci | gestione trasparenza | |
 | Validare e pubblicare | pubblicazione trasparenza | passa dal controllo dati personali |
-| Dichiarare lo stato di un obbligo | `trasparenza_pa_amministrazione` | del componente, non derivato da un tipo; va all'amministratore una volta sola, alla prima installazione (opzione `trasparenza_pa_permessi_assegnati`), e se l'ente lo toglie non torna con gli aggiornamenti. Il non applicabile stampa la dicitura obbligata |
+| Dichiarare lo stato di un obbligo e indicare il responsabile della trasparenza | `trasparenza_pa_amministrazione` | del componente, non derivato da un tipo; va all'amministratore una volta sola, alla prima installazione (opzione `trasparenza_pa_permessi_assegnati`), e se l'ente lo toglie non torna con gli aggiornamenti. Il non applicabile stampa la dicitura obbligata |
 | Creare e modificare voci-rinvio | gestione trasparenza | il caso senza banca dati (art. 19) non è configurabile come rinvio |
 | Consultare l'archivio delle voci scadute | archivio trasparenza | il pubblico accede solo per accesso civico |
 | Gestire le richieste di accesso civico | accesso civico | |
