@@ -61,6 +61,8 @@ viene segnalato.
 | Classe (in `src/`) | Responsabilità | Requisiti |
 |---|---|---|
 | `Alberatura` | Costruisce l'albero delle sezioni dal file di definizione conforme all'Allegato A; denominazioni esatte, data di aggiornamento per nodo, stato dell'obbligo per nodo | TRASP-01, TRASP-04, TRASP-10, TRASP-27 |
+| `Permessi` | Il permesso di amministrare la sezione e la sua prima assegnazione all'amministratore; avviso quando nessun ruolo lo ha | TRASP-27 |
+| `SchermataStati` | La schermata "Stato delle voci": elenco delle voci, scelta dello stato, salvataggio tutto o niente con una voce di registro per cambio | TRASP-19, TRASP-27 |
 | `MotoreSchemi` | Legge le definizioni degli schemi, genera i moduli di compilazione, valida contro i JSON Schema ufficiali, gestisce le versioni affiancate | TRASP-05, TRASP-06, TRASP-26 |
 | `PoliticaTrasparenza` | Dichiara a core: indicizzazione consentita, scadenza quinquennale con uscita senza cancellazione, calcolo della decorrenza dal 1° gennaio successivo | TRASP-03, TRASP-08, TRASP-09 |
 | `StatiEditoriali` | Bozza, validato, pubblicabile provvisoriamente, non pubblicabile; segnalazione al RPCT nei casi di difformità | TRASP-28 |
