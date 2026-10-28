@@ -104,6 +104,7 @@ dallo scarico (T4, T8).
 | Dato cambiato per un'altra strada dopo il controllo | l'esito porta l'impronta del dato da cui e nato: con un dato diverso la voce risulta non controllata |
 | Due richieste che legano la voce nello stesso momento | il legame si aggiunge come unico: vince la prima, la seconda non lo cambia |
 | Nonce di un'altra voce | niente scritto: il nonce vale per una voce sola |
+| Invio tagliato dal limite di campi del server (max_input_vars di PHP) | il marcatore dopo l'ultimo campo manca: dato ed esito restano com'erano e chi ha salvato vede un avviso con il limite; quando i campi del modulo arrivano all'80% del limite il riquadro avvisa prima dell'invio |
 | Tentativo di pubblicare | la voce resta in bozza, avviso con il motivo |
 
 ## 7. Test
@@ -143,3 +144,8 @@ Premere Pubblica: la voce resta in bozza.
   bozza; gli agganci specifici del passaggio a pubblicata (per esempio quello del tipo
   pubblicato) partono pero ancora, con il contenuto che dice pubblicata. Limite dichiarato
   fino agli stati editoriali (T5), che chiuderanno la strada prima della scrittura.
+- **Limite di campi del server.** Un elenco lungo (per esempio molti pagamenti dell'art.
+  4-bis) puo superare il numero di campi che PHP accetta in un invio, 1000 se la
+  configurazione non dice altro. Il componente non perde il dato salvato, ma finche il
+  limite non si alza quella voce non si salva dal modulo: va alzato il limite, oppure il
+  dato arrivera dal caricamento da file (T3).

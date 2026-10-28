@@ -48,6 +48,21 @@ final class SchedaVoce {
 	const CAMPO_DATO = 'trasparenza_pa_dato';
 
 	/**
+	 * Campo marcatore, l'ultimo del riquadro: se arriva, l'invio e arrivato intero.
+	 */
+	const CAMPO_INTERO = 'trasparenza_pa_invio_intero';
+
+	/**
+	 * Prefisso del dato temporaneo che conserva l'avviso di invio incompleto per l'utente.
+	 */
+	const AVVISO_INCOMPLETO = 'trasparenza_pa_invio_incompleto_';
+
+	/**
+	 * Quota del limite di campi del server oltre la quale il riquadro avvisa prima dell'invio.
+	 */
+	const QUOTA_LIMITE = 0.8;
+
+	/**
 	 * Metadato con l'obbligo della voce.
 	 */
 	const META_OBBLIGO = '_trasparenza_pa_obbligo';
@@ -87,6 +102,13 @@ final class SchedaVoce {
 	private static $motore = null;
 
 	/**
+	 * Limite di campi fissato dalle prove, o nullo per quello del server.
+	 *
+	 * @var int|null
+	 */
+	private static $limite_campi = null;
+
+	/**
 	 * L'azione del nonce di una voce: un nonce vale per una voce sola.
 	 *
 	 * @param int $voce Voce.
@@ -102,6 +124,7 @@ final class SchedaVoce {
 	public static function aggancia(): void {
 		add_action( 'add_meta_boxes_' . TIPO_VOCE, array( self::class, 'aggiungi_riquadro' ) );
 		add_action( 'save_post_' . TIPO_VOCE, array( self::class, 'salva' ), 10, 2 );
+		add_action( 'admin_notices', array( self::class, 'mostra_avviso' ) );
 	}
 
 	/**
@@ -120,8 +143,61 @@ final class SchedaVoce {
 	 * Riporta la classe allo stato iniziale, con il catalogo distribuito.
 	 */
 	public static function azzera(): void {
-		self::$file   = '';
-		self::$motore = null;
+		self::$file         = '';
+		self::$motore       = null;
+		self::$limite_campi = null;
+	}
+
+	/**
+	 * Fissa il limite di campi al posto di quello del server.
+	 *
+	 * @internal Le prove lo abbassano: il limite del server non si cambia mentre PHP gira.
+	 *
+	 * @param int|null $limite Limite, o nullo per quello del server.
+	 */
+	public static function fissa_limite_campi( ?int $limite ): void {
+		self::$limite_campi = $limite;
+	}
+
+	/**
+	 * Quanti campi il server accetta in un invio (max_input_vars di PHP).
+	 *
+	 * @return int
+	 */
+	public static function limite_campi(): int {
+		if ( null !== self::$limite_campi ) {
+			return self::$limite_campi;
+		}
+
+		$limite = (int) ini_get( 'max_input_vars' );
+
+		// Il valore predefinito di PHP, se la configurazione non ne dichiara uno.
+		return $limite > 0 ? $limite : 1000;
+	}
+
+	/**
+	 * Mostra una volta, a chi ha salvato, l'avviso di invio incompleto.
+	 */
+	public static function mostra_avviso(): void {
+		$chiave = self::AVVISO_INCOMPLETO . get_current_user_id();
+		$limite = get_transient( $chiave );
+
+		if ( false === $limite ) {
+			return;
+		}
+
+		delete_transient( $chiave );
+
+		printf(
+			'<div class="notice notice-error trasparenza-invio-incompleto"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: %d: numero massimo di campi che il server accetta in un invio. */
+					__( 'I dati della voce non sono stati salvati: l\'invio è arrivato incompleto, perché il modulo ha più campi di quanti il server ne accetta (max_input_vars, oggi %d). Il dato salvato prima è rimasto com\'era. Per salvare serve alzare quel limite nella configurazione di PHP.', 'trasparenza-pa' ),
+					(int) $limite
+				)
+			)
+		);
 	}
 
 	/**
@@ -228,7 +304,14 @@ final class SchedaVoce {
 			esc_html( sprintf( __( 'Dato raccolto con lo schema "%1$s", %2$s.', 'trasparenza-pa' ), $modulo->titolo(), (string) $motore->descrivi( $obbligo, $codice ) ) )
 		);
 
-		return $html . self::riassunto( $esito, $modulo->restanti() ) . $campi;
+		/*
+		 * Il marcatore va dopo tutti i campi: PHP tiene i campi nell'ordine
+		 * dell'invio e scarta quelli oltre il limite, quindi se il marcatore
+		 * arriva sono arrivati anche tutti i campi prima di lui.
+		 */
+		$campi .= sprintf( '<input type="hidden" name="%s" value="1" />', esc_attr( self::CAMPO_INTERO ) );
+
+		return $html . self::riassunto( $esito, $modulo->restanti() ) . self::avviso_limite( substr_count( $campi, 'name="' ) ) . $campi;
 	}
 
 	/**
@@ -277,7 +360,18 @@ final class SchedaVoce {
 		$codice   = (string) get_post_meta( $id, self::META_VERSIONE, true );
 		$versione = $motore->catalogo()->versione( $obbligo, $codice );
 
-		if ( null === $versione || ! isset( $_POST[ self::CAMPO_DATO ] ) ) {
+		if ( null === $versione ) {
+			return;
+		}
+
+		// Senza il marcatore l'invio e stato tagliato: un dato parziale non sostituisce quello salvato.
+		if ( ! isset( $_POST[ self::CAMPO_INTERO ] ) ) {
+			set_transient( self::AVVISO_INCOMPLETO . get_current_user_id(), self::limite_campi(), 5 * MINUTE_IN_SECONDS );
+
+			return;
+		}
+
+		if ( ! isset( $_POST[ self::CAMPO_DATO ] ) ) {
 			return;
 		}
 
@@ -296,6 +390,32 @@ final class SchedaVoce {
 					'conforme'  => true === $esito,
 					'messaggio' => is_wp_error( $esito ) ? $esito->get_error_message() : '',
 					'difetti'   => is_wp_error( $esito ) && is_array( $esito->get_error_data() ) ? array_values( $esito->get_error_data() ) : array(),
+				)
+			)
+		);
+	}
+
+	/**
+	 * L'avviso preventivo, quando i campi del modulo si avvicinano al limite del server.
+	 *
+	 * @param int $campi Campi del modulo.
+	 * @return string
+	 */
+	private static function avviso_limite( int $campi ): string {
+		$limite = self::limite_campi();
+
+		if ( $campi < $limite * self::QUOTA_LIMITE ) {
+			return '';
+		}
+
+		return sprintf(
+			'<div class="notice notice-warning inline trasparenza-limite-campi"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: 1: campi del modulo, 2: limite del server. */
+					__( 'Il modulo ha %1$d campi e il server ne accetta %2$d per invio (max_input_vars): oltre il limite il salvataggio non riesce. Conviene alzare il limite nella configurazione di PHP prima di aggiungere altri elementi.', 'trasparenza-pa' ),
+					$campi,
+					$limite
 				)
 			)
 		);
