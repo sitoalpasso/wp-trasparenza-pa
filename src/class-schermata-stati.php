@@ -50,11 +50,6 @@ final class SchermataStati {
 	const ESITO = 'trasparenza_pa_esito_stati_';
 
 	/**
-	 * Secondi di attesa del blocco prima di rinunciare.
-	 */
-	const ATTESA_BLOCCO = 5;
-
-	/**
 	 * Aggancia la schermata a WordPress.
 	 */
 	public static function aggancia(): void {
@@ -142,14 +137,14 @@ final class SchermataStati {
 			return self::esito( 'albero', __( 'Nessuno stato salvato: l\'albero delle voci non è disponibile.', 'trasparenza-pa' ) );
 		}
 
-		if ( ! self::blocca() ) {
+		if ( ! Blocco::prendi() ) {
 			return self::esito( 'occupato', __( 'Nessuno stato salvato: un altro salvataggio degli stati è in corso. Riprovare fra qualche secondo.', 'trasparenza-pa' ) );
 		}
 
 		try {
 			return self::scrivi( $albero, $richiesta[ self::CAMPO ] ?? array() );
 		} finally {
-			self::sblocca();
+			Blocco::rilascia();
 		}
 	}
 
@@ -411,47 +406,6 @@ final class SchermataStati {
 		foreach ( $albero->figli( $voce ) as $figlio ) {
 			self::riga( $albero, $figlio, $livello + 1 );
 		}
-	}
-
-	/**
-	 * Prende il blocco degli stati, aspettando al massimo qualche secondo.
-	 *
-	 * Due salvataggi contemporanei leggerebbero entrambi gli stati di partenza
-	 * e l'ultimo cancellerebbe i cambi del primo, che pure sono nel registro.
-	 * Il blocco e della banca dati, quindi vale fra richieste diverse; il nome
-	 * porta la banca dati e il prefisso, perche lo stesso server puo ospitare
-	 * piu siti.
-	 *
-	 * @return bool
-	 */
-	private static function blocca(): bool {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- un blocco della banca dati non passa da nessuna funzione di WordPress e non si mette in memoria.
-		return '1' === (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', self::nome_blocco(), self::ATTESA_BLOCCO ) );
-	}
-
-	/**
-	 * Rilascia il blocco degli stati.
-	 */
-	private static function sblocca(): void {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- come sopra.
-		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', self::nome_blocco() ) );
-	}
-
-	/**
-	 * Nome del blocco degli stati per questo sito.
-	 *
-	 * @internal Pubblico per le prove, che prendono il blocco da un'altra connessione.
-	 *
-	 * @return string
-	 */
-	public static function nome_blocco(): string {
-		global $wpdb;
-
-		return 'trasparenza_pa_' . md5( DB_NAME . '|' . $wpdb->prefix );
 	}
 
 	/**
