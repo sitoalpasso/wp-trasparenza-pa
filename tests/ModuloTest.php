@@ -121,9 +121,14 @@ class ModuloTest extends WP_UnitTestCase {
 	 * @param int                  $voce  Voce.
 	 * @param array<string, mixed> $campi Campi inviati, senza il nonce.
 	 * @param string|null          $nonce Nonce; nullo per uno valido.
+	 * @param bool                 $intero Invio arrivato intero: con i campi del modulo c'e il marcatore finale.
 	 */
-	private function salva( int $voce, array $campi, ?string $nonce = null ): void {
+	private function salva( int $voce, array $campi, ?string $nonce = null, bool $intero = true ): void {
 		$campi[ SchedaVoce::CAMPO_NONCE ] = $nonce ?? wp_create_nonce( SchedaVoce::azione_nonce( $voce ) );
+
+		if ( $intero && isset( $campi[ SchedaVoce::CAMPO_DATO ] ) && ! isset( $campi[ SchedaVoce::CAMPO_INTERO ] ) ) {
+			$campi[ SchedaVoce::CAMPO_INTERO ] = '1';
+		}
 
 		// WordPress aggiunge le barre ai valori inviati: il salvataggio deve toglierle.
 		$_POST = wp_slash( $campi );
@@ -876,5 +881,74 @@ class ModuloTest extends WP_UnitTestCase {
 
 		$this->assertSame( 1, wp_verify_nonce( $campo->getAttribute( 'value' ), SchedaVoce::azione_nonce( $seconda ) ) );
 		$this->assertFalse( wp_verify_nonce( $campo->getAttribute( 'value' ), SchedaVoce::azione_nonce( $prima ) ) );
+	}
+
+	/**
+	 * T-43: un invio troncato dal limite di campi del server non tocca il dato salvato.
+	 */
+	public function test_t43_invio_troncato(): void {
+		$voce  = $this->voce();
+		$campi = self::inviato( self::esempio( 'art.13-pa-YYYYMMDD-YYYYMMDD.v1.0.json' ) );
+
+		unset( $campi['$schema'] );
+
+		$this->lega( $voce, 'art_13' );
+		$this->salva( $voce, array( SchedaVoce::CAMPO_DATO => $campi ) );
+
+		$dato  = get_post_meta( $voce, SchedaVoce::META_DATO, true );
+		$esito = get_post_meta( $voce, SchedaVoce::META_ESITO, true );
+
+		$this->assertTrue( SchedaVoce::esito( $voce )['conforme'] );
+
+		// Il riquadro mette il marcatore dopo tutti i campi del modulo.
+		$xpath    = self::riquadro( $voce );
+		$campi_in = $xpath->query( '//input[@name] | //select[@name]' );
+		$ultimo   = $campi_in->item( $campi_in->length - 1 );
+
+		$this->assertSame( SchedaVoce::CAMPO_INTERO, $ultimo->getAttribute( 'name' ), 'Il marcatore e l\'ultimo campo del riquadro.' );
+
+		// PHP ha tagliato l'invio: restano i primi campi, manca il marcatore.
+		ob_start();
+		do_action( 'admin_notices' );
+		ob_end_clean();
+
+		$this->salva( $voce, array( SchedaVoce::CAMPO_DATO => array( 'intestazione' => $campi['intestazione'] ) ), null, false );
+
+		$this->assertSame( $dato, get_post_meta( $voce, SchedaVoce::META_DATO, true ), 'Il dato salvato resta intero.' );
+		$this->assertSame( $esito, get_post_meta( $voce, SchedaVoce::META_ESITO, true ), 'L\'esito resta quello del dato intero.' );
+
+		ob_start();
+		do_action( 'admin_notices' );
+		$avvisi = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'trasparenza-invio-incompleto', $avvisi );
+		$this->assertStringContainsString( 'max_input_vars', $avvisi );
+
+		ob_start();
+		do_action( 'admin_notices' );
+		$this->assertStringNotContainsString( 'trasparenza-invio-incompleto', (string) ob_get_clean(), 'L\'avviso si mostra una volta.' );
+
+		// Con il marcatore il salvataggio torna a scrivere.
+		$this->salva( $voce, array( SchedaVoce::CAMPO_DATO => array( 'intestazione' => $campi['intestazione'] ) ) );
+
+		$this->assertNotSame( $dato, get_post_meta( $voce, SchedaVoce::META_DATO, true ) );
+	}
+
+	/**
+	 * T-43: vicino al limite di campi del server il riquadro avvisa prima dell'invio.
+	 */
+	public function test_t43_avviso_vicino_al_limite(): void {
+		$voce = $this->voce();
+
+		$this->lega( $voce, 'art_13' );
+
+		$this->assertSame( 0, self::riquadro( $voce )->query( '//*[contains(@class, "trasparenza-limite-campi")]' )->length, 'Lontano dal limite nessun avviso.' );
+
+		SchedaVoce::fissa_limite_campi( 20 );
+
+		$avviso = self::riquadro( $voce )->query( '//*[contains(@class, "trasparenza-limite-campi")]' );
+
+		$this->assertSame( 1, $avviso->length );
+		$this->assertStringContainsString( '20', $avviso->item( 0 )->textContent );
 	}
 }
