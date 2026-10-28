@@ -92,13 +92,18 @@ class ResponsabileTest extends WP_UnitTestCase {
 	/**
 	 * Una richiesta come la manderebbe il modulo, con il nonce dell'utente corrente.
 	 *
-	 * @param mixed $dati Campi del responsabile.
+	 * Senza valori di partenza indicati, porta quelli che il modulo mostrerebbe
+	 * se fosse aperto adesso.
+	 *
+	 * @param mixed                     $dati     Campi del responsabile.
+	 * @param array<string, mixed>|null $partenze Valori mostrati all'apertura del modulo.
 	 * @return array<string, mixed>
 	 */
-	private function richiesta( $dati ): array {
+	private function richiesta( $dati, ?array $partenze = null ): array {
 		return array(
-			'_wpnonce'                   => wp_create_nonce( SchermataResponsabile::AZIONE ),
-			SchermataResponsabile::CAMPO => $dati,
+			'_wpnonce'                            => wp_create_nonce( SchermataResponsabile::AZIONE ),
+			SchermataResponsabile::CAMPO          => $dati,
+			SchermataResponsabile::CAMPO_PARTENZA => $partenze ?? ( Responsabile::dati() ?? array_fill_keys( Responsabile::CAMPI, '' ) ),
 		);
 	}
 
@@ -441,6 +446,84 @@ class ResponsabileTest extends WP_UnitTestCase {
 		$this->assertSame( 'occupato', $esito['codice'] );
 		$this->assertNull( Responsabile::dati() );
 		$this->assertCount( 0, $this->tracce() );
+	}
+
+	/**
+	 * T-57: il modulo porta i valori della banca dati all'apertura, anche quando rimostra quanto inviato.
+	 */
+	public function test_t57_modulo_porta_i_valori_di_partenza(): void {
+		wp_set_current_user( $this->responsabile );
+		SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
+
+		$html = $this->schermata();
+
+		foreach ( $this->validi() as $campo => $valore ) {
+			$this->assertStringContainsString( 'name="' . SchermataResponsabile::CAMPO_PARTENZA . '[' . $campo . ']" value="' . esc_attr( $valore ) . '"', $html, $campo );
+		}
+
+		$sbagliati         = $this->validi();
+		$sbagliati['nome'] = '<b>Maria</b>';
+		// L'esito arriva alla schermata come lo porta la risposta al modulo.
+		set_transient( SchermataResponsabile::ESITO . get_current_user_id(), SchermataResponsabile::salva( $this->richiesta( $sbagliati ) ), MINUTE_IN_SECONDS );
+		$html = $this->schermata();
+
+		$this->assertStringContainsString( esc_attr( '<b>Maria</b>' ), $html, 'Il modulo rimostra quanto inviato.' );
+		$this->assertStringContainsString( 'name="' . SchermataResponsabile::CAMPO_PARTENZA . '[nome]" value="Maria Rossi"', $html, 'Dopo un rifiuto la partenza resta quella della banca dati.' );
+	}
+
+	/**
+	 * T-57: [attacco] una richiesta senza valori di partenza, o con valori non testuali, non scrive niente.
+	 */
+	public function test_t57_partenza_mancante_o_sbagliata(): void {
+		wp_set_current_user( $this->responsabile );
+
+		$senza = $this->richiesta( $this->validi() );
+		unset( $senza[ SchermataResponsabile::CAMPO_PARTENZA ] );
+		$this->assertSame( 'dati', SchermataResponsabile::salva( $senza )['codice'] );
+
+		$monca = $this->richiesta( $this->validi(), array( 'nome' => '' ) );
+		$this->assertSame( 'dati', SchermataResponsabile::salva( $monca )['codice'] );
+
+		$non_testo = $this->richiesta( $this->validi(), array_fill_keys( Responsabile::CAMPI, array() ) );
+		$this->assertSame( 'dati', SchermataResponsabile::salva( $non_testo )['codice'] );
+
+		$this->assertNull( get_option( Responsabile::OPZIONE, null ) );
+		$this->assertCount( 0, $this->tracce() );
+	}
+
+	/**
+	 * T-57: [attacco] due moduli completi aperti insieme non si cancellano a vicenda.
+	 *
+	 * A cambia l'email, B poi cambia solo il telefono: l'email di A resta. Se
+	 * anche B cambia l'email, e un conflitto e non si salva niente.
+	 */
+	public function test_t57_due_moduli_completi(): void {
+		wp_set_current_user( $this->responsabile );
+		SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
+
+		$aperto = Responsabile::dati();
+
+		$di_a             = $this->validi();
+		$di_a['email']    = 'nuova@example.org';
+		$di_b             = $this->validi();
+		$di_b['telefono'] = '06 7654321';
+
+		$this->assertSame( 'salvato', SchermataResponsabile::salva( $this->richiesta( $di_a, $aperto ) )['codice'] );
+		$esito = SchermataResponsabile::salva( $this->richiesta( $di_b, $aperto ) );
+
+		$this->assertSame( 'salvato', $esito['codice'] );
+		$this->assertSame( array( 'telefono' ), $esito['campi'], 'Il registro di B dice solo il campo cambiato da B.' );
+		$this->assertSame( 'nuova@example.org', Responsabile::dati()['email'], 'L\'email di A resta.' );
+		$this->assertSame( '06 7654321', Responsabile::dati()['telefono'] );
+
+		$di_c          = $this->validi();
+		$di_c['email'] = 'altra@example.org';
+		$tracce        = count( $this->tracce() );
+		$esito         = SchermataResponsabile::salva( $this->richiesta( $di_c, $aperto ) );
+
+		$this->assertSame( 'conflitto', $esito['codice'] );
+		$this->assertSame( 'nuova@example.org', Responsabile::dati()['email'], 'Niente scritto.' );
+		$this->assertCount( $tracce, $this->tracce(), 'Niente nel registro.' );
 	}
 
 	/**

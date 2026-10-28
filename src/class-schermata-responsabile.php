@@ -38,6 +38,11 @@ final class SchermataResponsabile {
 	const CAMPO = 'responsabile';
 
 	/**
+	 * Nome del campo nascosto che porta i valori mostrati quando il modulo e stato aperto.
+	 */
+	const CAMPO_PARTENZA = 'partenza';
+
+	/**
 	 * Nome dell'operazione nel registro delle modifiche.
 	 */
 	const AZIONE_REGISTRO = 'responsabile_trasparenza';
@@ -100,6 +105,13 @@ final class SchermataResponsabile {
 	 * scrivere niente; un salvataggio alla volta; prima il registro, poi i dati,
 	 * e i dati si rileggono dopo averli scritti.
 	 *
+	 * Si applicano solo i campi cambiati da chi ha salvato, cioe diversi dai
+	 * valori che il modulo mostrava quando e stato aperto. Gli altri restano
+	 * come sono in banca dati: due moduli aperti insieme non si cancellano a
+	 * vicenda. Se un campo cambiato e stato cambiato anche da un altro
+	 * salvataggio dopo l'apertura del modulo, e un conflitto e non si salva
+	 * niente.
+	 *
 	 * Il registro dice quali campi sono cambiati, non i valori: nome e recapiti
 	 * sono dati personali, e il registro li conserverebbe anche dopo che
 	 * l'ente li ha cambiati.
@@ -135,7 +147,7 @@ final class SchermataResponsabile {
 		}
 
 		try {
-			return self::scrivi( $dati );
+			return self::scrivi( $dati, $richiesta[ self::CAMPO_PARTENZA ] ?? null );
 		} finally {
 			Blocco::rilascia();
 		}
@@ -144,16 +156,49 @@ final class SchermataResponsabile {
 	/**
 	 * Registra e scrive i dati controllati, con il blocco gia preso.
 	 *
-	 * @param array{nome: string, email: string, telefono: string, nomina: string} $dati Dati controllati.
+	 * @param array{nome: string, email: string, telefono: string, nomina: string} $dati      Dati controllati.
+	 * @param mixed                                                                $partenze  Valori mostrati dal modulo all'apertura.
 	 * @return array{codice: string, messaggio: string, campi: array<int, string>, inviati: array<string, string>}
 	 */
-	private static function scrivi( array $dati ): array {
+	private static function scrivi( array $dati, $partenze ): array {
+		if ( ! is_array( $partenze ) ) {
+			$partenze = array();
+		}
+
+		foreach ( Responsabile::CAMPI as $campo ) {
+			if ( ! isset( $partenze[ $campo ] ) || ! is_string( $partenze[ $campo ] ) ) {
+				return self::esito( 'dati', __( 'Niente salvato: la richiesta non diceva quali dati mostrava il modulo. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ), array(), $dati );
+			}
+		}
+
 		$prima = Responsabile::conservati();
 
 		if ( is_wp_error( $prima ) ) {
 			return self::esito( 'lettura', __( 'Niente salvato: i dati attuali del responsabile non si sono potuti leggere dalla banca dati, e senza conoscerli il registro direbbe cambiato quello che non lo è. Riprovare fra qualche minuto.', 'trasparenza-pa' ), array(), $dati );
 		}
 
+		$attuali = $prima ?? array_fill_keys( Responsabile::CAMPI, '' );
+		$nuovi   = $attuali;
+
+		foreach ( Responsabile::CAMPI as $campo ) {
+			if ( $dati[ $campo ] === $partenze[ $campo ] || $dati[ $campo ] === $attuali[ $campo ] ) {
+				continue;
+			}
+
+			if ( $attuali[ $campo ] !== $partenze[ $campo ] ) {
+				return self::esito( 'conflitto', __( 'Niente salvato: dopo l\'apertura di questa schermata qualcun altro ha cambiato gli stessi dati del responsabile. Ricaricare la schermata, che mostra i dati attuali, e riprovare.', 'trasparenza-pa' ), array(), $dati );
+			}
+
+			$nuovi[ $campo ] = $dati[ $campo ];
+		}
+
+		$controllati = Responsabile::controlla( $nuovi );
+
+		if ( is_wp_error( $controllati ) ) {
+			return self::esito( 'conflitto', __( 'Niente salvato: i dati attuali del responsabile sono cambiati dopo l\'apertura di questa schermata, e uniti a quelli inviati non sarebbero completi. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ), array(), $dati );
+		}
+
+		$dati  = $controllati;
 		$campi = array();
 
 		foreach ( Responsabile::CAMPI as $campo ) {
@@ -216,6 +261,8 @@ final class SchermataResponsabile {
 		$chiave = self::ESITO . get_current_user_id();
 		$esito  = get_transient( $chiave );
 		$valori = Responsabile::dati() ?? array_fill_keys( Responsabile::CAMPI, '' );
+		// I valori della banca dati all'apertura, anche quando il modulo rimostra quanto inviato.
+		$partenze = $valori;
 
 		if ( is_array( $esito ) && isset( $esito['codice'], $esito['messaggio'] ) ) {
 			delete_transient( $chiave );
@@ -259,6 +306,15 @@ final class SchermataResponsabile {
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		echo '<input type="hidden" name="action" value="' . esc_attr( self::AZIONE ) . '">';
 		wp_nonce_field( self::AZIONE );
+
+		foreach ( Responsabile::CAMPI as $campo ) {
+			printf(
+				'<input type="hidden" name="%1$s" value="%2$s">',
+				esc_attr( self::CAMPO_PARTENZA . '[' . $campo . ']' ),
+				esc_attr( (string) $partenze[ $campo ] )
+			);
+		}
+
 		echo '<table class="form-table" role="presentation"><tbody>';
 
 		foreach ( $etichette as $campo => list( $etichetta, $tipo, $obbligatorio ) ) {
