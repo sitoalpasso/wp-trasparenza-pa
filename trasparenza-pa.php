@@ -41,14 +41,14 @@ const PHP_MINIMO = '8.1';
 /**
  * Versione dell'interfaccia di conformita-core richiesta.
  *
- * L'intestazione `Requires Plugins` garantisce la presenza del componente
+ * La riga `Requires Plugins` dell'header garantisce la presenza del componente
  * comune e non la sua versione, perche accetta slug e non vincoli di versione:
  * il vincolo di versione vive qui e si verifica a ogni avvio.
  */
 const CORE_API_RICHIESTA = '1.7.0';
 
 /**
- * Nome visibile del componente, come compare negli avvisi in amministrazione.
+ * Nome visibile del componente, come compare negli avvisi della bacheca.
  */
 const NOME = 'Trasparenza PA';
 
@@ -104,11 +104,47 @@ const FILE_PRINCIPALE = __FILE__;
  */
 const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/corrente.json';
 
+/**
+ * Identificativo del tipo di contenuto della voce di trasparenza.
+ */
+const TIPO_VOCE = 'trasparenza_voce';
+
+/**
+ * Opzione che memorizza la versione installata, per riassegnare i permessi.
+ */
+const OPZIONE_VERSIONE = 'trasparenza_pa_versione_installata';
+
+/**
+ * Catalogo degli schemi ANAC distribuiti con il componente.
+ */
+const FILE_CATALOGO_SCHEMI = __DIR__ . '/schemas/catalogo.json';
+
+/*
+ * La libreria di validazione, nella copia con i nomi prefissati. Se manca, il
+ * motore degli schemi lo dice al primo uso invece di fermare il sito.
+ */
+if ( is_readable( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor-prefixed/autoload.php';
+}
+
 require_once __DIR__ . '/src/class-avvio.php';
 require_once __DIR__ . '/src/class-alberatura.php';
 require_once __DIR__ . '/src/class-stati-obbligo.php';
 require_once __DIR__ . '/src/class-pagina-pubblica.php';
+require_once __DIR__ . '/src/class-catalogo-schemi.php';
+require_once __DIR__ . '/src/class-motore-schemi.php';
+require_once __DIR__ . '/src/class-tipo-voce.php';
+require_once __DIR__ . '/src/class-permessi.php';
+require_once __DIR__ . '/src/class-installazione.php';
+require_once __DIR__ . '/src/class-chiusura-pubblicazione.php';
+require_once __DIR__ . '/src/class-modulo-schema.php';
+require_once __DIR__ . '/src/class-scheda-voce.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
+add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );
+add_action( 'init', array( Installazione::class, 'da_init' ), 6 );
+
+ChiusuraPubblicazione::aggancia();
+SchedaVoce::aggancia();
 
 PaginaPubblica::aggancia();

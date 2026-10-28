@@ -1,0 +1,43 @@
+﻿{
+    "$schema": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.13-v1.0.schema.json",
+    "intestazione": {
+        "amministrazione": {
+            "codiceFiscale": "12345678633",
+            "denominazione": "Amministrazione provinciale..."
+        },
+        "dataPrimaPubblicazione": "22/05/2026",
+        "dataUltimaModifica": "22/05/2026"
+    },
+    "orgSocietaEdEnti": {
+        "organi": [
+            {
+                "denominazione": "denominazione dell'Organo n.1",
+                "competenze": "descrizione delle competenze dell'Organo n.1",
+                "uffici": [
+                    {
+                        "tipologia": "Ufficio dirigenziale",
+                        "denominazione": "denominazione del primo ufficio appartenente all'Organo n.1",
+                        "competenze": "competenze dell'ufficio",
+                        "nominativo": "nome e cognome",
+                        "qualifica": "qualifica del dirigente",
+                        "contatti": {
+                            "recapitoTelefonico": "06 123456",
+                            "postaElettronicaOrdinaria": "email@email.it"
+                        }
+                    },
+                    {
+                        "tipologia": "Ufficio non dirigenziale",
+                        "denominazione": "denominazione del secondo ufficio appartenente all'Organo n.1",
+                        "competenze": "competenze dell'ufficio",
+                        "nominativo": "nome e cognome",
+                        "qualifica": "qualifica del dirigente",
+                        "contatti": {
+                            "recapitoTelefonico": "06 123456",
+                            "postaElettronicaOrdinaria": "email@email.it"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

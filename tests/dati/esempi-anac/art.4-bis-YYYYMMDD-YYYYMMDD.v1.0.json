@@ -1,0 +1,29 @@
+﻿{
+    "$schema": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.4-bis-v1.0.schema.json",
+    "intestazione": {
+        "amministrazione": {
+            "codiceFiscale": "12345678633",
+            "denominazione": "Amministrazione provinciale..."
+        },
+        "dataPrimaPubblicazione": "22/05/2026",
+        "dataUltimaModifica": "22/05/2026"
+    },
+    "datiSuiPagamenti": [
+        {
+            "anno": 2026,
+            "trimestre": 4,
+            "categoria": "uscite correnti",
+            "tipologia": "Contributi in conto esercizio",
+            "importo": "1.255,75",
+            "beneficiario": "Persona fisica"
+        },
+        {
+            "anno": 2026,
+            "trimestre": 2,
+            "categoria": "uscite in conto capitale",
+            "tipologia": "Investimenti in beni materiali",
+            "importo": "355,55",
+            "beneficiario": "Persona fisica"
+        }
+    ]
+}

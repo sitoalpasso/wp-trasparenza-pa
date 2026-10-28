@@ -95,6 +95,7 @@ function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = 
 			\TrasparenzaPa\PaginaPubblica::fissa_file( __DIR__ . '/dati/albero-finto.json' );
 
 			require_once __DIR__ . '/ambiente-trasparenza.php';
+			require_once __DIR__ . '/schemi-finti.php';
 
 			if ( ! $avvio_automatico ) {
 				remove_action( 'plugins_loaded', array( 'TrasparenzaPa\\Avvio', 'da_plugins_loaded' ) );

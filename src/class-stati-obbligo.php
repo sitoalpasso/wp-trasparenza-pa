@@ -1,6 +1,6 @@
 <?php
 /**
- * Lo stato dell'obbligo, voce per voce, come lo dichiara l'amministrazione.
+ * Lo stato dell'obbligo, voce per voce, come lo dichiara l'ente.
  *
  * Righe di collaudo T-13 e T-14.
  *
@@ -31,7 +31,7 @@ final class StatiObbligo {
 	const APPLICABILE = 'applicabile';
 
 	/**
-	 * L'obbligo non si applica all'amministrazione: si stampa la dicitura.
+	 * L'obbligo non si applica all'ente: si stampa la dicitura.
 	 */
 	const NON_APPLICABILE = 'non_applicabile';
 

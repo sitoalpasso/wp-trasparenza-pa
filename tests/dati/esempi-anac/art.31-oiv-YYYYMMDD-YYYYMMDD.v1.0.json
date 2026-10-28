@@ -1,0 +1,21 @@
+﻿{
+    "$schema": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.31-v1.0.schema.json",
+    "intestazione": {
+        "amministrazione": {
+            "codiceFiscale": "12345678633",
+            "denominazione": "Amministrazione provinciale..."
+        },
+        "dataPrimaPubblicazione": "22/05/2026",
+        "dataUltimaModifica": "22/05/2026"
+    },
+    "attiOrganiDiValutazione": {
+        "relazioneSistemaDiValutazione": {
+            "dataPubblicazione": "10/05/2026",
+            "documento": "http://www.example.org/trasparenza/oiv/RelazioneVal.pdf"
+        },
+        "validazioneRelazioneSullaPerformance": {
+            "dataPubblicazione": "25/04/2026",
+            "documento": "http://www.example.org/trasparenza/oiv/RelazionePerf.pdf"
+        }
+    }
+}
