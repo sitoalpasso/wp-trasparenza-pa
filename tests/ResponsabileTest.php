@@ -360,6 +360,42 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-57: se la lettura dei dati attuali fallisce, non si scrive niente e il registro non dice cambiato quello che non lo è.
+	 */
+	public function test_t57_lettura_fallita_niente_scritto(): void {
+		global $wpdb;
+
+		wp_set_current_user( $this->responsabile );
+		SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
+
+		$nuovi          = $this->validi();
+		$nuovi['email'] = 'nuovo@example.org';
+		$richiesta      = $this->richiesta( $nuovi );
+
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				$sql = (string) $sql;
+
+				return 0 === strpos( $sql, "SELECT option_value FROM {$wpdb->options} WHERE option_name = '" . Responsabile::OPZIONE . "'" )
+					? 'SELECT option_value FROM ' . $wpdb->options . '_inesistente'
+					: $sql;
+			}
+		);
+
+		$esito = SchermataResponsabile::salva( $richiesta );
+
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+
+		$this->assertSame( 'lettura', $esito['codice'] );
+		$this->assertSame( $nuovi, $esito['inviati'], 'Il modulo rimostra quanto inviato.' );
+		$this->assertSame( $this->validi(), Responsabile::conservati(), 'I dati di prima restano.' );
+		$this->assertCount( 1, $this->tracce(), 'Nessuna voce di registro per il salvataggio non fatto.' );
+	}
+
+	/**
 	 * T-57: se i dati non risultano scritti dopo la voce di registro, l'esito lo dice.
 	 */
 	public function test_t57_dati_non_scritti_esito_di_errore(): void {

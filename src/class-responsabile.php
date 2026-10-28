@@ -67,6 +67,32 @@ final class Responsabile {
 	}
 
 	/**
+	 * I dati conservati, letti dalla banca dati per chi deve riscriverli.
+	 *
+	 * Nullo se il responsabile non e mai stato indicato o se i dati conservati
+	 * non superano il controllo; errore se la lettura e fallita. `dati()` non
+	 * basta a chi salva: con una lettura fallita risponderebbe "mai indicato",
+	 * e il salvataggio registrerebbe come cambiati campi che non lo sono.
+	 *
+	 * @return array{nome: string, email: string, telefono: string, nomina: string}|null|WP_Error
+	 */
+	public static function conservati() {
+		$dati = Opzione::leggi( self::OPZIONE );
+
+		if ( is_wp_error( $dati ) ) {
+			return $dati;
+		}
+
+		if ( ! is_array( $dati ) ) {
+			return null;
+		}
+
+		$controllati = self::controlla( $dati );
+
+		return is_wp_error( $controllati ) ? null : $controllati;
+	}
+
+	/**
 	 * Controlla i dati inviati, tutti, e li restituisce ripuliti.
 	 *
 	 * Nome ed email obbligatori; telefono e atto di nomina facoltativi. Un

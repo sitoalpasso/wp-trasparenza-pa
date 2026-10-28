@@ -148,10 +148,12 @@ final class SchermataResponsabile {
 	 * @return array{codice: string, messaggio: string, campi: array<int, string>, inviati: array<string, string>}
 	 */
 	private static function scrivi( array $dati ): array {
-		wp_cache_delete( 'alloptions', 'options' );
-		wp_cache_delete( Responsabile::OPZIONE, 'options' );
+		$prima = Responsabile::conservati();
 
-		$prima = Responsabile::dati();
+		if ( is_wp_error( $prima ) ) {
+			return self::esito( 'lettura', __( 'Niente salvato: i dati attuali del responsabile non si sono potuti leggere dalla banca dati, e senza conoscerli il registro direbbe cambiato quello che non lo è. Riprovare fra qualche minuto.', 'trasparenza-pa' ), array(), $dati );
+		}
+
 		$campi = array();
 
 		foreach ( Responsabile::CAMPI as $campo ) {
@@ -189,7 +191,7 @@ final class SchermataResponsabile {
 		wp_cache_delete( 'alloptions', 'options' );
 		wp_cache_delete( Responsabile::OPZIONE, 'options' );
 
-		if ( Responsabile::dati() !== $dati ) {
+		if ( Responsabile::conservati() !== $dati ) {
 			return self::esito(
 				'scrittura',
 				__( 'I dati del responsabile non si sono potuti scrivere: restano quelli di prima. Il registro delle modifiche contiene un cambio che non è avvenuto.', 'trasparenza-pa' ),
