@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove della schermata di gestione degli stati: righe T-26..T-33.
+ * Prove della schermata di gestione degli stati: righe T-46..T-53.
  *
  * @package TrasparenzaPa
  */
@@ -133,9 +133,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-26: alla prima installazione il permesso va all'amministratore.
+	 * T-46: alla prima installazione il permesso va all'amministratore.
 	 */
-	public function test_t26_permesso_assegnato_alla_prima_installazione(): void {
+	public function test_t46_permesso_assegnato_alla_prima_installazione(): void {
 		$this->assertTrue( Permessi::assegna() );
 		$this->assertTrue( get_role( 'administrator' )->has_cap( Permessi::AMMINISTRAZIONE ) );
 		$this->assertSame( \TrasparenzaPa\VERSIONE, get_option( Permessi::OPZIONE_ASSEGNATO ) );
@@ -143,9 +143,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-26: tolto dall'ente, il permesso non torna con la richiesta successiva.
+	 * T-46: tolto dall'ente, il permesso non torna con la richiesta successiva.
 	 */
-	public function test_t26_permesso_tolto_non_torna(): void {
+	public function test_t46_permesso_tolto_non_torna(): void {
 		Permessi::assegna();
 		get_role( 'administrator' )->remove_cap( Permessi::AMMINISTRAZIONE );
 
@@ -156,9 +156,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-26: senza il ruolo di amministratore niente si assegna e niente si ricorda.
+	 * T-46: senza il ruolo di amministratore niente si assegna e niente si ricorda.
 	 */
-	public function test_t26_senza_amministratore_niente_ricordato(): void {
+	public function test_t46_senza_amministratore_niente_ricordato(): void {
 		$copia = get_role( 'administrator' )->capabilities;
 		remove_role( 'administrator' );
 
@@ -172,9 +172,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-27: se nessun ruolo ha il permesso, chi gestisce i componenti lo sa.
+	 * T-47: se nessun ruolo ha il permesso, chi gestisce i componenti lo sa.
 	 */
-	public function test_t27_avviso_se_nessuno_ha_il_permesso(): void {
+	public function test_t47_avviso_se_nessuno_ha_il_permesso(): void {
 		wp_set_current_user( $this->amministratore );
 
 		$this->assertTrue( Permessi::nessun_ruolo_possiede() );
@@ -191,13 +191,13 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-28: la voce di menu chiede il permesso della sezione, e la schermata si aggancia solo per chi lo ha.
+	 * T-48: la voce di menu chiede il permesso della sezione, e la schermata si aggancia solo per chi lo ha.
 	 *
 	 * WordPress mette la voce nell'elenco per tutti e la toglie poi a chi non
 	 * ha il permesso scritto nella voce: si controllano quel permesso e
 	 * l'aggancio che disegna la schermata.
 	 */
-	public function test_t28_menu_solo_con_permesso(): void {
+	public function test_t48_menu_solo_con_permesso(): void {
 		global $menu;
 
 		set_current_screen( 'dashboard' );
@@ -222,9 +222,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-28: la schermata aperta senza permesso si rifiuta.
+	 * T-48: la schermata aperta senza permesso si rifiuta.
 	 */
-	public function test_t28_schermata_senza_permesso_rifiutata(): void {
+	public function test_t48_schermata_senza_permesso_rifiutata(): void {
 		wp_set_current_user( $this->amministratore );
 
 		$this->expectException( WPDieException::class );
@@ -232,9 +232,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-28: tutte le voci tranne la radice, nessuno stato preselezionato.
+	 * T-48: tutte le voci tranne la radice, nessuno stato preselezionato.
 	 */
-	public function test_t28_schermata_elenca_le_voci_senza_preselezione(): void {
+	public function test_t48_schermata_elenca_le_voci_senza_preselezione(): void {
 		StatiObbligo::imposta( PaginaPubblica::albero(), 'zeta_uno', StatiObbligo::SOSPESO );
 		wp_set_current_user( $this->responsabile );
 
@@ -251,9 +251,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-28: la schermata spiega gli effetti con le frasi dell'albero e conta le non dichiarate.
+	 * T-48: la schermata spiega gli effetti con le frasi dell'albero e conta le non dichiarate.
 	 */
-	public function test_t28_schermata_spiega_e_conta(): void {
+	public function test_t48_schermata_spiega_e_conta(): void {
 		wp_set_current_user( $this->responsabile );
 
 		$html = $this->schermata();
@@ -270,9 +270,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-29: senza permesso, senza nonce o con il nonce di un'altra azione non si scrive niente.
+	 * T-49: senza permesso, senza nonce o con il nonce di un'altra azione non si scrive niente.
 	 */
-	public function test_t29_permesso_e_nonce_obbligatori(): void {
+	public function test_t49_permesso_e_nonce_obbligatori(): void {
 		wp_set_current_user( $this->amministratore );
 		$this->assertSame( 'permesso', SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::APPLICABILE ) ) )['codice'] );
 
@@ -298,9 +298,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-29: il nonce di un utente non vale per un altro.
+	 * T-49: il nonce di un utente non vale per un altro.
 	 */
-	public function test_t29_nonce_di_un_altro_utente(): void {
+	public function test_t49_nonce_di_un_altro_utente(): void {
 		$altro = self::factory()->user->create( array( 'role' => 'editor' ) );
 		get_user_by( 'id', $altro )->add_cap( Permessi::AMMINISTRAZIONE );
 
@@ -314,9 +314,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-30: una richiesta valida salva i cambi e lascia invariati i campi vuoti.
+	 * T-50: una richiesta valida salva i cambi e lascia invariati i campi vuoti.
 	 */
-	public function test_t30_salvataggio_valido(): void {
+	public function test_t50_salvataggio_valido(): void {
 		wp_set_current_user( $this->responsabile );
 
 		$esito = SchermataStati::salva(
@@ -337,9 +337,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-30: uno stato dichiarato si cambia ma non si toglie.
+	 * T-50: uno stato dichiarato si cambia ma non si toglie.
 	 */
-	public function test_t30_stato_dichiarato_non_si_toglie(): void {
+	public function test_t50_stato_dichiarato_non_si_toglie(): void {
 		wp_set_current_user( $this->responsabile );
 		SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::NON_APPLICABILE ) ) );
 
@@ -354,13 +354,13 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-30: un solo difetto e non si scrive niente, nemmeno le voci buone.
+	 * T-50: un solo difetto e non si scrive niente, nemmeno le voci buone.
 	 *
 	 * @dataProvider richieste_difettose
 	 *
 	 * @param mixed $stati Campo degli stati come arriva dal modulo.
 	 */
-	public function test_t30_tutto_o_niente( $stati ): void {
+	public function test_t50_tutto_o_niente( $stati ): void {
 		wp_set_current_user( $this->responsabile );
 
 		$richiesta                          = $this->richiesta( array() );
@@ -422,9 +422,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-31: ogni cambio lascia una voce nel registro, con chi, prima e dopo.
+	 * T-51: ogni cambio lascia una voce nel registro, con chi, prima e dopo.
 	 */
-	public function test_t31_ogni_cambio_nel_registro(): void {
+	public function test_t51_ogni_cambio_nel_registro(): void {
 		wp_set_current_user( $this->responsabile );
 
 		SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::NON_APPLICABILE ) ) );
@@ -465,9 +465,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-31: rimandare lo stato che c'e gia non e un cambio e non va nel registro.
+	 * T-51: rimandare lo stato che c'e gia non e un cambio e non va nel registro.
 	 */
-	public function test_t31_stato_uguale_non_registrato(): void {
+	public function test_t51_stato_uguale_non_registrato(): void {
 		wp_set_current_user( $this->responsabile );
 
 		SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::SOSPESO ) ) );
@@ -478,9 +478,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-31: se il registro rifiuta un cambio, quello e i successivi non si fanno.
+	 * T-51: se il registro rifiuta un cambio, quello e i successivi non si fanno.
 	 */
-	public function test_t31_registro_che_rifiuta_ferma_i_cambi(): void {
+	public function test_t51_registro_che_rifiuta_ferma_i_cambi(): void {
 		global $wpdb;
 
 		wp_set_current_user( $this->responsabile );
@@ -528,12 +528,12 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-31: se la scrittura dello stato non avviene, il salvataggio si ferma e lo dice.
+	 * T-51: se la scrittura dello stato non avviene, il salvataggio si ferma e lo dice.
 	 *
 	 * Il registro accetta, la banca dati no: l'esito non e "salvato", nomina la
 	 * voce e dice che per quella il registro contiene un cambio non avvenuto.
 	 */
-	public function test_t31_stato_non_scritto_ferma_i_cambi(): void {
+	public function test_t51_stato_non_scritto_ferma_i_cambi(): void {
 		wp_set_current_user( $this->responsabile );
 
 		$scritture = 0;
@@ -574,9 +574,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-32: senza albero la schermata lo dice e il salvataggio si rifiuta.
+	 * T-52: senza albero la schermata lo dice e il salvataggio si rifiuta.
 	 */
-	public function test_t32_senza_albero(): void {
+	public function test_t52_senza_albero(): void {
 		PaginaPubblica::fissa_file( __DIR__ . '/dati/non-esiste.json' );
 		PaginaPubblica::da_init();
 		wp_set_current_user( $this->responsabile );
@@ -591,9 +591,9 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-32: senza sezione registrata non c'e menu e i ruoli non si toccano.
+	 * T-52: senza sezione registrata non c'e menu e i ruoli non si toccano.
 	 */
-	public function test_t32_senza_sezione_niente_menu_ne_permessi(): void {
+	public function test_t52_senza_sezione_niente_menu_ne_permessi(): void {
 		global $menu;
 
 		Avvio::azzera();
@@ -610,12 +610,12 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-33: con un altro salvataggio in corso si aspetta, poi si rinuncia senza scrivere.
+	 * T-53: con un altro salvataggio in corso si aspetta, poi si rinuncia senza scrivere.
 	 *
 	 * L'altro salvataggio e una seconda connessione alla stessa banca dati che
 	 * tiene il blocco: e quello che fa una richiesta contemporanea.
 	 */
-	public function test_t33_salvataggio_contemporaneo_rifiutato(): void {
+	public function test_t53_salvataggio_contemporaneo_rifiutato(): void {
 		global $wpdb;
 
 		list( $host, $porta, $socket ) = $wpdb->parse_db_host( DB_HOST );
@@ -640,13 +640,13 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-33: il punto di partenza si rilegge dalla banca dati, non dalla memoria della richiesta.
+	 * T-53: il punto di partenza si rilegge dalla banca dati, non dalla memoria della richiesta.
 	 *
 	 * Un'altra richiesta ha cambiato uno stato dopo che questa lo aveva letto:
 	 * il "prima" del registro e quello nuovo, e lo stato scritto dall'altra
 	 * richiesta su un'altra voce non si perde.
 	 */
-	public function test_t33_partenza_riletta_dalla_banca_dati(): void {
+	public function test_t53_partenza_riletta_dalla_banca_dati(): void {
 		global $wpdb;
 
 		wp_set_current_user( $this->responsabile );

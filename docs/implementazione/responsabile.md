@@ -25,7 +25,7 @@ cambierebbe, come un nome con un pezzo di codice, si rifiuta invece di salvarlo 
 come è stato scritto.
 
 **Come si prova, e come si prova che la prova è vera.** Diciotto prove nuove (righe
-T-34..T-38). Diciassette rotture volute, una per volta e poi tolte, le fanno diventare
+T-54..T-58). Diciassette rotture volute, una per volta e poi tolte, le fanno diventare
 rosse: collocazione verso la radice accettata, collocazione verso una voce inesistente
 accettata, nome non confrontato con la sua versione ripulita, schema dell'atto di nomina
 non controllato, telefono non controllato, nome stampato senza escaping, controllo del
@@ -47,7 +47,7 @@ in ogni voce, collocazione normativa spostata su un'altra voce.
 | `trasparenza-pa.php` | Caricamento delle classi e aggancio della schermata |
 | `dati/alberatura/corrente.json` | Collocazione del responsabile e sua fonte |
 | `tests/dati/albero-finto.json` | Collocazione del responsabile nell'albero delle prove |
-| `tests/AlberaturaTest.php`, `tests/AlberoNormativoTest.php`, `tests/ResponsabileTest.php` | Righe T-34..T-38 |
+| `tests/AlberaturaTest.php`, `tests/AlberoNormativoTest.php`, `tests/ResponsabileTest.php` | Righe T-54..T-58 |
 | `docs/collaudo.md`, `docs/requisiti.md`, `docs/dati.md`, `docs/architettura.md`, `docs/implementazione/alberatura.md` | Righe di collaudo, TRASP-13, dato e voce di registro, parti del plugin, formato del file |
 
 ## 2. Requisito servito
@@ -106,7 +106,7 @@ l'esito lo dice subito.
 
 ## 7. Test
 
-Righe T-34..T-38 di `docs/collaudo.md`: T-34 in `tests/AlberaturaTest.php`, T-35 in
+Righe T-54..T-58 di `docs/collaudo.md`: T-54 in `tests/AlberaturaTest.php`, T-55 in
 `tests/AlberoNormativoTest.php`, le altre in `tests/ResponsabileTest.php`. La prova del
 blocco apre una seconda connessione alla banca dati, come quella degli stati, e dura cinque
 secondi.

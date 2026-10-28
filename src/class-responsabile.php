@@ -2,7 +2,7 @@
 /**
  * Il responsabile della prevenzione della corruzione e della trasparenza.
  *
- * Righe di collaudo T-36..T-38.
+ * Righe di collaudo T-56..T-58.
  *
  * @package TrasparenzaPa
  */
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * I dati del responsabile, il loro controllo e come si mostrano.
  *
  * L'art. 43 del d.lgs. 33/2013 vuole il responsabile indicato nella sezione. Il
- * nome e i recapiti li dichiara l'amministrazione; il componente controlla che
+ * nome e i recapiti li dichiara l'ente; il componente controlla che
  * siano dati sensati e li mostra nella voce che il file dell'albero indica.
  * Nessun valore predefinito: un responsabile non indicato resta non indicato,
  * e chi amministra la sezione lo vede.

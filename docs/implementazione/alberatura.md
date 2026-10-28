@@ -67,8 +67,8 @@ Formato del file dell'albero, versione 1:
 | `nodi` | elenco di voci in ordine di visualizzazione: `id` (lettere, cifre e trattino basso, al massimo 80), `nome`, `padre` (nullo solo per la radice), `riferimento` |
 | `fonti` | elenco delle fonti dell'albero: `chiave`, `titolo`, `url` o `estremi`, `consultata` (data), `uso`. Il motore non la legge; la controllano le prove dell'albero normativo (T-25) |
 | `fonte_diciture` | per ogni dicitura, la chiave della fonte o la dichiarazione che e un testo del componente. Idem |
-| `collocazioni` | facoltativa: per ogni dato della sezione che non e una voce, come il responsabile della trasparenza (`responsabile_trasparenza`), la voce in cui si mostra. Il nome del dato segue `[a-z0-9_]{1,80}`; la voce deve esistere e non essere la radice, altrimenti il file si rifiuta con `trasparenza_albero_collocazione` (T-34) |
-| `fonte_collocazioni` | per ogni collocazione, la chiave della fonte. Il motore non la legge; la controllano le prove dell'albero normativo (T-35) |
+| `collocazioni` | facoltativa: per ogni dato della sezione che non e una voce, come il responsabile della trasparenza (`responsabile_trasparenza`), la voce in cui si mostra. Il nome del dato segue `[a-z0-9_]{1,80}`; la voce deve esistere e non essere la radice, altrimenti il file si rifiuta con `trasparenza_albero_collocazione` (T-54) |
+| `fonte_collocazioni` | per ogni collocazione, la chiave della fonte. Il motore non la legge; la controllano le prove dell'albero normativo (T-55) |
 
 Gli stati si scrivono nell'opzione `trasparenza_pa_stati_obbligo`. Un valore conservato che
 non e fra i tre vale come non dichiarato.

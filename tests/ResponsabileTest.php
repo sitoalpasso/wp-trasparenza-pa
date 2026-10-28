@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove del responsabile della trasparenza: righe T-36..T-38.
+ * Prove del responsabile della trasparenza: righe T-56..T-58.
  *
  * @package TrasparenzaPa
  */
@@ -144,9 +144,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-36: i dati validi passano, ripuliti dagli spazi ai bordi; telefono e nomina sono facoltativi.
+	 * T-56: i dati validi passano, ripuliti dagli spazi ai bordi; telefono e nomina sono facoltativi.
 	 */
-	public function test_t36_dati_validi(): void {
+	public function test_t56_dati_validi(): void {
 		$this->assertSame( $this->validi(), Responsabile::controlla( $this->validi() ) );
 
 		$minimi = array(
@@ -166,9 +166,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-36: [attacco] ogni campo sbagliato si rifiuta, invece di salvarlo cambiato.
+	 * T-56: [attacco] ogni campo sbagliato si rifiuta, invece di salvarlo cambiato.
 	 */
-	public function test_t36_dati_sbagliati_rifiutati(): void {
+	public function test_t56_dati_sbagliati_rifiutati(): void {
 		$guasti = array(
 			'nome mancante'           => array( 'nome' => '' ),
 			'nome con codice'         => array( 'nome' => 'Maria <script>alert(1)</script>' ),
@@ -197,9 +197,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-36: dati conservati che non superano il controllo valgono come non indicati.
+	 * T-56: dati conservati che non superano il controllo valgono come non indicati.
 	 */
-	public function test_t36_dati_conservati_estranei_non_indicati(): void {
+	public function test_t56_dati_conservati_estranei_non_indicati(): void {
 		update_option( Responsabile::OPZIONE, array_merge( $this->validi(), array( 'nome' => '<b>Maria</b>' ) ) );
 		$this->assertNull( Responsabile::dati() );
 
@@ -208,9 +208,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: sottovoce di menu con il permesso della sezione; schermata rifiutata senza.
+	 * T-57: sottovoce di menu con il permesso della sezione; schermata rifiutata senza.
 	 */
-	public function test_t37_menu_e_schermata_solo_con_permesso(): void {
+	public function test_t57_menu_e_schermata_solo_con_permesso(): void {
 		global $submenu;
 
 		set_current_screen( 'dashboard' );
@@ -232,9 +232,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: [attacco] salvataggio senza permesso, senza nonce, con il nonce di un'altra azione o di un altro utente.
+	 * T-57: [attacco] salvataggio senza permesso, senza nonce, con il nonce di un'altra azione o di un altro utente.
 	 */
-	public function test_t37_salvataggio_rifiutato_senza_permesso_o_nonce(): void {
+	public function test_t57_salvataggio_rifiutato_senza_permesso_o_nonce(): void {
 		wp_set_current_user( $this->amministratore );
 		$this->assertSame( 'permesso', SchermataResponsabile::salva( $this->richiesta( $this->validi() ) )['codice'] );
 
@@ -265,9 +265,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: un salvataggio valido scrive i dati e una voce di registro con i soli nomi dei campi.
+	 * T-57: un salvataggio valido scrive i dati e una voce di registro con i soli nomi dei campi.
 	 */
-	public function test_t37_salvataggio_e_registro_senza_valori(): void {
+	public function test_t57_salvataggio_e_registro_senza_valori(): void {
 		wp_set_current_user( $this->responsabile );
 
 		$esito = SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
@@ -294,9 +294,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: rimandare gli stessi dati non e un cambio e non va nel registro.
+	 * T-57: rimandare gli stessi dati non e un cambio e non va nel registro.
 	 */
-	public function test_t37_dati_uguali_non_registrati(): void {
+	public function test_t57_dati_uguali_non_registrati(): void {
 		wp_set_current_user( $this->responsabile );
 
 		SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
@@ -308,9 +308,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: con un campo sbagliato non si scrive niente, e il modulo rimostra quello che si era scritto.
+	 * T-57: con un campo sbagliato non si scrive niente, e il modulo rimostra quello che si era scritto.
 	 */
-	public function test_t37_dati_sbagliati_niente_scritto(): void {
+	public function test_t57_dati_sbagliati_niente_scritto(): void {
 		wp_set_current_user( $this->responsabile );
 		SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
 
@@ -333,9 +333,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: se il registro rifiuta, i dati non si scrivono.
+	 * T-57: se il registro rifiuta, i dati non si scrivono.
 	 */
-	public function test_t37_registro_che_rifiuta_niente_scritto(): void {
+	public function test_t57_registro_che_rifiuta_niente_scritto(): void {
 		global $wpdb;
 
 		wp_set_current_user( $this->responsabile );
@@ -360,9 +360,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: se i dati non risultano scritti dopo la voce di registro, l'esito lo dice.
+	 * T-57: se i dati non risultano scritti dopo la voce di registro, l'esito lo dice.
 	 */
-	public function test_t37_dati_non_scritti_esito_di_errore(): void {
+	public function test_t57_dati_non_scritti_esito_di_errore(): void {
 		wp_set_current_user( $this->responsabile );
 
 		add_filter(
@@ -382,9 +382,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: [attacco] un altro salvataggio tiene il blocco: dopo l'attesa si rinuncia senza scrivere.
+	 * T-57: [attacco] un altro salvataggio tiene il blocco: dopo l'attesa si rinuncia senza scrivere.
 	 */
-	public function test_t37_blocco_occupato_niente_scritto(): void {
+	public function test_t57_blocco_occupato_niente_scritto(): void {
 		global $wpdb;
 
 		wp_set_current_user( $this->responsabile );
@@ -408,9 +408,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-37: senza responsabile, avviso a chi ha il permesso, sulla bacheca e non altrove.
+	 * T-57: senza responsabile, avviso a chi ha il permesso, sulla bacheca e non altrove.
 	 */
-	public function test_t37_avviso_se_non_indicato(): void {
+	public function test_t57_avviso_se_non_indicato(): void {
 		$avviso = 'responsabile della prevenzione della corruzione e della trasparenza non è indicato';
 
 		set_current_screen( 'dashboard' );
@@ -430,9 +430,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-38: il riquadro compare nella voce indicata dall'albero, con i dati in uscita sicura, e solo lì.
+	 * T-58: il riquadro compare nella voce indicata dall'albero, con i dati in uscita sicura, e solo lì.
 	 */
-	public function test_t38_riquadro_nella_voce_indicata(): void {
+	public function test_t58_riquadro_nella_voce_indicata(): void {
 		update_option(
 			Responsabile::OPZIONE,
 			array(
@@ -456,9 +456,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-38: senza telefono e senza nomina, quelle righe non compaiono vuote.
+	 * T-58: senza telefono e senza nomina, quelle righe non compaiono vuote.
 	 */
-	public function test_t38_campi_facoltativi_assenti(): void {
+	public function test_t58_campi_facoltativi_assenti(): void {
 		update_option(
 			Responsabile::OPZIONE,
 			array(
@@ -477,9 +477,9 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-38: responsabile non indicato, o albero senza collocazione: nessun riquadro.
+	 * T-58: responsabile non indicato, o albero senza collocazione: nessun riquadro.
 	 */
-	public function test_t38_niente_riquadro_senza_dati_o_collocazione(): void {
+	public function test_t58_niente_riquadro_senza_dati_o_collocazione(): void {
 		$this->assertStringNotContainsString( 'trasparenza-pa-responsabile', $this->pagina() );
 
 		update_option( Responsabile::OPZIONE, $this->validi() );

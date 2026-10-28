@@ -5,6 +5,7 @@
 	<file>.</file>
 
 	<exclude-pattern>/vendor/</exclude-pattern>
+	<exclude-pattern>/vendor-prefixed/</exclude-pattern>
 	<exclude-pattern>/node_modules/</exclude-pattern>
 
 	<arg name="extensions" value="php"/>
@@ -44,12 +45,13 @@
 	</rule>
 
 	<!--
-		L'avvio della suite gira da riga di comando prima che WordPress sia
-		caricato: WP_Filesystem non esiste ancora e la diagnostica va su STDERR.
+		L'avvio della suite e gli script di bin/ girano da riga di comando senza
+		WordPress: WP_Filesystem non esiste e la diagnostica va su STDERR.
 	-->
 	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite">
 		<exclude-pattern>/tests/bootstrap*\.php</exclude-pattern>
 		<exclude-pattern>/tests/avvio-comune\.php</exclude-pattern>
+		<exclude-pattern>/bin/*\.php</exclude-pattern>
 	</rule>
 
 	<!--

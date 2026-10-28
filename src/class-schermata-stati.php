@@ -1,8 +1,8 @@
 <?php
 /**
- * La schermata in cui l'amministrazione dichiara lo stato di ogni voce.
+ * La schermata in cui l'ente dichiara lo stato di ogni voce.
  *
- * Righe di collaudo T-28..T-33.
+ * Righe di collaudo T-48..T-53.
  *
  * @package TrasparenzaPa
  */
@@ -330,7 +330,7 @@ final class SchermataStati {
 	 * @param Alberatura $albero Albero di riferimento.
 	 */
 	private static function spiegazione( Alberatura $albero ): void {
-		echo '<p>' . esc_html__( 'Per ogni voce della sezione l\'amministrazione dichiara se l\'obbligo di pubblicazione la riguarda. Gli schemi di pubblicazione ANAC prevedono tre stati, e nessuno è scelto in partenza: una voce senza stato non è conforme, e resta nell\'elenco qui sotto finché qualcuno non sceglie.', 'trasparenza-pa' ) . '</p><ul class="ul-disc">';
+		echo '<p>' . esc_html__( 'Per ogni voce della sezione l\'ente dichiara se l\'obbligo di pubblicazione la riguarda. Gli schemi di pubblicazione ANAC prevedono tre stati, e nessuno è scelto in partenza: una voce senza stato non è conforme, e resta nell\'elenco qui sotto finché qualcuno non sceglie.', 'trasparenza-pa' ) . '</p><ul class="ul-disc">';
 
 		printf( '<li><strong>%1$s</strong>: %2$s</li>', esc_html__( 'Applicabile', 'trasparenza-pa' ), esc_html__( 'l\'obbligo vale, e la voce va riempita con i dati.', 'trasparenza-pa' ) );
 

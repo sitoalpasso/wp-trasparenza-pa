@@ -1,0 +1,62 @@
+{
+	"formato": 1,
+	"comuni": [
+		{
+			"file": "commons-v1.0.schema.json",
+			"fonte": {
+				"titolo": "ANAC, Guida Online del Portale Servizi, definizioni comuni degli schemi di pubblicazione, v1.0",
+				"indirizzo": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json",
+				"pagina": "https://guida-servizi.anticorruzione.it/it/help/trasparenza/amministrazione-trasparente/",
+				"consultato_il": "2026-10-27",
+				"sha256": "136947709b1294d02250167bdf70f4401a5c2eb2fcad68b21d0c6495f5b61972"
+			}
+		}
+	],
+	"schemi": [
+		{
+			"obbligo": "art_13",
+			"versione": "1.0",
+			"approvato_il": "2026-06-10",
+			"in_vigore_dal": "2026-06-10",
+			"file": "art.13-v1.0.schema.json",
+			"fonte": {
+				"titolo": "ANAC, Guida Online del Portale Servizi, schema di pubblicazione art. 13 d.lgs. 33/2013, v1.0 (delibera 495/2024; modelli approvati dal Consiglio il 10 giugno 2026)",
+				"indirizzo": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.13-v1.0.schema.json",
+				"pagina": "https://guida-servizi.anticorruzione.it/it/help/trasparenza/schemi/art.13/",
+				"consultato_il": "2026-10-27",
+				"sha256": "a74c839b5d2f183ee39456842933799dd15b3356a417679ab0bccb87a4297a16",
+				"pagina_aggiornata_il": "2026-09-17"
+			}
+		},
+		{
+			"obbligo": "art_4_bis",
+			"versione": "1.0",
+			"approvato_il": "2026-06-10",
+			"in_vigore_dal": "2026-06-10",
+			"file": "art.4-bis-v1.0.schema.json",
+			"fonte": {
+				"titolo": "ANAC, Guida Online del Portale Servizi, schema di pubblicazione art. 4-bis d.lgs. 33/2013, v1.0 (delibera 495/2024 come modificata dalla delibera 481/2025; modelli approvati dal Consiglio il 10 giugno 2026)",
+				"indirizzo": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.4-bis-v1.0.schema.json",
+				"pagina": "https://guida-servizi.anticorruzione.it/it/help/trasparenza/schemi/art.4-bis/",
+				"consultato_il": "2026-10-27",
+				"sha256": "4dc9697c49b53a33123cd08ee9e9084a3eeac4afc59c1c2af834584faf94fe26",
+				"pagina_aggiornata_il": "2026-09-17"
+			}
+		},
+		{
+			"obbligo": "art_31",
+			"versione": "1.0",
+			"approvato_il": "2026-06-10",
+			"in_vigore_dal": "2026-06-10",
+			"file": "art.31-v1.0.schema.json",
+			"fonte": {
+				"titolo": "ANAC, Guida Online del Portale Servizi, schema di pubblicazione art. 31 d.lgs. 33/2013, v1.0 (delibera 495/2024 come modificata dalla delibera 481/2025; modelli approvati dal Consiglio il 10 giugno 2026)",
+				"indirizzo": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.31-v1.0.schema.json",
+				"pagina": "https://guida-servizi.anticorruzione.it/it/help/trasparenza/schemi/art.31/",
+				"consultato_il": "2026-10-27",
+				"sha256": "8a6484b1a30e2eb177b1943ffbca9cae9f6b93d4125fa3d0e3f767d51f76a972",
+				"pagina_aggiornata_il": "2026-08-28"
+			}
+		}
+	]
+}

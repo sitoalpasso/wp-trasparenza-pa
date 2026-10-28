@@ -1,8 +1,8 @@
 <?php
 /**
- * La schermata in cui l'amministrazione indica il responsabile della trasparenza.
+ * La schermata in cui l'ente indica il responsabile della trasparenza.
  *
- * Righe di collaudo T-37 e T-38.
+ * Righe di collaudo T-57 e T-58.
  *
  * @package TrasparenzaPa
  */
@@ -102,7 +102,7 @@ final class SchermataResponsabile {
 	 *
 	 * Il registro dice quali campi sono cambiati, non i valori: nome e recapiti
 	 * sono dati personali, e il registro li conserverebbe anche dopo che
-	 * l'amministrazione li ha cambiati.
+	 * l'ente li ha cambiati.
 	 *
 	 * @param array<string, mixed> $richiesta Campi del modulo, gia senza barre inverse.
 	 * @return array{codice: string, messaggio: string, campi: array<int, string>, inviati: array<string, string>}

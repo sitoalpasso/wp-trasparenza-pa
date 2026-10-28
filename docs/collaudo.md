@@ -44,7 +44,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-10 | da fare | Ogni sottosezione e ogni voce | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
 | TRASP-12 | da fare | Si invia una richiesta di accesso civico di prova | modulo raggiungibile, destinatari indicati, richiesta nel registro |
-| TRASP-13 | fatto | Responsabile della trasparenza (righe T-34..T-38) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
+| TRASP-13 | fatto | Responsabile della trasparenza (righe T-54..T-58) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
 | TRASP-14 | da fare | Campo PIAO | configurabile e mostrato dove previsto |
 | TRASP-15 | da fare | Si carica un PDF che sembra una scansione | avviso al redattore, dichiarato come indizio |
 | TRASP-16 | da fare | Flusso di pubblicazione senza la conferma sui dati personali | non si conclude |
@@ -57,7 +57,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-24 | da fare | Richiesta anonima esterna su ogni URL dell'at_map | HTTPS, risposta piena, nessun filtro |
 | TRASP-25 | da fare | Voce-rinvio con collegamento rotto | esito negativo registrato con data, voce segnalata |
 | TRASP-26 | da fare | Dato pubblicato con schema v1.0, arrivo di una v1.1 | la v1.1 si affianca, il dato v1.0 resta valido e leggibile |
-| TRASP-27 | fatto | Sottosezione dichiarata non applicabile (righe T-13..T-15, T-28) | stampa carattere per carattere la dicitura obbligata; lo stato sospeso esiste; la sottosezione vuota senza stato è segnalata |
+| TRASP-27 | fatto | Sottosezione dichiarata non applicabile (righe T-13..T-15, T-48) | stampa carattere per carattere la dicitura obbligata; lo stato sospeso esiste; la sottosezione vuota senza stato è segnalata |
 | TRASP-28 | da fare | Passaggi fra i quattro stati editoriali | tracciati; nei due stati di difformità la segnalazione al RPCT è registrata |
 | TRASP-29 | da fare | Voce-rinvio verso una banca dati nazionale | espone amministrazione titolare e destinatario dell'accesso civico; il caso senza banca dati non è configurabile come rinvio |
 | art. 31 | da fare | Ente senza organismo di valutazione; nessun rilievo degli organi di controllo | il dato valida comunque: il campo facoltativo si omette, l'elenco vuoto si emette vuoto |
@@ -116,7 +116,53 @@ nella prova e non letti dal file, altrimenti la prova confronterebbe il file con
 | T-24 | fatto | Identificativi | i 68 identificativi del modello `at_map` che hanno una voce nelle fonti coincidono con quelli dell'albero |
 | T-25 | fatto | Dicitura e fonti | dicitura del non applicabile carattere per carattere; fonti con titolo, indirizzo o estremi e data di consultazione; fonte dichiarata per ogni dicitura |
 
-## Schermata di gestione degli stati (righe T-26..T-33)
+## Motore degli schemi (righe T-26..T-33)
+
+Provano il motore con schemi finti scritti per le prove, nella stessa forma dei file ANAC
+(draft-07, riferimenti esterni a indirizzi assoluti). Gli schemi ufficiali entrano come file
+di dati e hanno prove loro. La libreria di validazione e opis/json-schema (Apache-2.0),
+distribuita con i nomi prefissati.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-26 | fatto | Libreria nel pacchetto distribuito | presente solo con i nomi prefissati; con una seconda copia della stessa libreria gia caricata da un altro componente la validazione funziona e usa la propria |
+| T-27 | fatto | Catalogo degli schemi valido | caricato; per ogni versione: obbligo, versione, data di approvazione ANAC, data di entrata in vigore, fonte, file; versioni dello stesso obbligo in ordine di entrata in vigore; un file che comincia con il segno BOM, come quelli ufficiali, si legge |
+| T-28 | fatto | Catalogo difettoso, un caso per difetto: file assente, JSON non valido, formato sconosciuto, versione doppia per lo stesso obbligo (stesso numero e stessa data di approvazione), due file con lo stesso identificativo di schema nella stessa versione, data non valida, fonte mancante, file dello schema assente, schema non JSON, riferimento esterno senza file locale, file comune elencato da una versione ma assente dal catalogo, rimando a una definizione che non esiste nel file indicato (in un altro file o nello stesso) | rifiutato con un codice d'errore diverso per ogni difetto; nessun catalogo parziale |
+| T-29 | fatto | Dato contro lo schema finto | il dato conforme passa; un dato difforme e respinto e l'errore indica il percorso del campo e la regola violata |
+| T-30 | fatto | Validazione senza rete | i riferimenti a indirizzi esterni si risolvono solo sui file locali del catalogo; nessuna richiesta di rete parte, anche quando la rete e disponibile |
+| T-31 | fatto | Due versioni dello stesso obbligo (TRASP-26) | il dato nuovo prende la versione in vigore alla data di oggi nel fuso del sito; il dato raccolto con la versione precedente resta valido e si valida con la sua; una versione non ancora in vigore non si sceglie da sola |
+| T-32 | fatto | [statico] nomi dei campi di tutti gli schemi, quelli di `schemas/` e quelli finti delle prove, nei sorgenti PHP (TRASP-06) | assenti. Non vacuita: un nome di campo scritto in un commento di `src/` rende rossa la prova; ogni file di schema ufficiale deve dare almeno un nome, e la raccolta deve contenerne uno degli schemi ufficiali, cosi la prova non resta verde se smette di leggerli |
+| T-33 | fatto | Schema in piu aggiunto come solo file (TRASP-06) | un terzo schema finto, aggiunto al catalogo delle prove senza toccare il PHP, si carica e valida |
+
+## Schemi ufficiali ANAC (righe T-34..T-36)
+
+I file dell'Autorita come dati, scaricati dalla Guida Online del Portale Servizi ANAC, e gli
+esempi compilati che la stessa guida pubblica. Si valida sempre contro quei file: se un
+esempio ufficiale non passa, il difetto e nostro.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-34 | fatto | Catalogo ufficiale (TRASP-05, TRASP-26) | `schemas/catalogo.json` si carica; ha gli obblighi degli artt. 4-bis, 13 e 31, ciascuno con una versione in vigore oggi, date e fonte all'indirizzo ANAC; ogni file e identico byte per byte a quello scaricato (impronta SHA-256 nel catalogo) e il suo nome coincide con la fine del suo `$id`. Non vacuita: un byte cambiato in uno schema rende rossa la prova |
+| T-35 | fatto | Esempi ufficiali ANAC (TRASP-05) | i sette esempi compilati della guida (art. 13: pubbliche amministrazioni, ordini e collegi, societa ed enti; art. 31: organismo indipendente di valutazione, organi di revisione, Corte dei conti; art. 4-bis), cosi come scaricati e quindi con il segno BOM, passano senza nessuna richiesta di rete |
+| T-36 | fatto | Esempi ufficiali rotti apposta (TRASP-05), un caso per rottura: campo obbligatorio tolto, data non GG/MM/AAAA, campo non previsto, valore fuori elenco, recapito senza posta elettronica, importo senza decimali, trimestre fuori intervallo, indirizzo del documento senza protocollo | ciascuno respinto, con il percorso del campo sbagliato e la regola violata |
+| T-37 | fatto | Stesso numero di versione, stesso identificativo, contenuto diverso (TRASP-26) | due versioni "1.0" dello stesso obbligo con date di approvazione diverse, file con lo stesso `$id` e un file comune ripubblicato anch'esso con lo stesso `$id`, si caricano insieme; la versione si indica con numero e data (`1.0@AAAA-MM-GG`, il solo numero non basta); ogni versione si controlla solo con i suoi file, quindi un dato passa con una e non con l'altra; ogni versione si dice a parole con la sua data, per esempio "versione 1.0 del 10 giugno 2026" |
+
+## Voce e modulo di compilazione (righe T-38..T-45)
+
+Il tipo della voce, i permessi, la pubblicazione chiusa (T2c-1), poi il modulo generato dallo schema (T2c-2). La pubblicazione si apre con gli stati editoriali (T5).
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-38 | fatto | Tipo della voce di trasparenza (TRASP-05) | registrato attraverso il componente comune nella sezione della trasparenza, con `show_in_rest` dichiarato falso; una richiesta anonima all'indirizzo di una voce non la mostra; il menu compare in amministrazione |
+| T-39 | fatto | Permessi della voce | chiesti al componente comune e assegnati all'amministratore a ogni cambio della versione installata; un utente Autore o Redattore di WordPress non vede e non modifica le voci. [statico] i nomi dei permessi derivati non compaiono nei sorgenti |
+| T-40 | fatto | Pubblicazione chiusa fino agli stati editoriali (TRASP-28) | ogni tentativo di pubblicare, dalla schermata, da codice o per programmazione, lascia la voce in bozza con il motivo; dopo ogni strada lo stato riletto e l'ultimo cambio di stato nel registro del componente comune dicono la stessa cosa; un aggancio al cambio di stato con priorita normale legge gia la bozza nella banca dati. Limite dichiarato fino a T5: gli agganci specifici del passaggio a pubblicata partono ancora |
+| T-41 | fatto | Modulo generato dallo schema (TRASP-05, TRASP-06) | per l'art. 13 il modulo ha un campo per ogni proprieta raggiunta dallo schema, con gruppi per gli oggetti, serie per gli elenchi, scelta per gli elenchi chiusi di valori ed etichetta presa dallo schema; un quarto schema finto, aggiunto come solo file, produce il suo modulo senza toccare il PHP |
+| T-42 | fatto | Giro completo con l'esempio ufficiale (TRASP-05, TRASP-26) | l'esempio dell'art. 13 inserito nel modulo e salvato da un dato identico all'esempio, conforme; la voce conserva obbligo e codice di versione; il riquadro dice con quale versione, per esempio "versione 1.0 del 10/06/2026". Il giro resta identico anche con un indirizzo che contiene %20 e un carattere UTF-8 codificato, e con un organo senza uffici (elenco obbligatorio vuoto), dopo due salvataggi |
+| T-43 | fatto | Dato difforme dal modulo | salvato in bozza con i difetti, ciascuno mostrato in italiano accanto al campo del suo percorso; un campo vuoto non entra nel dato come testo vuoto; l'esito vale solo per il dato da cui e nato: se il dato salvato cambia per un'altra strada, la voce risulta non controllata; un invio troncato dal limite di campi del server (manca il marcatore dopo l'ultimo campo) non tocca dato ed esito e lascia un avviso con il limite, e vicino al limite il riquadro avvisa prima dell'invio |
+| T-44 | fatto | Versione fissata alla raccolta (TRASP-26) | una voce raccolta con una versione si ricontrolla con quella anche quando ne entra in vigore una nuova; il modulo non cambia obbligo ne versione di una voce gia legata; il primo legame non si scrive se un'altra richiesta l'ha gia scritto nel frattempo |
+| T-45 | fatto | Sicurezza del salvataggio | senza nonce valido o senza il permesso sulla voce non si scrive niente; il nonce vale per una sola voce, e quello di una voce non scrive su un'altra; un valore con marcatori HTML esce come testo, non come marcatori |
+
+## Schermata di gestione degli stati (righe T-46..T-53)
 
 Provano la schermata in cui l'amministrazione dichiara lo stato di ogni voce, il permesso
 che la apre e la traccia che ogni cambio lascia nel registro delle modifiche del meccanismo
@@ -124,16 +170,16 @@ comune. Scheda: `docs/implementazione/gestione-stati.md`.
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-26 | fatto | Prima installazione; permesso poi tolto dall'amministratore; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; senza il ruolo niente si assegna e la prima installazione resta da fare |
-| T-27 | fatto | Nessun ruolo ha il permesso della sezione | avviso a chi gestisce i componenti, con il nome del permesso; nessun avviso a chi non li gestisce, ne quando un ruolo lo ha |
-| T-28 | fatto | Menu e schermata, con e senza permesso | la voce di menu chiede il permesso della sezione; amministratore del sito senza quel permesso: schermata non agganciata e rifiutata se aperta; con il permesso: tutte le voci tranne la radice, "Da scegliere" solo per le non dichiarate, stato attuale selezionato, effetti spiegati con le frasi dell'albero, conteggio delle voci senza stato (TRASP-27) |
-| T-29 | fatto | [attacco] Salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, con un nonce non testuale, con il nonce di un altro utente | rifiutato; niente scritto, niente nel registro |
-| T-30 | fatto | Salvataggio valido; campo vuoto; [attacco] richiesta con una voce buona e un difetto: voce inesistente, valore fuori dai tre o con uno spazio, radice, valore non testuale, identificativo numerico, campo che non e un elenco | i cambi validi si salvano, il campo vuoto non cambia niente e uno stato dichiarato non torna non dichiarato; con un difetto non si scrive niente, nemmeno la voce buona |
-| T-31 | fatto | Cambi di stato, stato rimandato uguale, registro che rifiuta la seconda scrittura, stato non scritto alla seconda scrittura | una voce di registro per cambio, con voce, stato prima e dopo, utente, senza contenuto; lo stato uguale non si registra; il rifiuto del registro ferma quel cambio e i successivi, l'esito dice quanti sono passati; lo stato non scritto ferma il salvataggio, l'esito non è "salvato" e dice che il registro ha un cambio non avvenuto |
-| T-32 | fatto | Albero non disponibile; sezione non registrata | salvataggio rifiutato e schermata senza modulo, con il motivo; senza sezione nessuna voce di menu e nessun permesso assegnato |
-| T-33 | fatto | [attacco] Un altro salvataggio tiene il blocco; lo stato cambia nella banca dati dopo che la richiesta lo ha letto | rifiutato dopo l'attesa, niente scritto, poi di nuovo possibile; lo stato di partenza si rilegge dalla banca dati, quindi il "prima" del registro e quello vero e il cambio dell'altra richiesta resta |
+| T-46 | fatto | Prima installazione; permesso poi tolto dall'amministratore; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; senza il ruolo niente si assegna e la prima installazione resta da fare |
+| T-47 | fatto | Nessun ruolo ha il permesso della sezione | avviso a chi gestisce i componenti, con il nome del permesso; nessun avviso a chi non li gestisce, ne quando un ruolo lo ha |
+| T-48 | fatto | Menu e schermata, con e senza permesso | la voce di menu chiede il permesso della sezione; amministratore del sito senza quel permesso: schermata non agganciata e rifiutata se aperta; con il permesso: tutte le voci tranne la radice, "Da scegliere" solo per le non dichiarate, stato attuale selezionato, effetti spiegati con le frasi dell'albero, conteggio delle voci senza stato (TRASP-27) |
+| T-49 | fatto | [attacco] Salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, con un nonce non testuale, con il nonce di un altro utente | rifiutato; niente scritto, niente nel registro |
+| T-50 | fatto | Salvataggio valido; campo vuoto; [attacco] richiesta con una voce buona e un difetto: voce inesistente, valore fuori dai tre o con uno spazio, radice, valore non testuale, identificativo numerico, campo che non e un elenco | i cambi validi si salvano, il campo vuoto non cambia niente e uno stato dichiarato non torna non dichiarato; con un difetto non si scrive niente, nemmeno la voce buona |
+| T-51 | fatto | Cambi di stato, stato rimandato uguale, registro che rifiuta la seconda scrittura, stato non scritto alla seconda scrittura | una voce di registro per cambio, con voce, stato prima e dopo, utente, senza contenuto; lo stato uguale non si registra; il rifiuto del registro ferma quel cambio e i successivi, l'esito dice quanti sono passati; lo stato non scritto ferma il salvataggio, l'esito non è "salvato" e dice che il registro ha un cambio non avvenuto |
+| T-52 | fatto | Albero non disponibile; sezione non registrata | salvataggio rifiutato e schermata senza modulo, con il motivo; senza sezione nessuna voce di menu e nessun permesso assegnato |
+| T-53 | fatto | [attacco] Un altro salvataggio tiene il blocco; lo stato cambia nella banca dati dopo che la richiesta lo ha letto | rifiutato dopo l'attesa, niente scritto, poi di nuovo possibile; lo stato di partenza si rilegge dalla banca dati, quindi il "prima" del registro e quello vero e il cambio dell'altra richiesta resta |
 
-## Responsabile della trasparenza (righe T-34..T-38)
+## Responsabile della trasparenza (righe T-54..T-58)
 
 Provano dove il file dell'albero dice di mostrare i dati che non sono voci, la schermata
 in cui l'amministrazione indica il responsabile della prevenzione della corruzione e della
@@ -142,11 +188,11 @@ trasparenza, e il riquadro che la pagina pubblica ne mostra. Scheda:
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-34 | fatto | File dell'albero con collocazioni, senza, e con collocazioni sbagliate: non elenco, voce inesistente, radice, nome del dato non valido o numerico, voce non testuale | lette quelle valide; senza, nessuna collocazione inventata; ogni sbaglio rifiuta il file con `trasparenza_albero_collocazione` |
-| T-35 | fatto | Collocazione del responsabile nell'albero distribuito | voce "Prevenzione della Corruzione" sotto "Altri contenuti", con il testo atteso scritto nella prova; fonte dichiarata e presente fra le fonti del file |
-| T-36 | fatto | Dati validi, minimi, [attacco] sbagliati: nome vuoto, con codice, su due righe, oltre 200 caratteri, non testuale; email vuota, non valida, con codice; telefono con lettere o codice; atto di nomina con schema `javascript:`, senza schema, relativo, senza protocollo, con virgolette o spazi; dati conservati estranei | i validi passano ripuliti dagli spazi ai bordi, telefono e nomina facoltativi; ogni sbaglio si rifiuta invece di salvarlo cambiato; i dati conservati estranei valgono come non indicati |
-| T-37 | fatto | Menu e schermata con e senza permesso; [attacco] salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, non testuale o di un altro utente; salvataggio valido, uguale, sbagliato; registro che rifiuta; dati non scritti; [attacco] un altro salvataggio tiene il blocco; avviso | sottovoce con il permesso della sezione, schermata rifiutata senza; rifiuti senza scrivere niente; una voce di registro per salvataggio con i soli nomi dei campi cambiati e nessun valore personale; dati uguali non registrati; con uno sbaglio niente scritto e il modulo rimostra quanto inviato; registro che rifiuta: niente scritto; dati non scritti: esito di errore che dice del cambio non avvenuto; blocco tenuto: rinuncia senza scrivere; avviso solo a chi ha il permesso, sulla bacheca e sulle schermate della sezione, finché il responsabile manca |
-| T-38 | fatto | Pagina pubblica con il responsabile indicato, senza campi facoltativi, non indicato, albero senza collocazione | riquadro solo nella voce indicata, dati in uscita sicura, recapito email come collegamento; righe facoltative assenti se vuote; nessun riquadro senza dati o senza collocazione |
+| T-54 | fatto | File dell'albero con collocazioni, senza, e con collocazioni sbagliate: non elenco, voce inesistente, radice, nome del dato non valido o numerico, voce non testuale | lette quelle valide; senza, nessuna collocazione inventata; ogni sbaglio rifiuta il file con `trasparenza_albero_collocazione` |
+| T-55 | fatto | Collocazione del responsabile nell'albero distribuito | voce "Prevenzione della Corruzione" sotto "Altri contenuti", con il testo atteso scritto nella prova; fonte dichiarata e presente fra le fonti del file |
+| T-56 | fatto | Dati validi, minimi, [attacco] sbagliati: nome vuoto, con codice, su due righe, oltre 200 caratteri, non testuale; email vuota, non valida, con codice; telefono con lettere o codice; atto di nomina con schema `javascript:`, senza schema, relativo, senza protocollo, con virgolette o spazi; dati conservati estranei | i validi passano ripuliti dagli spazi ai bordi, telefono e nomina facoltativi; ogni sbaglio si rifiuta invece di salvarlo cambiato; i dati conservati estranei valgono come non indicati |
+| T-57 | fatto | Menu e schermata con e senza permesso; [attacco] salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, non testuale o di un altro utente; salvataggio valido, uguale, sbagliato; registro che rifiuta; dati non scritti; [attacco] un altro salvataggio tiene il blocco; avviso | sottovoce con il permesso della sezione, schermata rifiutata senza; rifiuti senza scrivere niente; una voce di registro per salvataggio con i soli nomi dei campi cambiati e nessun valore personale; dati uguali non registrati; con uno sbaglio niente scritto e il modulo rimostra quanto inviato; registro che rifiuta: niente scritto; dati non scritti: esito di errore che dice del cambio non avvenuto; blocco tenuto: rinuncia senza scrivere; avviso solo a chi ha il permesso, sulla bacheca e sulle schermate della sezione, finché il responsabile manca |
+| T-58 | fatto | Pagina pubblica con il responsabile indicato, senza campi facoltativi, non indicato, albero senza collocazione | riquadro solo nella voce indicata, dati in uscita sicura, recapito email come collegamento; righe facoltative assenti se vuote; nessun riquadro senza dati o senza collocazione |
 
 ## Collaudo congiunto con l'albo pretorio
 

@@ -2,7 +2,7 @@
 /**
  * Il blocco della banca dati che tiene in fila i salvataggi della gestione.
  *
- * Righe di collaudo T-33 e T-37.
+ * Righe di collaudo T-53 e T-57.
  *
  * @package TrasparenzaPa
  */

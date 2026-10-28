@@ -21,7 +21,7 @@ dopo si cambia lo stato. Due salvataggi nello stesso momento non si pestano i pi
 secondo aspetta che il primo finisca.
 
 **Come si prova, e come si prova che la prova è vera.** Ventisette prove nuove (righe
-T-26..T-33), con l'albero finto delle prove. Quindici rotture volute, una per volta e poi
+T-46..T-53), con l'albero finto delle prove. Quindici rotture volute, una per volta e poi
 tolte, le fanno diventare rosse: permesso riassegnato a ogni richiesta, controllo del
 permesso tolto, controllo del nonce tolto, radice accettata, stato scritto prima del
 registro, "Da scegliere" tolto, avviso mostrato a tutti, menu aperto con il permesso
@@ -34,10 +34,10 @@ non scritto ignorato.
 
 | File | Perché |
 |---|---|
-| `src/class-permessi.php` | Nuovo. Il permesso `trasparenza_pa_amministrazione`, la prima assegnazione, l'avviso quando nessuno lo ha |
+| `src/class-permessi.php` | Accanto ai permessi della voce (T-39), il permesso `trasparenza_pa_amministrazione`, la sua prima assegnazione, l'avviso quando nessuno lo ha |
 | `src/class-schermata-stati.php` | Nuovo. Menu, schermata, salvataggio con blocco e registro |
 | `trasparenza-pa.php` | Caricamento delle due classi e agganci |
-| `tests/GestioneStatiTest.php` | Nuovo. Righe T-26..T-33 |
+| `tests/GestioneStatiTest.php` | Nuovo. Righe T-46..T-53 |
 | `docs/collaudo.md`, `docs/dati.md`, `docs/architettura.md` | Righe di collaudo, permesso e voce di registro, parti del plugin |
 
 ## 2. Requisito servito
@@ -98,7 +98,7 @@ registro contiene un cambio non avvenuto. È il verso meno dannoso dei due.
 
 ## 7. Test
 
-Righe T-26..T-33 di `docs/collaudo.md`, in `tests/GestioneStatiTest.php`. La prova del blocco
+Righe T-46..T-53 di `docs/collaudo.md`, in `tests/GestioneStatiTest.php`. La prova del blocco
 apre una seconda connessione alla banca dati e tiene il blocco da lì, come farebbe una
 richiesta contemporanea: dura cinque secondi, il tempo dell'attesa.
 
@@ -127,6 +127,14 @@ il responsabile della trasparenza, che arrivano con le unità successive.
    così.
 
 ## Dubbi annotati
+
+- Due regole di assegnazione nello stesso file, volute. I permessi della voce (T-39) si
+  riassegnano all'amministratore a ogni cambio di versione, perché una versione nuova può
+  portare permessi nuovi e i ruoli della redazione arrivano solo con gli stati editoriali.
+  Il permesso di amministrare la sezione si dà una volta sola, perché è la scelta dell'ente
+  su chi firma le dichiarazioni della sezione: un aggiornamento non deve rimetterlo
+  all'amministratore. Quando arriveranno gli stati editoriali, anche i permessi della voce
+  dovranno smettere di tornare all'amministratore a ogni versione.
 
 - La prima assegnazione va all'amministratore, che non è un default sbagliato possibile: ha
   già tutti i poteri sul sito. L'alternativa, nessuno, avrebbe lasciato la schermata

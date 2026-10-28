@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove del caricamento dell'albero: righe T-11, T-12 e T-34.
+ * Prove del caricamento dell'albero: righe T-11, T-12 e T-54.
  *
  * @package TrasparenzaPa
  */
@@ -181,9 +181,9 @@ class AlberaturaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-34: le collocazioni del file si leggono; senza, nessuna collocazione.
+	 * T-54: le collocazioni del file si leggono; senza, nessuna collocazione.
 	 */
-	public function test_t34_collocazioni_lette(): void {
+	public function test_t54_collocazioni_lette(): void {
 		$dati                 = $this->valido();
 		$dati['collocazioni'] = array( 'responsabile_trasparenza' => 'b' );
 
@@ -196,9 +196,9 @@ class AlberaturaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-34: una collocazione sbagliata e un difetto del file, come un padre inesistente.
+	 * T-54: una collocazione sbagliata e un difetto del file, come un padre inesistente.
 	 */
-	public function test_t34_collocazioni_sbagliate_rifiutate(): void {
+	public function test_t54_collocazioni_sbagliate_rifiutate(): void {
 		$guasti = array(
 			'non elenco'       => 'b',
 			'voce inesistente' => array( 'responsabile_trasparenza' => 'manca' ),
