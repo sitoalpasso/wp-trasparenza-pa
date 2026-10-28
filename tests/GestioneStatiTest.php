@@ -120,15 +120,24 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	 * quando un guasto colpisce una richiesta e non le altre.
 	 */
 	private function guasta_lettura_stati(): void {
+		$this->guasta_lettura( StatiObbligo::OPZIONE );
+	}
+
+	/**
+	 * Fa fallire la lettura diretta di un'opzione, e solo quella.
+	 *
+	 * @param string $nome Nome dell'opzione.
+	 */
+	private function guasta_lettura( string $nome ): void {
 		global $wpdb;
 
 		$wpdb->suppress_errors( true );
 		add_filter(
 			'query',
-			static function ( $sql ) use ( $wpdb ) {
+			static function ( $sql ) use ( $wpdb, $nome ) {
 				$sql = (string) $sql;
 
-				return 0 === strpos( $sql, "SELECT option_value FROM {$wpdb->options} WHERE option_name = '" . StatiObbligo::OPZIONE . "'" )
+				return 0 === strpos( $sql, "SELECT option_value FROM {$wpdb->options} WHERE option_name = '" . $nome . "'" )
 					? 'SELECT option_value FROM ' . $wpdb->options . '_inesistente'
 					: $sql;
 			}
@@ -187,6 +196,25 @@ class GestioneStatiTest extends WP_UnitTestCase {
 		Permessi::assegna();
 
 		$this->assertFalse( get_role( 'administrator' )->has_cap( Permessi::AMMINISTRAZIONE ) );
+	}
+
+	/**
+	 * T-46: con la lettura fallita il permesso tolto dall'ente non torna, e chi gestisce i componenti lo sa.
+	 */
+	public function test_t46_lettura_fallita_ruoli_non_toccati(): void {
+		Permessi::assegna();
+		get_role( 'administrator' )->remove_cap( Permessi::AMMINISTRAZIONE );
+		$this->guasta_lettura( Permessi::OPZIONE_ASSEGNATO );
+
+		$esito = Permessi::assegna();
+
+		$this->assertWPError( $esito );
+		$this->assertSame( 'trasparenza_permessi_lettura_fallita', $esito->get_error_code() );
+		$this->assertFalse( ( new \WP_Roles() )->get_role( 'administrator' )->has_cap( Permessi::AMMINISTRAZIONE ), 'Il permesso tolto non torna.' );
+
+		Permessi::da_init();
+		wp_set_current_user( $this->amministratore );
+		$this->assertStringContainsString( $esito->get_error_message(), $this->avvisi_in_bacheca() );
 	}
 
 	/**

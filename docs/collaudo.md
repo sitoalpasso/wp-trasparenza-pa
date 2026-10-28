@@ -169,7 +169,7 @@ comune. Scheda: `docs/implementazione/gestione-stati.md`.
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-46 | fatto | Prima installazione; permesso poi tolto dall'amministratore; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; senza il ruolo niente si assegna e la prima installazione resta da fare |
+| T-46 | fatto | Prima installazione; permesso poi tolto dall'amministratore; tolto e con la lettura dell'assegnazione fallita; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; con la lettura fallita i ruoli non si toccano e chi gestisce i componenti vede l'errore; senza il ruolo niente si assegna e la prima installazione resta da fare |
 | T-47 | fatto | Nessun ruolo ha il permesso della sezione | avviso a chi gestisce i componenti, con il nome del permesso; nessun avviso a chi non li gestisce, ne quando un ruolo lo ha |
 | T-48 | fatto | Menu e schermata, con e senza permesso | la voce di menu chiede il permesso della sezione; amministratore del sito senza quel permesso: schermata non agganciata e rifiutata se aperta; con il permesso: tutte le voci tranne la radice, "Da scegliere" solo per le non dichiarate, stato attuale selezionato, effetti spiegati con le frasi dell'albero, conteggio delle voci senza stato (TRASP-27) |
 | T-49 | fatto | [attacco] Salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, con un nonce non testuale, con il nonce di un altro utente | rifiutato; niente scritto, niente nel registro |
