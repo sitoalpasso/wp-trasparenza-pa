@@ -104,7 +104,7 @@ const FILE_PRINCIPALE = __FILE__;
  * Finche manca, la sezione non si mostra e chi amministra il sito vede un
  * avviso.
  */
-const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-28.json';
+const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-28-2.json';
 
 /**
  * Identificativo del tipo di contenuto della voce di trasparenza.

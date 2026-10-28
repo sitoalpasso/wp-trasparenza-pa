@@ -395,8 +395,9 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 	 *
 	 * Uno stesso identificativo di versione non puo indicare due alberi
 	 * diversi: la versione 2026-10-24 resta nel suo file, byte per byte, e la
-	 * versione in vigore ha un identificativo suo. L'impronta attesa e scritta
-	 * qui, cosi una modifica al file vecchio fa diventare rossa la prova.
+	 * versione 2026-10-28, che ha portato le collocazioni, ha un identificativo
+	 * suo. L'impronta attesa e scritta qui, cosi una modifica al file vecchio fa
+	 * diventare rossa la prova.
 	 */
 	public function test_t55_versione_nuova_accanto_alla_vecchia(): void {
 		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-24.json';
@@ -404,17 +405,102 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 		$this->assertFileExists( $vecchio );
 		$this->assertSame( 'cd6122a1657922a329a98fa8a017939b2104143ee2bc88f058fb879e750f3f60', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-24 non si modifica.' );
 
+		$nuovo = dirname( FILE_ALBERATURA ) . '/2026-10-28.json';
 		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
-		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( $nuovo ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
 
 		$this->assertSame( '2026-10-24', $prima['versione'] );
 		$this->assertArrayNotHasKey( 'collocazioni', $prima );
-		$this->assertNotSame( $prima['versione'], $ora['versione'], 'La versione in vigore ha un identificativo suo.' );
-		$this->assertSame( $ora['versione'] . '.json', basename( FILE_ALBERATURA ), 'Il nome del file dice la versione.' );
+		$this->assertSame( '2026-10-28', $ora['versione'], 'La versione che porta le collocazioni ha un identificativo suo.' );
 
 		unset( $ora['versione'], $ora['collocazioni'], $ora['fonte_collocazioni'], $prima['versione'] );
 
 		$this->assertSame( $prima, $ora, 'La versione nuova aggiunge le collocazioni e non cambia altro.' );
 		$this->assertInstanceOf( Alberatura::class, Alberatura::carica( $vecchio ), 'La versione vecchia resta leggibile dal motore.' );
+	}
+
+	/**
+	 * Riga T-63: la durata della pubblicazione sta nell'albero in vigore, con la sua fonte.
+	 *
+	 * Cinque anni dall'art. 8, c. 3, del d.lgs. 33/2013. Il numero atteso e
+	 * scritto qui e non letto dal file.
+	 */
+	public function test_t63_durata_nell_albero(): void {
+		$this->assertSame( 5, $this->albero()->durata_anni() );
+
+		$dati   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$fonti  = array_column( $dati['fonti'], null, 'chiave' );
+		$chiave = $dati['fonte_durata'] ?? '';
+
+		$this->assertSame( 'dlgs_33_2013_art_8', $chiave );
+		$this->assertArrayHasKey( $chiave, $fonti, 'La fonte citata deve essere fra le fonti del file.' );
+		$this->assertStringContainsString( 'art. 8, c. 3', $fonti[ $chiave ]['titolo'] );
+		$this->assertStringContainsString( '~art8', $fonti[ $chiave ]['url'] );
+	}
+
+	/**
+	 * Riga T-63: la durata e arrivata con la versione 2026-10-28-2, e la 2026-10-28 resta com'era.
+	 *
+	 * Il nome della versione nuova e il giorno seguito da un numero, perche
+	 * il giorno aveva gia una versione distribuita.
+	 */
+	public function test_t63_versione_nuova_accanto_alla_vecchia(): void {
+		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-28.json';
+
+		$this->assertSame( 'fdd8b013e96999e5499ca6470ebedb10b8ad8b7cabea206dc271ff9bda4a874d', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-28 non si modifica.' );
+		$this->assertSame( '2026-10-28-2.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-28-2.' );
+
+		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+
+		$this->assertSame( '2026-10-28-2', $ora['versione'], 'Il nome del file dice la versione.' );
+		$this->assertArrayNotHasKey( 'durata_pubblicazione', $prima );
+		$this->assertNull( Alberatura::carica( $vecchio )->durata_anni(), 'La versione vecchia resta leggibile, senza durata.' );
+
+		$nuova          = array_values( array_filter( $ora['fonti'], static fn( array $fonte ): bool => 'dlgs_33_2013_art_8' !== $fonte['chiave'] ) );
+		$ora['fonti']   = $nuova;
+		$prima_versione = $prima['versione'];
+
+		unset( $ora['versione'], $ora['durata_pubblicazione'], $ora['fonte_durata'], $prima['versione'] );
+
+		$this->assertSame( '2026-10-28', $prima_versione );
+		$this->assertSame( $prima, $ora, 'La versione nuova aggiunge la durata e la sua fonte e non cambia altro.' );
+	}
+
+	/**
+	 * Riga T-63: [attacco] durate non valide nel file.
+	 */
+	public function test_t63_durata_non_valida(): void {
+		$dati = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+
+		foreach ( array(
+			0,
+			-5,
+			'5',
+			5.0,
+			2.5,
+			null,
+			array(),
+			array( 'anni' => '5' ),
+			array( 'anni' => 0 ),
+			array( 'anni' => true ),
+			array( 'mesi' => 60 ),
+			array(
+				'anni' => 5,
+				'mesi' => 2,
+			),
+		) as $durata ) {
+			$prova = $dati;
+
+			$prova['durata_pubblicazione'] = is_array( $durata ) ? $durata : array( 'anni' => $durata );
+
+			$esito = Alberatura::da_dati( $prova );
+
+			$this->assertWPError( $esito, wp_json_encode( $durata ) );
+			$this->assertSame( 'trasparenza_albero_durata', $esito->get_error_code() );
+		}
+
+		unset( $dati['durata_pubblicazione'] );
+		$this->assertNull( Alberatura::da_dati( $dati )->durata_anni(), 'Senza durata il file si carica, e la durata non c\'e.' );
 	}
 }
