@@ -22,10 +22,8 @@ e si allega un esempio costruito apposta.
 
 ## Vulnerabilita di sicurezza
 
-Una vulnerabilita non si apre come issue pubblica. Si usa la segnalazione privata di
-GitHub, dalla scheda Security del repository ("Report a vulnerability"). La segnalazione
-riceve riscontro e, quando la correzione e disponibile, viene pubblicata con la relativa
-versione.
+Una vulnerabilita non si apre come issue pubblica. Canali, tempi di risposta e ambito sono
+in [SECURITY.md](SECURITY.md).
 
 ## Cosa non e supporto
 
