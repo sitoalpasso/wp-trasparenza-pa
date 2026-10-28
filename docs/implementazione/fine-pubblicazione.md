@@ -138,3 +138,25 @@ Righe T-63..T-66 di `docs/collaudo.md`.
   lo fa ancora (vedi sopra).
 - "Anno successivo a quello da cui decorre l'obbligo": si legge come anno solare della data
   di decorrenza, come scritta da chi pubblica. È la lettura letterale del testo.
+
+## Rotture volute, a lavoro finito
+
+Quarantuno rotture, una per volta e poi tolte. Quaranta fanno diventare rossa almeno una
+prova: durata non controllata, durata zero ammessa, chiavi in più ammesse, durata ignorata,
+albero in vigore rimesso alla versione di prima, fine senza l'anno dopo, fine con il giorno
+della decorrenza, limite del 9999 tolto, espressione della data senza ancore, giro del
+calendario tolto, nonce non controllato, nonce non legato al contenuto, permesso non
+controllato, tipo non controllato, cancellazione ammessa, conflitto non controllato, stessa
+data con la fine giusta trattata come cambio, stessa data senza guardare la fine, data letta
+con `get_post_meta()`, fine letta con `get_post_meta()`, dato scritto prima del registro,
+rilettura della data tolta, rilettura della fine tolta, fine non scritta, blocco tolto, albero
+non controllato, partenza non controllata con più date, date trovate non registrate, righe
+vecchie lasciate, avviso delle più date tolto, fine di prima non registrata, partenza tolta
+dal riquadro, escaping della partenza tolto, valore non valido mostrato come data, avviso del
+riallineamento tolto, avviso della fine mancante tolto, esito legato al solo utente, esito
+mostrato su ogni schermata, esito mostrato a ogni richiesta, salvataggio senza controllare
+che la richiesta venga dal riquadro.
+
+Una resta verde, ed è voluta: sostituire le ancore `\A` e `\z` con `^` e `$` ammetterebbe un
+a capo in coda, ma il giro del calendario che segue lo rifiuta comunque. Le due difese si
+coprono a vicenda; resta la più stretta.

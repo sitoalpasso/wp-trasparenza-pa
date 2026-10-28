@@ -71,6 +71,7 @@ viene segnalato.
 | `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
 | `TipoContenuto` | Registra il tipo del contenuto libero della sezione, testo e documenti, attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-19 |
 | `SchedaContenuto` | Il riquadro "Voce della sezione": scelta fra le voci senza sottovoci, salvataggio con una voce di registro, conflitto se un altro ha cambiato la voce dopo l'apertura | TRASP-19 |
+| `SchedaPubblicazione` | Il riquadro "Pubblicazione": data da cui decorre l'obbligo, fine calcolata con la durata dell'albero e scritta attraverso il componente comune, voce di registro, conflitto, riallineamento | TRASP-08, TRASP-19 |
 | `Metadato` | Lettura di un metadato dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverlo | trasversale |
 | `Blocco` | Il blocco della banca dati che tiene in fila i salvataggi delle schermate di gestione | TRASP-19 |
 | `ChiusuraPubblicazione` | Ogni tentativo di pubblicare una voce la lascia in bozza finche non ci sono gli stati editoriali | TRASP-28 |
