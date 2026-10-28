@@ -112,6 +112,11 @@ const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-28.json';
 const TIPO_VOCE = 'trasparenza_voce';
 
 /**
+ * Identificativo del tipo di contenuto libero: testo e documenti in una voce.
+ */
+const TIPO_CONTENUTO = 'trasparenza_testo';
+
+/**
  * Opzione che memorizza la versione installata, per riassegnare i permessi.
  */
 const OPZIONE_VERSIONE = 'trasparenza_pa_versione_installata';
@@ -137,6 +142,8 @@ require_once __DIR__ . '/src/class-pagina-pubblica.php';
 require_once __DIR__ . '/src/class-catalogo-schemi.php';
 require_once __DIR__ . '/src/class-motore-schemi.php';
 require_once __DIR__ . '/src/class-tipo-voce.php';
+require_once __DIR__ . '/src/class-tipo-contenuto.php';
+require_once __DIR__ . '/src/class-metadato.php';
 require_once __DIR__ . '/src/class-permessi.php';
 require_once __DIR__ . '/src/class-installazione.php';
 require_once __DIR__ . '/src/class-chiusura-pubblicazione.php';
@@ -146,9 +153,11 @@ require_once __DIR__ . '/src/class-blocco.php';
 require_once __DIR__ . '/src/class-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-stati.php';
+require_once __DIR__ . '/src/class-scheda-contenuto.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );
+add_action( 'init', array( TipoContenuto::class, 'da_init' ), 5 );
 add_action( 'init', array( Installazione::class, 'da_init' ), 6 );
 
 ChiusuraPubblicazione::aggancia();
@@ -157,6 +166,7 @@ SchedaVoce::aggancia();
 PaginaPubblica::aggancia();
 SchermataStati::aggancia();
 SchermataResponsabile::aggancia();
+SchedaContenuto::aggancia();
 
 add_action( 'init', array( Permessi::class, 'da_init' ) );
 add_action( 'admin_notices', array( Permessi::class, 'mostra_avviso' ) );

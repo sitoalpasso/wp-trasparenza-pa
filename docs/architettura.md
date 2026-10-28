@@ -64,11 +64,14 @@ viene segnalato.
 | `CatalogoSchemi` | Legge e controlla il catalogo `schemas/catalogo.json`: versioni per obbligo con date e fonte, file degli schemi e delle definizioni comuni, rimandi risolti in locale | TRASP-06, TRASP-26 |
 | `MotoreSchemi` | Sceglie la versione in vigore, valida contro i JSON Schema ufficiali con la libreria opis/json-schema nella copia prefissata, restituisce i difetti con percorso e regola; i moduli di compilazione arrivano dopo | TRASP-05, TRASP-06, TRASP-26 |
 | `TipoVoce` | Registra il tipo della voce di trasparenza attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-05 |
-| `Permessi`, `Installazione` | Permessi della voce chiesti al componente comune e assegnati all'amministratore a ogni cambio di versione installata; il permesso di amministrare la sezione, dato all'amministratore una volta sola, e l'avviso quando nessun ruolo lo ha | TRASP-27 |
+| `Permessi`, `Installazione` | Permessi della voce e del contenuto chiesti al componente comune e assegnati all'amministratore a ogni cambio di versione installata; il permesso di amministrare la sezione, dato all'amministratore una volta sola, e l'avviso quando nessun ruolo lo ha | TRASP-27 |
 | `SchermataStati` | La schermata "Stato delle voci": elenco delle voci, scelta dello stato, salvataggio tutto o niente con una voce di registro per cambio; si applicano solo le voci cambiate rispetto a quanto il modulo mostrava | TRASP-19, TRASP-27 |
 | `Opzione` | Lettura di un'opzione dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverla | trasversale |
 | `Responsabile` | I dati del responsabile della prevenzione della corruzione e della trasparenza: controllo e riquadro pubblico nella voce che l'albero indica | TRASP-13 |
 | `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
+| `TipoContenuto` | Registra il tipo del contenuto libero della sezione, testo e documenti, attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-19 |
+| `SchedaContenuto` | Il riquadro "Voce della sezione": scelta fra le voci senza sottovoci, salvataggio con una voce di registro, conflitto se un altro ha cambiato la voce dopo l'apertura | TRASP-19 |
+| `Metadato` | Lettura di un metadato dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverlo | trasversale |
 | `Blocco` | Il blocco della banca dati che tiene in fila i salvataggi delle schermate di gestione | TRASP-19 |
 | `ChiusuraPubblicazione` | Ogni tentativo di pubblicare una voce la lascia in bozza finche non ci sono gli stati editoriali | TRASP-28 |
 | `ModuloSchema` | Costruisce i campi del modulo leggendo lo schema di una versione, e dai valori inviati ricostruisce il dato; non conosce nessun campo di nessuno schema | TRASP-05, TRASP-06 |

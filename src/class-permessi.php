@@ -20,7 +20,8 @@ defined( 'ABSPATH' ) || exit;
  *
  * Due famiglie di permessi, con due regole di assegnazione diverse, volute.
  *
- * **I permessi della voce** sono quelli del lavoro di redazione. I nomi non
+ * **I permessi della voce e del contenuto** sono quelli del lavoro di
+ * redazione, gli stessi nomi generici per i due tipi. I nomi non
  * sono scritti qui: si chiedono al componente comune, che li ricava
  * dall'identificativo del tipo. Qui stanno solo i nomi generici di WordPress,
  * cioe quali permessi si vogliono. Per ora li riceve il solo amministratore, a
@@ -92,16 +93,22 @@ final class Permessi {
 	}
 
 	/**
-	 * Corrispondenza fra nomi generici e permessi del tipo.
+	 * I tipi a cui si applicano i nomi generici.
+	 */
+	const TIPI = array( TIPO_VOCE, TIPO_CONTENUTO );
+
+	/**
+	 * Corrispondenza fra nomi generici e permessi di un tipo.
 	 *
+	 * @param string $tipo Tipo, la voce se non indicato.
 	 * @return array<string, string>|WP_Error
 	 */
-	public static function mappa() {
+	public static function mappa( string $tipo = TIPO_VOCE ) {
 		if ( ! function_exists( 'conformita_core_capacita_tipo' ) ) {
 			return new WP_Error( 'trasparenza_meccanismo_comune_assente', __( 'I permessi della voce si chiedono al componente comune, che non è caricato.', 'trasparenza-pa' ) );
 		}
 
-		return conformita_core_capacita_tipo( TIPO_VOCE );
+		return conformita_core_capacita_tipo( $tipo );
 	}
 
 	/**
@@ -110,7 +117,25 @@ final class Permessi {
 	 * @return true|WP_Error
 	 */
 	public static function applica() {
-		$mappa = self::mappa();
+		foreach ( self::TIPI as $tipo ) {
+			$esito = self::applica_tipo( $tipo );
+
+			if ( is_wp_error( $esito ) ) {
+				return $esito;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Assegna i permessi di un tipo e rilegge i ruoli per verificare che siano scritti.
+	 *
+	 * @param string $tipo Tipo.
+	 * @return true|WP_Error
+	 */
+	private static function applica_tipo( string $tipo ) {
+		$mappa = self::mappa( $tipo );
 
 		if ( is_wp_error( $mappa ) ) {
 			return $mappa;

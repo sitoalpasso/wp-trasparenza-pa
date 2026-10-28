@@ -154,7 +154,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-16 | da fare | Minimizzazione dei dati personali | GDPR art. 5 |
 | TRASP-17 | da fare | Separazione dall'albo, politiche opposte | d.lgs. 33/2013 |
 | TRASP-18 | da fare | Sottosezione accessibilità | d.lgs. 179/2016 art. 9 |
-| TRASP-19 | da fare | Tracciamento delle modifiche | art. 6 |
+| TRASP-19 | in corso | Tracciamento delle modifiche | art. 6 |
 | TRASP-20 | da fare | Formato aperto, niente PDF da scansione | specifiche tecniche ANAC |
 | TRASP-21 | da fare | Nomi dei file con date e versione | specifiche tecniche ANAC |
 | TRASP-22 | da fare | File at_map validato | specifiche tecniche ANAC |
