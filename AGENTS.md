@@ -16,8 +16,9 @@ scaduto esce dalla sezione ma non si cancella, resta in archivio per l'accesso c
 
 Il principio che regge tutto il plugin: **l'alberatura e gli schemi di pubblicazione sono
 dati, non codice**. Il PHP è un motore che legge le definizioni; un aggiornamento degli
-schemi si fa aggiungendo un file, non toccando il codice. C'è un test statico che verifica
-che i nomi dei campi degli schemi non compaiano mai nei sorgenti PHP.
+schemi si fa aggiungendo un file, non toccando il codice. Gli schemi entreranno in
+`schemas/`, e con loro il test statico che verifica che i nomi dei loro campi non compaiano
+mai nei sorgenti PHP: fino ad allora quel controllo esiste solo nella rilettura.
 
 ## Dove sono le cose
 
@@ -60,8 +61,8 @@ limite o come unità futura non è un difetto di questa PR.
 ### Che cosa cercare
 
 1. **Dati, non codice.** Un nome di campo degli schemi, una voce dell'alberatura o una
-   dicitura obbligata scritti dentro il PHP sono un difetto, anche se il test statico non li
-   ha presi. Uno schema o un'alberatura non si sovrascrivono: una versione nuova si
+   dicitura obbligata scritti dentro il PHP sono un difetto. Finché il test statico sugli
+   schemi non esiste, questo controllo dipende solo da chi rilegge. Uno schema o un'alberatura non si sovrascrivono: una versione nuova si
    aggiunge accanto alla vecchia.
 
 2. **Politiche dichiarate a core.** L'indicizzazione della sezione è obbligatoria e va
