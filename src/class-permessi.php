@@ -1,8 +1,8 @@
 <?php
 /**
- * Il permesso di amministrare la sezione e la sua prima assegnazione.
+ * I permessi del componente: sulle voci e sulla sezione.
  *
- * Righe di collaudo T-26 e T-27.
+ * Righe di collaudo T-39, T-46 e T-47.
  *
  * @package TrasparenzaPa
  */
@@ -16,17 +16,49 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Chi puo dichiarare lo stato delle voci.
+ * Chi puo fare cosa sulle voci e sulla sezione.
  *
- * Il permesso e del componente e non deriva da un tipo di contenuto, perche lo
- * stato di una voce non e un contenuto: e una dichiarazione dell'amministrazione
- * sulla sezione. Non e `manage_options`, cosi l'ente puo darlo al responsabile
- * della trasparenza senza dargli il resto delle impostazioni del sito.
+ * Due famiglie di permessi, con due regole di assegnazione diverse, volute.
+ *
+ * **I permessi della voce** sono quelli del lavoro di redazione. I nomi non
+ * sono scritti qui: si chiedono al componente comune, che li ricava
+ * dall'identificativo del tipo. Qui stanno solo i nomi generici di WordPress,
+ * cioe quali permessi si vogliono. Per ora li riceve il solo amministratore, a
+ * ogni cambio della versione installata (vedi `Installazione`), cosi una
+ * versione nuova porta con se i permessi nuovi; i ruoli della redazione
+ * arrivano con gli stati editoriali.
+ *
+ * **Il permesso di amministrare la sezione** (`AMMINISTRAZIONE`) e quello di
+ * chi dichiara lo stato delle voci e indica il responsabile della
+ * trasparenza: dichiarazioni dell'ente, non contenuti. Non deriva
+ * da un tipo e non e `manage_options`, cosi l'ente puo darlo al responsabile
+ * della trasparenza senza dargli il resto delle impostazioni del sito. Va
+ * all'amministratore **una volta sola**, alla prima installazione, e non a
+ * ogni versione: un ente che lo toglie all'amministratore per riservarlo al
+ * responsabile ha fatto una scelta, e un aggiornamento che lo ridesse la
+ * cancellerebbe senza dirlo.
  */
 final class Permessi {
 
 	/**
-	 * Il permesso di dichiarare lo stato delle voci.
+	 * Nomi generici concessi all'amministratore.
+	 */
+	const CHIAVI = array(
+		'edit_posts',
+		'edit_others_posts',
+		'edit_private_posts',
+		'edit_published_posts',
+		'publish_posts',
+		'read_private_posts',
+		'delete_posts',
+		'delete_private_posts',
+		'delete_published_posts',
+		'delete_others_posts',
+		'create_posts',
+	);
+
+	/**
+	 * Il permesso di amministrare la sezione.
 	 */
 	const AMMINISTRAZIONE = 'trasparenza_pa_amministrazione';
 
@@ -42,6 +74,74 @@ final class Permessi {
 	 * Il ruolo che riceve il permesso alla prima installazione.
 	 */
 	const RUOLO_INIZIALE = 'administrator';
+
+	/**
+	 * Ruoli e nomi generici che ricevono.
+	 *
+	 * @return array<string, array<int, string>>
+	 */
+	public static function assegnazioni(): array {
+		return array( 'administrator' => self::CHIAVI );
+	}
+
+	/**
+	 * Corrispondenza fra nomi generici e permessi del tipo.
+	 *
+	 * @return array<string, string>|WP_Error
+	 */
+	public static function mappa() {
+		if ( ! function_exists( 'conformita_core_capacita_tipo' ) ) {
+			return new WP_Error( 'trasparenza_meccanismo_comune_assente', __( 'I permessi della voce si chiedono al componente comune, che non è caricato.', 'trasparenza-pa' ) );
+		}
+
+		return conformita_core_capacita_tipo( TIPO_VOCE );
+	}
+
+	/**
+	 * Assegna i permessi e rilegge i ruoli per verificare che siano scritti.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function applica() {
+		$mappa = self::mappa();
+
+		if ( is_wp_error( $mappa ) ) {
+			return $mappa;
+		}
+
+		foreach ( self::assegnazioni() as $nome => $chiavi ) {
+			$ruolo = get_role( $nome );
+
+			if ( null === $ruolo ) {
+				continue;
+			}
+
+			foreach ( $chiavi as $chiave ) {
+				if ( isset( $mappa[ $chiave ] ) ) {
+					$ruolo->add_cap( $mappa[ $chiave ] );
+				}
+			}
+		}
+
+		$riletti = new \WP_Roles();
+
+		foreach ( self::assegnazioni() as $nome => $chiavi ) {
+			$ruolo = $riletti->get_role( $nome );
+
+			if ( null === $ruolo ) {
+				continue;
+			}
+
+			foreach ( $chiavi as $chiave ) {
+				if ( isset( $mappa[ $chiave ] ) && ! $ruolo->has_cap( $mappa[ $chiave ] ) ) {
+					/* translators: %s: identificativo del ruolo. */
+					return new WP_Error( 'trasparenza_permessi_non_scritti', sprintf( __( 'I permessi della voce non risultano scritti sul ruolo %s.', 'trasparenza-pa' ), $nome ) );
+				}
+			}
+		}
+
+		return true;
+	}
 
 	/**
 	 * Aggancio a `init`.
@@ -82,7 +182,7 @@ final class Permessi {
 		$ruolo->add_cap( self::AMMINISTRAZIONE );
 
 		/*
-		 * Si rilegge dai ruoli conservati e non dall'oggetto in memoria, che
+		 * Si rilegge dai ruoli conservati e non da quelli in memoria, che
 		 * avrebbe il permesso anche se la scrittura fosse andata persa.
 		 */
 		$conservati = new \WP_Roles();

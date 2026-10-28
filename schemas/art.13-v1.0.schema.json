@@ -1,0 +1,171 @@
+﻿{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/art.13-v1.0.schema.json",
+    "type": "object",
+    "additionalProperties": false,
+    "title": "Obblighi di pubblicazione concernenti l'organizzazione delle pubbliche amministrazioni (art. 13 d.lgs. 33/2013)",
+    "properties": {
+        "$schema": {
+            "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Url"
+        },
+        "intestazione": {
+            "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Intestazione"
+        },
+        "orgPubblicheAmministrazioni": {
+            "$comment": "Pubbliche amministrazioni e Autorità amministrative indipendenti (ex art. 1, c. 2, d.lgs. n. 165/2001)",
+            "$ref": "#/definitions/SchemaPubblicheAmministrazioni"
+        },
+        "orgOrdiniCollegi": {
+            "$comment": "Ordini e collegi professionali nazionali e territoriali (Cfr. delibera ANAC n. 777 del 24 novembre 2021 e relativi allegati)",
+            "$ref": "#/definitions/SchemaOrdiniCollegi"
+        },
+        "orgSocietaEdEnti": {
+            "$comment": "Società in controllo pubblico, Enti di diritto privato in controllo pubblico, Enti pubblici economici (Cfr. Allegato 1 delibera ANAC n. 1134/2017)",
+            "$ref": "#/definitions/SchemaSocietaEnti"
+        }
+    },
+    "oneOf": [
+        {
+            "required": [
+                "$schema",
+                "intestazione",
+                "orgPubblicheAmministrazioni"
+            ]
+        },
+        {
+            "required": [
+                "$schema",
+                "intestazione",
+                "orgOrdiniCollegi"
+            ]
+        },
+        {
+            "required": [
+                "$schema",
+                "intestazione",
+                "orgSocietaEdEnti"
+            ]
+        }
+    ],
+    "definitions": {
+        "SchemaPubblicheAmministrazioni": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "organi": {
+                    "type": "array",
+                    "description": "Organi di indirizzo politico o di amministrazione/gestione",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/Organo"
+                    }
+                },
+                "organigramma": {
+                    "$comment": "Organigramma o analoghe rappresentazioni grafiche",
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Url"
+                }
+            }
+        },
+        "SchemaOrdiniCollegi": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "organigramma": {
+                    "$comment": "Organigramma o analoghe rappresentazioni grafiche",
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Url"
+                },
+                "contatti": {
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Riferimenti"
+                }
+            }
+        },
+        "SchemaSocietaEnti": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "organi": {
+                    "type": "array",
+                    "description": "Organi di indirizzo politico o di amministrazione/gestione",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/Organo"
+                    }
+                }
+            }
+        },
+        "Organo": {
+            "type": "object",
+            "description": "Definizione dell'organo dell'amministrazione",
+            "additionalProperties": false,
+            "properties": {
+                "denominazione": {
+                    "$comment": "Tipo di incarico/carica",
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Denominazione"
+                },
+                "competenze": {
+                    "$comment": "Descrizione competenze/attività",
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Descrizione"
+                },
+                "uffici": {
+                    "type": "array",
+                    "description": "Articolazione degli uffici",
+                    "minItems": 0,
+                    "items": [
+                        {
+                            "$ref": "#/definitions/Ufficio"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "denominazione",
+                "competenze",
+                "uffici"
+            ]
+        },
+        "Ufficio": {
+            "type": "object",
+            "description": "Dati e riferimenti dell'ufficio",
+            "additionalProperties": false,
+            "properties": {
+                "tipologia": {
+                    "$comment": "Tipologia di ufficio dirigenziale o non dirigenziale",
+                    "$ref": "#/definitions/TipologiaUfficio"
+                },                
+                "denominazione": {
+                    "$comment": "Denominazione ufficio",
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Denominazione"
+                },
+                "competenze": {
+                    "$comment": "Descrizione delle competenze del singolo ufficio",
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Descrizione"
+                },
+                "nominativo": {
+                    "type": "string",
+                    "description": "Nome e cognome del dirigente responsabile dell'ufficio/altro"
+                },
+                "qualifica": {
+                    "type": "string",
+                    "description": "Qualifica rivestita dal dirigente responsabile dell'ufficio"
+                },
+                "contatti": {
+                    "$ref": "https://guida-servizi.anticorruzione.it/help/trasparenza/schemi/json/commons-v1.0.schema.json#/definitions/Riferimenti"
+                }
+            },
+            "required": [
+                "tipologia",
+                "denominazione",
+                "competenze",
+                "nominativo",
+                "qualifica",
+                "contatti"
+            ]
+        },
+        "TipologiaUfficio": {
+            "enum": [
+                "Ufficio dirigenziale",
+                "Ufficio non dirigenziale"
+            ]
+        }
+    }
+}

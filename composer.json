@@ -4,14 +4,16 @@
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "opis/json-schema": "^2.4"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.9",
         "wp-coding-standards/wpcs": "^3.1",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "phpunit/phpunit": "^9.6",
-        "yoast/phpunit-polyfills": "^2.0"
+        "yoast/phpunit-polyfills": "^2.0",
+        "brianhenryie/strauss": "^0.22"
     },
     "config": {
         "platform": {
@@ -26,6 +28,40 @@
         "lint:fix": "phpcbf",
         "test": "phpunit",
         "test:senza-core": "phpunit --configuration phpunit-senza-core.xml.dist",
-        "test:core-incompatibile": "phpunit --configuration phpunit-core-incompatibile.xml.dist"
+        "test:core-incompatibile": "phpunit --configuration phpunit-core-incompatibile.xml.dist",
+        "prefissa": [
+            "strauss",
+            "@php bin/avvisi-librerie.php"
+        ],
+        "post-install-cmd": [
+            "@prefissa"
+        ],
+        "post-update-cmd": [
+            "@prefissa"
+        ]
+    },
+    "extra": {
+        "strauss": {
+            "target_directory": "vendor-prefixed",
+            "namespace_prefix": "TrasparenzaPa\\Vendor\\",
+            "classmap_prefix": "TrasparenzaPa_Vendor_",
+            "constant_prefix": "TRASPARENZA_PA_VENDOR_",
+            "packages": [
+                "opis/json-schema"
+            ],
+            "include_modified_date": false,
+            "include_author": false,
+            "delete_vendor_packages": false,
+            "override_autoload": {
+                "opis/string": {
+                    "psr-4": {
+                        "Opis\\String\\": "src/"
+                    },
+                    "classmap": [
+                        "res/"
+                    ]
+                }
+            }
+        }
     }
 }
