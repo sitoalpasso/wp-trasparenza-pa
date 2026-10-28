@@ -130,6 +130,30 @@ final class SchermataResponsabile {
 			return self::esito( 'nonce', __( 'La richiesta è scaduta o non viene da questa schermata: niente salvato. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
 		}
 
+		$partenze = self::partenze_valide( $richiesta[ self::CAMPO_PARTENZA ] ?? null );
+		$esito    = self::controlla_e_scrivi( $richiesta, $partenze );
+
+		/*
+		 * Dopo un rifiuto il modulo rimostra quanto inviato, e deve rimostrarlo
+		 * con le partenze di quando era stato aperto: rilette dalla banca dati
+		 * direbbero "cambiato dall'utente" un campo che nel frattempo ha
+		 * cambiato qualcun altro, e il reinvio lo riporterebbe indietro.
+		 */
+		if ( 'salvato' !== $esito['codice'] && null !== $partenze ) {
+			$esito['partenze'] = $partenze;
+		}
+
+		return $esito;
+	}
+
+	/**
+	 * Controlla i dati inviati e li scrive, con permesso e nonce gia verificati.
+	 *
+	 * @param array<string, mixed>       $richiesta Campi del modulo.
+	 * @param array<string, string>|null $partenze  Valori mostrati dal modulo all'apertura, se validi.
+	 * @return array{codice: string, messaggio: string, campi: array<int, string>, inviati: array<string, string>}
+	 */
+	private static function controlla_e_scrivi( array $richiesta, ?array $partenze ): array {
 		$inviati = $richiesta[ self::CAMPO ] ?? null;
 
 		if ( ! is_array( $inviati ) ) {
@@ -147,7 +171,7 @@ final class SchermataResponsabile {
 		}
 
 		try {
-			return self::scrivi( $dati, $richiesta[ self::CAMPO_PARTENZA ] ?? null );
+			return self::scrivi( $dati, $partenze );
 		} finally {
 			Blocco::rilascia();
 		}
@@ -157,18 +181,12 @@ final class SchermataResponsabile {
 	 * Registra e scrive i dati controllati, con il blocco gia preso.
 	 *
 	 * @param array{nome: string, email: string, telefono: string, nomina: string} $dati      Dati controllati.
-	 * @param mixed                                                                $partenze  Valori mostrati dal modulo all'apertura.
+	 * @param array<string, string>|null                                           $partenze  Valori mostrati dal modulo all'apertura, se validi.
 	 * @return array{codice: string, messaggio: string, campi: array<int, string>, inviati: array<string, string>}
 	 */
-	private static function scrivi( array $dati, $partenze ): array {
-		if ( ! is_array( $partenze ) ) {
-			$partenze = array();
-		}
-
-		foreach ( Responsabile::CAMPI as $campo ) {
-			if ( ! isset( $partenze[ $campo ] ) || ! is_string( $partenze[ $campo ] ) ) {
-				return self::esito( 'dati', __( 'Niente salvato: la richiesta non diceva quali dati mostrava il modulo. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ), array(), $dati );
-			}
+	private static function scrivi( array $dati, ?array $partenze ): array {
+		if ( null === $partenze ) {
+			return self::esito( 'dati', __( 'Niente salvato: la richiesta non diceva quali dati mostrava il modulo. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ), array(), $dati );
 		}
 
 		$prima = Responsabile::conservati();
@@ -261,7 +279,7 @@ final class SchermataResponsabile {
 		$chiave = self::ESITO . get_current_user_id();
 		$esito  = get_transient( $chiave );
 		$valori = Responsabile::dati() ?? array_fill_keys( Responsabile::CAMPI, '' );
-		// I valori della banca dati all'apertura, anche quando il modulo rimostra quanto inviato.
+		// I valori della banca dati all'apertura; dopo un rifiuto, quelli della richiesta rifiutata.
 		$partenze = $valori;
 
 		if ( is_array( $esito ) && isset( $esito['codice'], $esito['messaggio'] ) ) {
@@ -276,6 +294,9 @@ final class SchermataResponsabile {
 			// Dopo un rifiuto si rimostra quello che si era scritto, per correggerlo senza riscriverlo.
 			if ( 'salvato' !== $esito['codice'] && is_array( $esito['inviati'] ?? null ) && array() !== $esito['inviati'] ) {
 				$valori = array_merge( $valori, self::da_rimostrare( $esito['inviati'] ) );
+
+				// Con le partenze della richiesta rifiutata, non con quelle rilette.
+				$partenze = self::partenze_valide( $esito['partenze'] ?? null ) ?? $partenze;
 			}
 		}
 
@@ -365,6 +386,30 @@ final class SchermataResponsabile {
 			esc_url( admin_url( 'admin.php?page=' . self::PAGINA ) ),
 			esc_html__( 'Indicarlo', 'trasparenza-pa' )
 		);
+	}
+
+	/**
+	 * I valori di partenza di una richiesta, se sono i quattro campi e tutti testi.
+	 *
+	 * @param mixed $partenze Valori di partenza ricevuti.
+	 * @return array<string, string>|null
+	 */
+	private static function partenze_valide( $partenze ): ?array {
+		if ( ! is_array( $partenze ) ) {
+			return null;
+		}
+
+		$valide = array();
+
+		foreach ( Responsabile::CAMPI as $campo ) {
+			if ( ! isset( $partenze[ $campo ] ) || ! is_string( $partenze[ $campo ] ) ) {
+				return null;
+			}
+
+			$valide[ $campo ] = $partenze[ $campo ];
+		}
+
+		return $valide;
 	}
 
 	/**

@@ -527,6 +527,63 @@ class ResponsabileTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-57: [attacco] un rifiuto rimostrato non perde i valori di partenza del modulo.
+	 *
+	 * A e B aprono insieme; A cambia l'email; B invia un telefono sbagliato, e
+	 * il rifiuto gli rimostra il modulo; B corregge il telefono e reinvia il
+	 * modulo com'e. L'email di A resta e passa solo il telefono di B.
+	 */
+	public function test_t57_rifiuto_rimostrato_conserva_la_partenza(): void {
+		wp_set_current_user( $this->responsabile );
+		SchermataResponsabile::salva( $this->richiesta( $this->validi() ) );
+
+		$aperto = Responsabile::dati();
+
+		$di_a          = $this->validi();
+		$di_a['email'] = 'nuova@example.org';
+		$this->assertSame( 'salvato', SchermataResponsabile::salva( $this->richiesta( $di_a, $aperto ) )['codice'] );
+
+		$di_b             = $this->validi();
+		$di_b['telefono'] = 'non un numero';
+		$rifiuto          = SchermataResponsabile::salva( $this->richiesta( $di_b, $aperto ) );
+		$this->assertSame( 'dati', $rifiuto['codice'] );
+
+		set_transient( SchermataResponsabile::ESITO . get_current_user_id(), $rifiuto, MINUTE_IN_SECONDS );
+		$modulo = $this->campi_del_modulo( $this->schermata() );
+
+		$modulo[ SchermataResponsabile::CAMPO ]['telefono'] = '06 7654321';
+		$esito = SchermataResponsabile::salva( $this->richiesta( $modulo[ SchermataResponsabile::CAMPO ], $modulo[ SchermataResponsabile::CAMPO_PARTENZA ] ) );
+
+		$this->assertSame( 'nuova@example.org', Responsabile::dati()['email'], 'Il reinvio non cancella l\'email di A.' );
+		$this->assertSame( 'salvato', $esito['codice'] );
+		$this->assertSame( array( 'telefono' ), $esito['campi'], 'B ha cambiato solo il telefono.' );
+	}
+
+	/**
+	 * I campi del modulo come li rimanderebbe il browser, letti dalla schermata.
+	 *
+	 * @param string $html La schermata.
+	 * @return array<string, array<string, string>>
+	 */
+	private function campi_del_modulo( string $html ): array {
+		$campi = array(
+			SchermataResponsabile::CAMPO          => array(),
+			SchermataResponsabile::CAMPO_PARTENZA => array(),
+		);
+
+		preg_match_all( '/name="(' . SchermataResponsabile::CAMPO . '|' . SchermataResponsabile::CAMPO_PARTENZA . ')\[([a-z]+)\]" value="([^"]*)"/', $html, $trovati, PREG_SET_ORDER );
+
+		foreach ( $trovati as $campo ) {
+			$campi[ $campo[1] ][ $campo[2] ] = html_entity_decode( $campo[3], ENT_QUOTES );
+		}
+
+		$this->assertCount( 4, $campi[ SchermataResponsabile::CAMPO ] );
+		$this->assertCount( 4, $campi[ SchermataResponsabile::CAMPO_PARTENZA ] );
+
+		return $campi;
+	}
+
+	/**
 	 * T-57: senza responsabile, avviso a chi ha il permesso, sulla bacheca e non altrove.
 	 */
 	public function test_t57_avviso_se_non_indicato(): void {
