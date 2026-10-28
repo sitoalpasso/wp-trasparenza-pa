@@ -20,15 +20,18 @@ Poi, una voce alla volta, si scrive nel registro delle modifiche chi ha cambiato
 dopo si cambia lo stato. Due salvataggi nello stesso momento non si pestano i piedi: il
 secondo aspetta che il primo finisca.
 
-**Come si prova, e come si prova che la prova è vera.** Ventisette prove nuove (righe
-T-46..T-53), con l'albero finto delle prove. Quindici rotture volute, una per volta e poi
+**Come si prova, e come si prova che la prova è vera.** Trentuno prove nuove (righe
+T-46..T-53), con l'albero finto delle prove. Ventidue rotture volute, una per volta e poi
 tolte, le fanno diventare rosse: permesso riassegnato a ogni richiesta, controllo del
 permesso tolto, controllo del nonce tolto, radice accettata, stato scritto prima del
 registro, "Da scegliere" tolto, avviso mostrato a tutti, menu aperto con il permesso
 generico delle impostazioni, permessi assegnati anche a componente inerte, stato uguale
 registrato come cambio, salvataggio a metà davanti a un valore sbagliato, rilettura dalla
 banca dati tolta, blocco tolto, rilettura dello stato scritto tolta, esito dello stato
-non scritto ignorato.
+non scritto ignorato, lettura fallita ignorata dalla schermata, scrittura che parte da
+`get_option()`, valore che non è un elenco preso per vuoto, voce rimandata com'era
+applicata come cambio, conflitto non controllato, stato di partenza non controllato,
+stato di partenza tolto dal modulo.
 
 ## 1. File toccati
 
@@ -36,6 +39,8 @@ non scritto ignorato.
 |---|---|
 | `src/class-permessi.php` | Accanto ai permessi della voce (T-39), il permesso `trasparenza_pa_amministrazione`, la sua prima assegnazione, l'avviso quando nessuno lo ha |
 | `src/class-schermata-stati.php` | Nuovo. Menu, schermata, salvataggio con blocco e registro |
+| `src/class-opzione.php` | Nuovo. Lettura di un'opzione dalla banca dati che distingue l'opzione assente dalla lettura fallita |
+| `src/class-stati-obbligo.php` | La scrittura parte dagli stati letti dalla banca dati e li rilegge tutti dopo |
 | `trasparenza-pa.php` | Caricamento delle due classi e agganci |
 | `tests/GestioneStatiTest.php` | Nuovo. Righe T-46..T-53 |
 | `docs/collaudo.md`, `docs/dati.md`, `docs/architettura.md` | Righe di collaudo, permesso e voce di registro, parti del plugin |
@@ -59,7 +64,8 @@ applicabili o sospese, come già prima.
 
 | Dato | Lettura e scrittura |
 |---|---|
-| Opzione `trasparenza_pa_stati_obbligo` | già esistente; si rilegge dalla banca dati prima di ogni salvataggio, si scrive una voce alla volta |
+| Opzione `trasparenza_pa_stati_obbligo` | già esistente; si rilegge dalla banca dati prima di ogni salvataggio, distinguendo l'opzione assente (nessuno stato) dalla lettura fallita (non si scrive niente); si scrive una voce alla volta e si rilegge tutta dopo ogni scrittura |
+| Campo `partenza` del modulo | per ogni voce, lo stato che il modulo mostrava quando è stato aperto; si applicano solo le voci cambiate rispetto a quello |
 | Opzione `trasparenza_pa_permessi_assegnati` | nuova; la versione che ha fatto la prima assegnazione. Finché manca, l'assegnazione si ritenta |
 | Ruolo `administrator` | riceve `trasparenza_pa_amministrazione` una volta |
 | Registro di core | una voce per cambio: sezione `amministrazione_trasparente`, azione `stato_obbligo`, dettagli `voce`, `prima` (nullo se non dichiarato), `dopo`. Utente e istante li mette core |
@@ -85,6 +91,8 @@ dargli le impostazioni del sito. Il visitatore anonimo non tocca niente di quest
 | Registro che rifiuta un cambio | quel cambio e i successivi non si fanno; i precedenti restano con la loro traccia; il messaggio dice quanti sono passati e su quale voce si è fermato |
 | Stato non scritto dopo la voce di registro | quel cambio non c'è e i successivi non si fanno; il messaggio dice quanti sono passati, su quale voce si è fermato e che il registro ha per quella voce un cambio non avvenuto |
 | Altro salvataggio in corso | attesa fino a cinque secondi, poi rinuncia senza scrivere |
+| Lettura degli stati fallita, o valore conservato che non è un elenco | niente scritto, niente nel registro, messaggio; le dichiarazioni delle altre voci restano |
+| Modulo aperto prima di un altro salvataggio | le voci che l'utente non ha toccato non si applicano, quindi non riportano indietro i cambi dell'altro; una voce toccata e cambiata nel frattempo in modo diverso è un conflitto: niente scritto, e il messaggio nomina la voce |
 | Albero non disponibile | schermata senza modulo, con il motivo; salvataggio rifiutato |
 | Sezione non registrata (componente inerte) | nessuna voce di menu, nessun permesso assegnato |
 | Ruolo di amministratore assente | permesso non assegnato, assegnazione da ritentare; avviso "nessun ruolo" a chi gestisce i componenti |

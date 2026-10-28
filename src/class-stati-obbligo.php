@@ -65,10 +65,17 @@ final class StatiObbligo {
 	 * @return string|null
 	 */
 	public static function stato( string $voce ): ?string {
-		$stati = self::tutti();
-		$stato = $stati[ $voce ] ?? null;
+		return self::valido( self::tutti()[ $voce ] ?? null );
+	}
 
-		return is_string( $stato ) && in_array( $stato, self::ammessi(), true ) ? $stato : null;
+	/**
+	 * Un valore conservato come stato, o nullo se non e uno dei tre.
+	 *
+	 * @param mixed $valore Valore conservato.
+	 * @return string|null
+	 */
+	public static function valido( $valore ): ?string {
+		return is_string( $valore ) && in_array( $valore, self::ammessi(), true ) ? $valore : null;
 	}
 
 	/**
@@ -77,10 +84,13 @@ final class StatiObbligo {
 	 * Chi puo chiamarla lo decide la schermata che la usa: questa funzione
 	 * controlla il dato, non il permesso.
 	 *
-	 * Dopo la scrittura lo stato si rilegge dalla banca dati, perche il valore
-	 * restituito da `update_option()` non basta: e falso anche quando il valore
-	 * era gia quello, e non dice niente di un filtro che ha cambiato la
-	 * scrittura. Conta lo stato conservato, non il tentativo.
+	 * Si parte dagli stati letti dalla banca dati, non da `get_option()`: con
+	 * una lettura fallita quella restituirebbe un elenco vuoto, e la scrittura
+	 * cancellerebbe le dichiarazioni delle altre voci. Dopo la scrittura gli
+	 * stati si rileggono tutti, perche il valore restituito da `update_option()`
+	 * non basta: e falso anche quando il valore era gia quello, e non dice
+	 * niente di un filtro che ha cambiato la scrittura. Conta quello che e
+	 * conservato, non il tentativo.
 	 *
 	 * @param Alberatura $albero Albero di riferimento.
 	 * @param string     $voce   Identificativo della voce.
@@ -97,7 +107,12 @@ final class StatiObbligo {
 			return new WP_Error( 'trasparenza_stato_valore', __( 'Lo stato dell\'obbligo deve essere applicabile, non applicabile o sospeso.', 'trasparenza-pa' ) );
 		}
 
-		$stati          = self::tutti();
+		$stati = self::conservati();
+
+		if ( is_wp_error( $stati ) ) {
+			return $stati;
+		}
+
 		$stati[ $voce ] = $stato;
 
 		update_option( self::OPZIONE, $stati );
@@ -105,7 +120,7 @@ final class StatiObbligo {
 		wp_cache_delete( 'alloptions', 'options' );
 		wp_cache_delete( self::OPZIONE, 'options' );
 
-		if ( self::stato( $voce ) !== $stato ) {
+		if ( self::conservati() !== $stati ) {
 			/* translators: %s: identificativo della voce. */
 			return new WP_Error( 'trasparenza_stato_non_scritto', sprintf( __( 'Lo stato della voce %s non risulta scritto nella banca dati.', 'trasparenza-pa' ), $voce ) );
 		}
@@ -133,7 +148,34 @@ final class StatiObbligo {
 	}
 
 	/**
-	 * Gli stati conservati, come stanno nell'opzione.
+	 * Gli stati conservati, letti dalla banca dati per chi deve riscriverli.
+	 *
+	 * Opzione assente: nessuno stato dichiarato. Lettura fallita, o valore che
+	 * non e un elenco: errore, perche riscrivere da li cancellerebbe quello che
+	 * c'e.
+	 *
+	 * @return array<string, mixed>|WP_Error
+	 */
+	public static function conservati() {
+		$stati = Opzione::leggi( self::OPZIONE );
+
+		if ( is_wp_error( $stati ) ) {
+			return $stati;
+		}
+
+		if ( null === $stati ) {
+			return array();
+		}
+
+		if ( ! is_array( $stati ) ) {
+			return new WP_Error( 'trasparenza_stati_illeggibili', __( 'Gli stati conservati non sono un elenco: non si riscrivono per non cancellare quello che c\'è.', 'trasparenza-pa' ) );
+		}
+
+		return $stati;
+	}
+
+	/**
+	 * Gli stati conservati, come stanno nell'opzione, per chi li mostra.
 	 *
 	 * @return array<string, mixed>
 	 */

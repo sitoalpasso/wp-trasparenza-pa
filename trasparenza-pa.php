@@ -129,6 +129,7 @@ if ( is_readable( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
 
 require_once __DIR__ . '/src/class-avvio.php';
 require_once __DIR__ . '/src/class-alberatura.php';
+require_once __DIR__ . '/src/class-opzione.php';
 require_once __DIR__ . '/src/class-stati-obbligo.php';
 require_once __DIR__ . '/src/class-pagina-pubblica.php';
 require_once __DIR__ . '/src/class-catalogo-schemi.php';

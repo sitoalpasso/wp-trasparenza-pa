@@ -91,13 +91,48 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	/**
 	 * Una richiesta come la manderebbe il modulo, con il nonce dell'utente corrente.
 	 *
-	 * @param array<string, mixed> $stati Coppie voce e stato.
+	 * Senza partenze date, il modulo e come se fosse stato aperto adesso: per
+	 * ogni voce inviata porta lo stato attuale, vuoto se non dichiarato.
+	 *
+	 * @param array<string, mixed>       $stati    Coppie voce e stato.
+	 * @param array<string, string>|null $partenze Coppie voce e stato mostrato dal modulo.
 	 * @return array<string, mixed>
 	 */
-	private function richiesta( array $stati ): array {
+	private function richiesta( array $stati, ?array $partenze = null ): array {
+		if ( null === $partenze ) {
+			$partenze = array();
+
+			foreach ( array_keys( $stati ) as $voce ) {
+				$partenze[ $voce ] = (string) StatiObbligo::stato( (string) $voce );
+			}
+		}
+
 		return array(
-			'_wpnonce'            => wp_create_nonce( SchermataStati::AZIONE ),
-			SchermataStati::CAMPO => $stati,
+			'_wpnonce'                     => wp_create_nonce( SchermataStati::AZIONE ),
+			SchermataStati::CAMPO          => $stati,
+			SchermataStati::CAMPO_PARTENZA => $partenze,
+		);
+	}
+
+	/**
+	 * Fa fallire la lettura diretta degli stati dalla banca dati.
+	 *
+	 * Solo quella: la lettura che fa WordPress per mostrarli resta buona, come
+	 * quando un guasto colpisce una richiesta e non le altre.
+	 */
+	private function guasta_lettura_stati(): void {
+		global $wpdb;
+
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				$sql = (string) $sql;
+
+				return 0 === strpos( $sql, "SELECT option_value FROM {$wpdb->options} WHERE option_name = '" . StatiObbligo::OPZIONE . "'" )
+					? 'SELECT option_value FROM ' . $wpdb->options . '_inesistente'
+					: $sql;
+			}
 		);
 	}
 
@@ -248,6 +283,8 @@ class GestioneStatiTest extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '#name="stati\[alfa\]"><option value="" selected>Da scegliere</option><option value="applicabile">#', $html, 'Voce non dichiarata: si parte da "Da scegliere".' );
 		$this->assertMatchesRegularExpression( '#name="stati\[zeta_uno\]"><option value="applicabile">Applicabile</option><option value="non_applicabile">Non applicabile</option><option value="sospeso" selected=\'selected\'>#', $html, 'Voce dichiarata: niente "Da scegliere", stato attuale selezionato.' );
 		$this->assertSame( 3, substr_count( $html, '<option value="" selected>' ), 'Una sola scelta vuota per voce non dichiarata.' );
+		$this->assertStringContainsString( '<input type="hidden" name="partenza[zeta_uno]" value="sospeso">', $html, 'Il modulo porta lo stato che mostra.' );
+		$this->assertStringContainsString( '<input type="hidden" name="partenza[alfa]" value="">', $html );
 	}
 
 	/**
@@ -363,13 +400,49 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	public function test_t50_tutto_o_niente( $stati ): void {
 		wp_set_current_user( $this->responsabile );
 
-		$richiesta                          = $this->richiesta( array() );
-		$richiesta[ SchermataStati::CAMPO ] = $stati;
+		$richiesta                                   = $this->richiesta( array() );
+		$richiesta[ SchermataStati::CAMPO ]          = $stati;
+		$richiesta[ SchermataStati::CAMPO_PARTENZA ] = is_array( $stati ) ? array_fill_keys( array_keys( $stati ), '' ) : array();
 
 		$esito = SchermataStati::salva( $richiesta );
 
 		$this->assertSame( 'dati', $esito['codice'] );
 		$this->assertSame( array(), $esito['salvate'] );
+		$this->assertFalse( get_option( StatiObbligo::OPZIONE ), 'Niente deve essere stato scritto.' );
+		$this->assertSame( array(), $this->tracce() );
+	}
+
+	/**
+	 * T-50: [attacco] senza lo stato di partenza, o con uno stato di partenza fuori dai tre, non si scrive niente.
+	 */
+	public function test_t50_partenza_mancante_o_sbagliata(): void {
+		wp_set_current_user( $this->responsabile );
+
+		$casi = array(
+			'senza partenza'         => array( 'zeta' => '' ),
+			'partenza fuori dai tre' => array(
+				'alfa' => '',
+				'zeta' => 'forse',
+			),
+			'partenza non testuale'  => array(
+				'alfa' => array( '' ),
+				'zeta' => '',
+			),
+			'campo che non e elenco' => 'alfa=',
+		);
+
+		foreach ( $casi as $caso => $partenze ) {
+			$richiesta                                   = $this->richiesta(
+				array(
+					'alfa' => StatiObbligo::APPLICABILE,
+					'zeta' => StatiObbligo::SOSPESO,
+				)
+			);
+			$richiesta[ SchermataStati::CAMPO_PARTENZA ] = $partenze;
+
+			$this->assertSame( 'dati', SchermataStati::salva( $richiesta )['codice'], $caso );
+		}
+
 		$this->assertFalse( get_option( StatiObbligo::OPZIONE ), 'Niente deve essere stato scritto.' );
 		$this->assertSame( array(), $this->tracce() );
 	}
@@ -574,6 +647,66 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-51: se la lettura degli stati fallisce, non si scrive niente e le dichiarazioni delle altre voci restano.
+	 *
+	 * Senza la distinzione fra opzione assente e lettura fallita, il
+	 * salvataggio partirebbe da un elenco vuoto e riscriverebbe l'opzione con
+	 * la sola voce nuova.
+	 */
+	public function test_t51_lettura_fallita_niente_scritto(): void {
+		wp_set_current_user( $this->responsabile );
+		SchermataStati::salva(
+			$this->richiesta(
+				array(
+					'zeta'     => StatiObbligo::APPLICABILE,
+					'zeta_uno' => StatiObbligo::SOSPESO,
+				)
+			)
+		);
+		$tracce = count( $this->tracce() );
+
+		$richiesta = $this->richiesta( array( 'alfa' => StatiObbligo::NON_APPLICABILE ) );
+
+		$this->guasta_lettura_stati();
+		$esito   = SchermataStati::salva( $richiesta );
+		$diretto = StatiObbligo::imposta( PaginaPubblica::albero(), 'alfa', StatiObbligo::NON_APPLICABILE );
+		remove_all_filters( 'query' );
+		$GLOBALS['wpdb']->suppress_errors( false );
+
+		$this->assertSame( 'lettura', $esito['codice'] );
+		$this->assertSame( array(), $esito['salvate'] );
+		$this->assertWPError( $diretto, 'Anche la funzione che scrive lo stato rifiuta di partire da una lettura fallita.' );
+		$this->assertSame( 'trasparenza_lettura_fallita', $diretto->get_error_code() );
+
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( StatiObbligo::OPZIONE, 'options' );
+
+		$this->assertSame(
+			array(
+				'zeta'     => StatiObbligo::APPLICABILE,
+				'zeta_uno' => StatiObbligo::SOSPESO,
+			),
+			get_option( StatiObbligo::OPZIONE ),
+			'Le dichiarazioni delle altre voci restano.'
+		);
+		$this->assertCount( $tracce, $this->tracce(), 'Niente nel registro.' );
+	}
+
+	/**
+	 * T-51: un valore conservato che non e un elenco non si riscrive.
+	 */
+	public function test_t51_valore_conservato_non_elenco_non_riscritto(): void {
+		update_option( StatiObbligo::OPZIONE, 'non un elenco' );
+		wp_set_current_user( $this->responsabile );
+
+		$esito = SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::APPLICABILE ) ) );
+
+		$this->assertSame( 'lettura', $esito['codice'] );
+		$this->assertSame( 'non un elenco', get_option( StatiObbligo::OPZIONE ) );
+		$this->assertSame( array(), $this->tracce() );
+	}
+
+	/**
 	 * T-52: senza albero la schermata lo dice e il salvataggio si rifiuta.
 	 */
 	public function test_t52_senza_albero(): void {
@@ -668,12 +801,65 @@ class GestioneStatiTest extends WP_UnitTestCase {
 			array( 'option_name' => StatiObbligo::OPZIONE )
 		);
 
-		SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::NON_APPLICABILE ) ) );
+		// Il modulo e stato riaperto dopo il cambio dell'altra richiesta: mostra lo stato nuovo.
+		SchermataStati::salva( $this->richiesta( array( 'alfa' => StatiObbligo::NON_APPLICABILE ), array( 'alfa' => StatiObbligo::SOSPESO ) ) );
 
 		$tracce = $this->tracce();
 
 		$this->assertSame( StatiObbligo::SOSPESO, end( $tracce )['dettagli']['prima'] );
 		$this->assertSame( StatiObbligo::NON_APPLICABILE, StatiObbligo::stato( 'zeta' ), 'Il cambio dell\'altra richiesta resta.' );
 		$this->assertSame( StatiObbligo::NON_APPLICABILE, StatiObbligo::stato( 'alfa' ) );
+	}
+
+	/**
+	 * T-53: due moduli aperti sullo stesso stato; chi salva per secondo non riporta indietro le voci che non ha toccato.
+	 *
+	 * Il modulo manda tutte le voci. Il secondo cambia solo Zeta: Alfa, che
+	 * rimanda com'era quando l'ha aperto, resta come l'ha lasciata il primo.
+	 * Un terzo modulo, aperto prima di tutti e due, che cambia Alfa in modo
+	 * diverso, e un conflitto: non salva niente, nemmeno le sue altre voci.
+	 */
+	public function test_t53_due_moduli_completi(): void {
+		wp_set_current_user( $this->responsabile );
+		SchermataStati::salva(
+			$this->richiesta(
+				array(
+					'alfa' => StatiObbligo::SOSPESO,
+					'zeta' => StatiObbligo::SOSPESO,
+				)
+			)
+		);
+
+		$mostrato = array(
+			'zeta'     => StatiObbligo::SOSPESO,
+			'alfa'     => StatiObbligo::SOSPESO,
+			'zeta_uno' => '',
+			'zeta_due' => '',
+		);
+
+		$primo         = $mostrato;
+		$primo['alfa'] = StatiObbligo::APPLICABILE;
+		$this->assertSame( array( 'alfa' ), SchermataStati::salva( $this->richiesta( $primo, $mostrato ) )['salvate'] );
+
+		$secondo         = $mostrato;
+		$secondo['zeta'] = StatiObbligo::NON_APPLICABILE;
+		$esito           = SchermataStati::salva( $this->richiesta( $secondo, $mostrato ) );
+
+		$this->assertSame( 'salvato', $esito['codice'] );
+		$this->assertSame( array( 'zeta' ), $esito['salvate'] );
+		$this->assertSame( StatiObbligo::APPLICABILE, StatiObbligo::stato( 'alfa' ), 'La voce non toccata dal secondo resta come l\'ha lasciata il primo.' );
+		$this->assertSame( StatiObbligo::NON_APPLICABILE, StatiObbligo::stato( 'zeta' ) );
+
+		$terzo             = $mostrato;
+		$terzo['alfa']     = StatiObbligo::NON_APPLICABILE;
+		$terzo['zeta_uno'] = StatiObbligo::APPLICABILE;
+		$tracce            = count( $this->tracce() );
+		$esito             = SchermataStati::salva( $this->richiesta( $terzo, $mostrato ) );
+
+		$this->assertSame( 'conflitto', $esito['codice'] );
+		$this->assertStringContainsString( 'Voce Alfa', $esito['messaggio'] );
+		$this->assertSame( StatiObbligo::APPLICABILE, StatiObbligo::stato( 'alfa' ) );
+		$this->assertNull( StatiObbligo::stato( 'zeta_uno' ), 'Con un conflitto non si salva niente.' );
+		$this->assertCount( $tracce, $this->tracce() );
 	}
 }

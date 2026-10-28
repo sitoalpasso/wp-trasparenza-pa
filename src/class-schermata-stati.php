@@ -40,6 +40,11 @@ final class SchermataStati {
 	const CAMPO = 'stati';
 
 	/**
+	 * Nome del campo che porta lo stato di ogni voce come il modulo lo ha mostrato.
+	 */
+	const CAMPO_PARTENZA = 'partenza';
+
+	/**
 	 * Nome dell'operazione nel registro delle modifiche.
 	 */
 	const AZIONE_REGISTRO = 'stato_obbligo';
@@ -142,7 +147,7 @@ final class SchermataStati {
 		}
 
 		try {
-			return self::scrivi( $albero, $richiesta[ self::CAMPO ] ?? array() );
+			return self::scrivi( $albero, $richiesta[ self::CAMPO ] ?? array(), $richiesta[ self::CAMPO_PARTENZA ] ?? array() );
 		} finally {
 			Blocco::rilascia();
 		}
@@ -154,32 +159,37 @@ final class SchermataStati {
 	 * Gli stati attuali si rileggono dalla banca dati e non dalla memoria della
 	 * richiesta: chi ha salvato un attimo prima, da un'altra richiesta, ha gia
 	 * cambiato il punto di partenza, e il "prima" scritto nel registro deve
-	 * essere quello vero.
+	 * essere quello vero. Se la lettura fallisce non si scrive niente: partire
+	 * da un elenco vuoto cancellerebbe le dichiarazioni delle altre voci.
 	 *
-	 * @param Alberatura $albero  Albero di riferimento.
-	 * @param mixed      $inviati Coppie voce e stato, come arrivano dal modulo.
+	 * @param Alberatura $albero   Albero di riferimento.
+	 * @param mixed      $inviati  Coppie voce e stato, come arrivano dal modulo.
+	 * @param mixed      $partenze Coppie voce e stato mostrato dal modulo.
 	 * @return array{codice: string, messaggio: string, salvate: array<int, string>}
 	 */
-	private static function scrivi( Alberatura $albero, $inviati ): array {
-		wp_cache_delete( 'alloptions', 'options' );
-		wp_cache_delete( StatiObbligo::OPZIONE, 'options' );
+	private static function scrivi( Alberatura $albero, $inviati, $partenze ): array {
+		$attuali = StatiObbligo::conservati();
 
-		$cambi = self::cambi( $albero, $inviati );
+		if ( is_wp_error( $attuali ) ) {
+			return self::esito( 'lettura', __( 'Nessuno stato salvato: gli stati attuali non si sono potuti leggere dalla banca dati, e salvare senza conoscerli potrebbe cancellare quelli delle altre voci. Riprovare fra qualche minuto.', 'trasparenza-pa' ) );
+		}
+
+		$cambi = self::cambi( $albero, $inviati, $partenze, $attuali );
 
 		if ( is_wp_error( $cambi ) ) {
-			return self::esito( 'dati', $cambi->get_error_message() );
+			return self::esito( 'trasparenza_stati_conflitto' === $cambi->get_error_code() ? 'conflitto' : 'dati', $cambi->get_error_message() );
 		}
 
 		$salvate = array();
 
-		foreach ( $cambi as $voce => $dopo ) {
+		foreach ( $cambi as $voce => list( $prima, $dopo ) ) {
 			$traccia = conformita_core_registra_voce(
 				array(
 					'sezione'  => SEZIONE,
 					'azione'   => self::AZIONE_REGISTRO,
 					'dettagli' => array(
 						'voce'  => $voce,
-						'prima' => StatiObbligo::stato( $voce ),
+						'prima' => $prima,
 						'dopo'  => $dopo,
 					),
 				)
@@ -235,21 +245,39 @@ final class SchermataStati {
 	 * La radice non porta obblighi propri e non si dichiara. Un valore uguale
 	 * allo stato attuale non e un cambio e non va nel registro.
 	 *
-	 * @param Alberatura $albero  Albero di riferimento.
-	 * @param mixed      $inviati Coppie voce e stato, come arrivano dal modulo.
-	 * @return array<string, string>|WP_Error
+	 * **Si applica solo quello che l'utente ha cambiato.** Il modulo manda tutte
+	 * le voci, anche quelle che nessuno ha toccato, e con ciascuna lo stato che
+	 * mostrava quando e stato aperto. Una voce rimandata com'era mostrata non e
+	 * un cambio: senza questa regola, chi salva un modulo aperto prima di un
+	 * altro salvataggio riporterebbe indietro le voci cambiate nel frattempo.
+	 * Una voce cambiata dall'utente, ma che nel frattempo qualcun altro ha
+	 * cambiato in modo diverso, e un conflitto: non si salva niente e si dice
+	 * quale voce ricontrollare.
+	 *
+	 * @param Alberatura           $albero   Albero di riferimento.
+	 * @param mixed                $inviati  Coppie voce e stato, come arrivano dal modulo.
+	 * @param mixed                $partenze Coppie voce e stato mostrato dal modulo.
+	 * @param array<string, mixed> $attuali  Stati conservati, letti dalla banca dati.
+	 * @return array<string, array{0: string|null, 1: string}>|WP_Error
 	 */
-	private static function cambi( Alberatura $albero, $inviati ) {
+	private static function cambi( Alberatura $albero, $inviati, $partenze, array $attuali ) {
 		$difetto = new WP_Error( 'trasparenza_stati_dati', __( 'Nessuno stato salvato: la richiesta conteneva una voce che non esiste o un valore che non è fra i tre ammessi.', 'trasparenza-pa' ) );
 
-		if ( ! is_array( $inviati ) ) {
+		if ( ! is_array( $inviati ) || ! is_array( $partenze ) ) {
 			return $difetto;
 		}
 
-		$cambi = array();
+		$cambi     = array();
+		$conflitti = array();
 
 		foreach ( $inviati as $voce => $stato ) {
 			if ( ! is_string( $voce ) || ! is_string( $stato ) || ! $albero->esiste( $voce ) || $voce === $albero->radice() ) {
+				return $difetto;
+			}
+
+			$partenza = $partenze[ $voce ] ?? null;
+
+			if ( ! is_string( $partenza ) || ( '' !== $partenza && null === StatiObbligo::valido( $partenza ) ) ) {
 				return $difetto;
 			}
 
@@ -257,13 +285,34 @@ final class SchermataStati {
 				continue;
 			}
 
-			if ( ! in_array( $stato, StatiObbligo::ammessi(), true ) ) {
+			if ( null === StatiObbligo::valido( $stato ) ) {
 				return $difetto;
 			}
 
-			if ( StatiObbligo::stato( $voce ) !== $stato ) {
-				$cambi[ $voce ] = $stato;
+			$mostrato = '' === $partenza ? null : $partenza;
+			$attuale  = StatiObbligo::valido( $attuali[ $voce ] ?? null );
+
+			if ( $stato === $mostrato || $stato === $attuale ) {
+				continue;
 			}
+
+			if ( $attuale !== $mostrato ) {
+				$conflitti[] = (string) ( $albero->voce( $voce )['nome'] ?? $voce );
+				continue;
+			}
+
+			$cambi[ $voce ] = array( $attuale, $stato );
+		}
+
+		if ( array() !== $conflitti ) {
+			return new WP_Error(
+				'trasparenza_stati_conflitto',
+				sprintf(
+					/* translators: %s: nomi delle voci, separati da virgole. */
+					__( 'Nessuno stato salvato: mentre la schermata era aperta, qualcun altro ha cambiato lo stato di queste voci: %s. Ricaricare la schermata, ricontrollarle e salvare di nuovo.', 'trasparenza-pa' ),
+					implode( ', ', $conflitti )
+				)
+			);
 		}
 
 		return $cambi;
@@ -401,7 +450,9 @@ final class SchermataStati {
 			echo '<option value="' . esc_attr( $valore ) . '"' . selected( $stato, $valore, false ) . '>' . esc_html( $etichetta ) . '</option>';
 		}
 
-		echo '</select></td></tr>';
+		echo '</select>';
+		echo '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA . '[' . $voce . ']' ) . '" value="' . esc_attr( (string) $stato ) . '">';
+		echo '</td></tr>';
 
 		foreach ( $albero->figli( $voce ) as $figlio ) {
 			self::riga( $albero, $figlio, $livello + 1 );
