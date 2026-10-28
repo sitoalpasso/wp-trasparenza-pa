@@ -56,7 +56,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-24 | da fare | Richiesta anonima esterna su ogni URL dell'at_map | HTTPS, risposta piena, nessun filtro |
 | TRASP-25 | da fare | Voce-rinvio con collegamento rotto | esito negativo registrato con data, voce segnalata |
 | TRASP-26 | da fare | Dato pubblicato con schema v1.0, arrivo di una v1.1 | la v1.1 si affianca, il dato v1.0 resta valido e leggibile |
-| TRASP-27 | da fare | Sottosezione dichiarata non applicabile | stampa carattere per carattere la dicitura obbligata; lo stato sospeso esiste; la sottosezione vuota senza stato è segnalata |
+| TRASP-27 | fatto | Sottosezione dichiarata non applicabile (righe T-13..T-15, T-28) | stampa carattere per carattere la dicitura obbligata; lo stato sospeso esiste; la sottosezione vuota senza stato è segnalata |
 | TRASP-28 | da fare | Passaggi fra i quattro stati editoriali | tracciati; nei due stati di difformità la segnalazione al RPCT è registrata |
 | TRASP-29 | da fare | Voce-rinvio verso una banca dati nazionale | espone amministrazione titolare e destinatario dell'accesso civico; il caso senza banca dati non è configurabile come rinvio |
 | art. 31 | da fare | Ente senza organismo di valutazione; nessun rilievo degli organi di controllo | il dato valida comunque: il campo facoltativo si omette, l'elenco vuoto si emette vuoto |
@@ -123,14 +123,14 @@ comune. Scheda: `docs/implementazione/gestione-stati.md`.
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-26 | in corso | Prima installazione; permesso poi tolto dall'amministratore; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; senza il ruolo niente si assegna e la prima installazione resta da fare |
-| T-27 | in corso | Nessun ruolo ha il permesso della sezione | avviso a chi gestisce i componenti, con il nome del permesso; nessun avviso a chi non li gestisce, ne quando un ruolo lo ha |
-| T-28 | in corso | Menu e schermata, con e senza permesso | la voce di menu chiede il permesso della sezione; amministratore del sito senza quel permesso: schermata non agganciata e rifiutata se aperta; con il permesso: tutte le voci tranne la radice, "Da scegliere" solo per le non dichiarate, stato attuale selezionato, effetti spiegati con le frasi dell'albero, conteggio delle voci senza stato (TRASP-27) |
-| T-29 | in corso | [attacco] Salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, con un nonce non testuale, con il nonce di un altro utente | rifiutato; niente scritto, niente nel registro |
-| T-30 | in corso | Salvataggio valido; campo vuoto; [attacco] richiesta con una voce buona e un difetto: voce inesistente, valore fuori dai tre o con uno spazio, radice, valore non testuale, identificativo numerico, campo che non e un elenco | i cambi validi si salvano, il campo vuoto non cambia niente e uno stato dichiarato non torna non dichiarato; con un difetto non si scrive niente, nemmeno la voce buona |
-| T-31 | in corso | Cambi di stato, stato rimandato uguale, registro che rifiuta la seconda scrittura | una voce di registro per cambio, con voce, stato prima e dopo, utente, senza contenuto; lo stato uguale non si registra; il rifiuto del registro ferma quel cambio e i successivi, l'esito dice quanti sono passati |
-| T-32 | in corso | Albero non disponibile; sezione non registrata | salvataggio rifiutato e schermata senza modulo, con il motivo; senza sezione nessuna voce di menu e nessun permesso assegnato |
-| T-33 | in corso | [attacco] Un altro salvataggio tiene il blocco; lo stato cambia nella banca dati dopo che la richiesta lo ha letto | rifiutato dopo l'attesa, niente scritto, poi di nuovo possibile; lo stato di partenza si rilegge dalla banca dati, quindi il "prima" del registro e quello vero e il cambio dell'altra richiesta resta |
+| T-26 | fatto | Prima installazione; permesso poi tolto dall'amministratore; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; senza il ruolo niente si assegna e la prima installazione resta da fare |
+| T-27 | fatto | Nessun ruolo ha il permesso della sezione | avviso a chi gestisce i componenti, con il nome del permesso; nessun avviso a chi non li gestisce, ne quando un ruolo lo ha |
+| T-28 | fatto | Menu e schermata, con e senza permesso | la voce di menu chiede il permesso della sezione; amministratore del sito senza quel permesso: schermata non agganciata e rifiutata se aperta; con il permesso: tutte le voci tranne la radice, "Da scegliere" solo per le non dichiarate, stato attuale selezionato, effetti spiegati con le frasi dell'albero, conteggio delle voci senza stato (TRASP-27) |
+| T-29 | fatto | [attacco] Salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, con un nonce non testuale, con il nonce di un altro utente | rifiutato; niente scritto, niente nel registro |
+| T-30 | fatto | Salvataggio valido; campo vuoto; [attacco] richiesta con una voce buona e un difetto: voce inesistente, valore fuori dai tre o con uno spazio, radice, valore non testuale, identificativo numerico, campo che non e un elenco | i cambi validi si salvano, il campo vuoto non cambia niente e uno stato dichiarato non torna non dichiarato; con un difetto non si scrive niente, nemmeno la voce buona |
+| T-31 | fatto | Cambi di stato, stato rimandato uguale, registro che rifiuta la seconda scrittura | una voce di registro per cambio, con voce, stato prima e dopo, utente, senza contenuto; lo stato uguale non si registra; il rifiuto del registro ferma quel cambio e i successivi, l'esito dice quanti sono passati |
+| T-32 | fatto | Albero non disponibile; sezione non registrata | salvataggio rifiutato e schermata senza modulo, con il motivo; senza sezione nessuna voce di menu e nessun permesso assegnato |
+| T-33 | fatto | [attacco] Un altro salvataggio tiene il blocco; lo stato cambia nella banca dati dopo che la richiesta lo ha letto | rifiutato dopo l'attesa, niente scritto, poi di nuovo possibile; lo stato di partenza si rilegge dalla banca dati, quindi il "prima" del registro e quello vero e il cambio dell'altra richiesta resta |
 
 ## Collaudo congiunto con l'albo pretorio
 
