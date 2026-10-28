@@ -162,6 +162,6 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-24 | da fare | HTTPS ovunque, senza filtri | specifiche tecniche ANAC |
 | TRASP-25 | da fare | Rinvii tracciati e verificati | art. 9-bis, d.l. 19/2026 art. 8 |
 | TRASP-26 | in corso | Schemi versionati con la data ANAC | delibere ANAC 495/2024, 481/2025 |
-| TRASP-27 | da fare | Stato dell'obbligo a tre valori, dicitura esatta | schemi ANAC |
+| TRASP-27 | fatto | Stato dell'obbligo a tre valori, dicitura esatta | schemi ANAC |
 | TRASP-28 | da fare | Stati editoriali con segnalazione al RPCT | istruzioni operative ANAC |
 | TRASP-29 | da fare | Titolare dell'accesso civico sulle voci-rinvio | art. 9-bis commi 3 e 4 |

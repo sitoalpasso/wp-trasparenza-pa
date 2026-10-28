@@ -18,7 +18,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 | Dato | Dove sta | Chi lo scrive |
 |---|---|---|
 | Voce pubblicata (il dato compilato di uno schema) | contenuto di tipo dedicato più campi strutturati; porta con sé l'identificativo della versione di schema con cui è stato raccolto | redattore, tramite i moduli generati dallo schema |
-| Nodo dell'albero: stato dell'obbligo (applicabile, non applicabile, sospeso) | opzione `trasparenza_pa_stati_obbligo`, una coppia identificativo-stato per nodo; un nodo assente e "non dichiarato", che non e uno dei tre e non ha valore predefinito | responsabile con permesso dedicato |
+| Nodo dell'albero: stato dell'obbligo (applicabile, non applicabile, sospeso) | opzione `trasparenza_pa_stati_obbligo`, una coppia identificativo-stato per nodo; un nodo assente e "non dichiarato", che non e uno dei tre e non ha valore predefinito. Ogni cambio lascia una voce `stato_obbligo` nel registro di core, con voce, stato prima e dopo | chi ha il permesso `trasparenza_pa_amministrazione`, dalla schermata "Stato delle voci" |
 | Versione installata del componente | opzione `trasparenza_pa_versione_installata`; quando cambia si riassegnano i permessi della voce | solo il sistema |
 | Obbligo e versione dello schema della voce | metadati `_trasparenza_pa_obbligo` e `_trasparenza_pa_versione` (codice numero@data); scritti alla scelta dell'obbligo, poi mai piu cambiati dal modulo | il sistema, alla scelta del redattore |
 | Dato compilato della voce | metadato `_trasparenza_pa_dato`, in JSON, salvato anche quando non e conforme | il sistema, dai valori del modulo |
@@ -70,7 +70,7 @@ autenticazione perché è un requisito di legge.
 |---|---|---|
 | Compilare bozze delle voci | gestione trasparenza | |
 | Validare e pubblicare | pubblicazione trasparenza | passa dal controllo dati personali |
-| Dichiarare lo stato di un obbligo | amministrazione trasparenza | il non applicabile stampa la dicitura obbligata |
+| Dichiarare lo stato di un obbligo | `trasparenza_pa_amministrazione` | del componente, non derivato da un tipo; va all'amministratore una volta sola, alla prima installazione (opzione `trasparenza_pa_permessi_assegnati`), e se l'ente lo toglie non torna con gli aggiornamenti. Il non applicabile stampa la dicitura obbligata |
 | Creare e modificare voci-rinvio | gestione trasparenza | il caso senza banca dati (art. 19) non è configurabile come rinvio |
 | Consultare l'archivio delle voci scadute | archivio trasparenza | il pubblico accede solo per accesso civico |
 | Gestire le richieste di accesso civico | accesso civico | |

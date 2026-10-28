@@ -56,7 +56,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-24 | da fare | Richiesta anonima esterna su ogni URL dell'at_map | HTTPS, risposta piena, nessun filtro |
 | TRASP-25 | da fare | Voce-rinvio con collegamento rotto | esito negativo registrato con data, voce segnalata |
 | TRASP-26 | da fare | Dato pubblicato con schema v1.0, arrivo di una v1.1 | la v1.1 si affianca, il dato v1.0 resta valido e leggibile |
-| TRASP-27 | da fare | Sottosezione dichiarata non applicabile | stampa carattere per carattere la dicitura obbligata; lo stato sospeso esiste; la sottosezione vuota senza stato è segnalata |
+| TRASP-27 | fatto | Sottosezione dichiarata non applicabile (righe T-13..T-15, T-48) | stampa carattere per carattere la dicitura obbligata; lo stato sospeso esiste; la sottosezione vuota senza stato è segnalata |
 | TRASP-28 | da fare | Passaggi fra i quattro stati editoriali | tracciati; nei due stati di difformità la segnalazione al RPCT è registrata |
 | TRASP-29 | da fare | Voce-rinvio verso una banca dati nazionale | espone amministrazione titolare e destinatario dell'accesso civico; il caso senza banca dati non è configurabile come rinvio |
 | art. 31 | da fare | Ente senza organismo di valutazione; nessun rilievo degli organi di controllo | il dato valida comunque: il campo facoltativo si omette, l'elenco vuoto si emette vuoto |
@@ -160,6 +160,23 @@ Il tipo della voce, i permessi, la pubblicazione chiusa (T2c-1), poi il modulo g
 | T-43 | fatto | Dato difforme dal modulo | salvato in bozza con i difetti, ciascuno mostrato in italiano accanto al campo del suo percorso; un campo vuoto non entra nel dato come testo vuoto; l'esito vale solo per il dato da cui e nato: se il dato salvato cambia per un'altra strada, la voce risulta non controllata; un invio troncato dal limite di campi del server (manca il marcatore dopo l'ultimo campo) non tocca dato ed esito e lascia un avviso con il limite, e vicino al limite il riquadro avvisa prima dell'invio |
 | T-44 | fatto | Versione fissata alla raccolta (TRASP-26) | una voce raccolta con una versione si ricontrolla con quella anche quando ne entra in vigore una nuova; il modulo non cambia obbligo ne versione di una voce gia legata; il primo legame non si scrive se un'altra richiesta l'ha gia scritto nel frattempo |
 | T-45 | fatto | Sicurezza del salvataggio | senza nonce valido o senza il permesso sulla voce non si scrive niente; il nonce vale per una sola voce, e quello di una voce non scrive su un'altra; un valore con marcatori HTML esce come testo, non come marcatori |
+
+## Schermata di gestione degli stati (righe T-46..T-53)
+
+Provano la schermata in cui l'amministrazione dichiara lo stato di ogni voce, il permesso
+che la apre e la traccia che ogni cambio lascia nel registro delle modifiche del meccanismo
+comune. Scheda: `docs/implementazione/gestione-stati.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-46 | fatto | Prima installazione; permesso poi tolto dall'amministratore; tolto e con la lettura dell'assegnazione fallita; ruolo di amministratore assente | il permesso va al solo amministratore, una volta; tolto, non torna alla richiesta dopo; con la lettura fallita i ruoli non si toccano e chi gestisce i componenti vede l'errore; senza il ruolo niente si assegna e la prima installazione resta da fare |
+| T-47 | fatto | Nessun ruolo ha il permesso della sezione | avviso a chi gestisce i componenti, con il nome del permesso; nessun avviso a chi non li gestisce, ne quando un ruolo lo ha |
+| T-48 | fatto | Menu e schermata, con e senza permesso | la voce di menu chiede il permesso della sezione; amministratore del sito senza quel permesso: schermata non agganciata e rifiutata se aperta; con il permesso: tutte le voci tranne la radice, "Da scegliere" solo per le non dichiarate, stato attuale selezionato, effetti spiegati con le frasi dell'albero, conteggio delle voci senza stato (TRASP-27) |
+| T-49 | fatto | [attacco] Salvataggio senza permesso, senza nonce, con il nonce di un'altra azione, con un nonce non testuale, con il nonce di un altro utente | rifiutato; niente scritto, niente nel registro |
+| T-50 | fatto | Salvataggio valido; campo vuoto; [attacco] richiesta con una voce buona e un difetto: voce inesistente, valore fuori dai tre o con uno spazio, radice, valore non testuale, identificativo numerico, campo che non e un elenco; [attacco] stato di partenza mancante, fuori dai tre, non testuale | i cambi validi si salvano, il campo vuoto non cambia niente e uno stato dichiarato non torna non dichiarato; con un difetto non si scrive niente, nemmeno la voce buona |
+| T-51 | fatto | Cambi di stato, stato rimandato uguale, registro che rifiuta la seconda scrittura, stato non scritto alla seconda scrittura; lettura degli stati fallita con altre voci dichiarate; valore conservato che non e un elenco | una voce di registro per cambio, con voce, stato prima e dopo, utente, senza contenuto; lo stato uguale non si registra; il rifiuto del registro ferma quel cambio e i successivi, l'esito dice quanti sono passati; lo stato non scritto ferma il salvataggio, l'esito non è "salvato" e dice che il registro ha un cambio non avvenuto; con la lettura fallita o il valore che non e un elenco non si scrive niente, né stato né registro, e le altre voci restano dichiarate |
+| T-52 | fatto | Albero non disponibile; sezione non registrata | salvataggio rifiutato e schermata senza modulo, con il motivo; senza sezione nessuna voce di menu e nessun permesso assegnato |
+| T-53 | fatto | [attacco] Un altro salvataggio tiene il blocco; lo stato cambia nella banca dati dopo che la richiesta lo ha letto; due moduli completi aperti sullo stesso stato, poi un terzo che cambia in modo diverso una voce già cambiata | rifiutato dopo l'attesa, niente scritto, poi di nuovo possibile; lo stato di partenza si rilegge dalla banca dati, quindi il "prima" del registro e quello vero e il cambio dell'altra richiesta resta; il modulo porta lo stato che mostrava e si applicano solo le voci cambiate, quindi il secondo modulo non riporta indietro le voci del primo; il terzo e un conflitto, non salva niente e nomina la voce |
 
 ## Collaudo congiunto con l'albo pretorio
 
