@@ -389,4 +389,32 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 		$this->assertSame( 'anac_1310_2016_all_1', $dati['fonte_collocazioni']['responsabile_trasparenza'] ?? null );
 		$this->assertContains( $dati['fonte_collocazioni']['responsabile_trasparenza'], $chiavi, 'La fonte citata deve essere fra le fonti del file.' );
 	}
+
+	/**
+	 * Riga T-55: la collocazione e arrivata con una versione nuova dell'albero, e la versione di prima resta com'era.
+	 *
+	 * Uno stesso identificativo di versione non puo indicare due alberi
+	 * diversi: la versione 2026-10-24 resta nel suo file, byte per byte, e la
+	 * versione in vigore ha un identificativo suo. L'impronta attesa e scritta
+	 * qui, cosi una modifica al file vecchio fa diventare rossa la prova.
+	 */
+	public function test_t55_versione_nuova_accanto_alla_vecchia(): void {
+		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-24.json';
+
+		$this->assertFileExists( $vecchio );
+		$this->assertSame( 'cd6122a1657922a329a98fa8a017939b2104143ee2bc88f058fb879e750f3f60', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-24 non si modifica.' );
+
+		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+
+		$this->assertSame( '2026-10-24', $prima['versione'] );
+		$this->assertArrayNotHasKey( 'collocazioni', $prima );
+		$this->assertNotSame( $prima['versione'], $ora['versione'], 'La versione in vigore ha un identificativo suo.' );
+		$this->assertSame( $ora['versione'] . '.json', basename( FILE_ALBERATURA ), 'Il nome del file dice la versione.' );
+
+		unset( $ora['versione'], $ora['collocazioni'], $ora['fonte_collocazioni'], $prima['versione'] );
+
+		$this->assertSame( $prima, $ora, 'La versione nuova aggiunge le collocazioni e non cambia altro.' );
+		$this->assertInstanceOf( Alberatura::class, Alberatura::carica( $vecchio ), 'La versione vecchia resta leggibile dal motore.' );
+	}
 }
