@@ -137,9 +137,13 @@ aggiornare.
 - La lettura di TRASP-28 qui sopra (stati editoriali solo per i dati su schema) è la più
   stretta fra quelle possibili. Se l'ente o una fonte successiva li volesse anche per i
   contenuti liberi, si aggiungono sullo stesso tipo senza cambiare il dato.
-- **Domanda di perimetro per Andrea, da chiudere prima del passo 4 (pagina pubblica).** I
-  contenuti liberi si possono collocare anche nelle voci coperte dagli schemi ANAC (art. 13,
-  4-bis, 31). Lì un contenuto libero pubblicato scavalcherebbe gli stati editoriali di
-  TRASP-28, che valgono per i dati su schema. Le strade sono due: escludere quelle voci dal
-  riquadro, finché i moduli su schema non sono pronti, oppure ammetterle dichiarando che il
-  contenuto libero non sostituisce il dato su schema.
+- **Voci coperte dagli schemi ANAC (art. 13, 4-bis, 31): chiuso il 28 ottobre 2026.** Le
+  voci restano aperte ai contenuti liberi finché la compilazione sui moduli non è
+  obbligatoria. Dove il modulo su schema della voce è già usabile per pubblicare, il
+  riquadro indirizza l'addetto al modulo, proposto come prima strada, e il testo libero resta
+  un ripiego dichiarato. La data da cui il modulo diventa obbligatorio è un dato con fonte,
+  nell'albero o nel catalogo degli schemi, mai scritta nel codice: da quella data il
+  contenuto libero in quelle voci si chiude. Finché la voce su schema resta in bozza, perché
+  gli stati editoriali non ci sono ancora, l'avviso dice chiaramente all'addetto che cosa
+  compare al pubblico e che cosa no. La regola si costruisce con la pagina pubblica (passo 4)
+  o in una richiesta a sé.
