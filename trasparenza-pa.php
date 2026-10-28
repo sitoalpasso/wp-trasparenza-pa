@@ -108,7 +108,13 @@ require_once __DIR__ . '/src/class-avvio.php';
 require_once __DIR__ . '/src/class-alberatura.php';
 require_once __DIR__ . '/src/class-stati-obbligo.php';
 require_once __DIR__ . '/src/class-pagina-pubblica.php';
+require_once __DIR__ . '/src/class-permessi.php';
+require_once __DIR__ . '/src/class-schermata-stati.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 
 PaginaPubblica::aggancia();
+SchermataStati::aggancia();
+
+add_action( 'init', array( Permessi::class, 'da_init' ) );
+add_action( 'admin_notices', array( Permessi::class, 'mostra_avviso' ) );
