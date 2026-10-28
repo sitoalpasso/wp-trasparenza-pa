@@ -67,6 +67,9 @@ viene segnalato.
 | `Permessi`, `Installazione` | Permessi della voce chiesti al componente comune e assegnati all'amministratore a ogni cambio di versione installata; il permesso di amministrare la sezione, dato all'amministratore una volta sola, e l'avviso quando nessun ruolo lo ha | TRASP-27 |
 | `SchermataStati` | La schermata "Stato delle voci": elenco delle voci, scelta dello stato, salvataggio tutto o niente con una voce di registro per cambio; si applicano solo le voci cambiate rispetto a quanto il modulo mostrava | TRASP-19, TRASP-27 |
 | `Opzione` | Lettura di un'opzione dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverla | trasversale |
+| `Responsabile` | I dati del responsabile della prevenzione della corruzione e della trasparenza: controllo e riquadro pubblico nella voce che l'albero indica | TRASP-13 |
+| `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
+| `Blocco` | Il blocco della banca dati che tiene in fila i salvataggi delle schermate di gestione | TRASP-19 |
 | `ChiusuraPubblicazione` | Ogni tentativo di pubblicare una voce la lascia in bozza finche non ci sono gli stati editoriali | TRASP-28 |
 | `ModuloSchema` | Costruisce i campi del modulo leggendo lo schema di una versione, e dai valori inviati ricostruisce il dato; non conosce nessun campo di nessuno schema | TRASP-05, TRASP-06 |
 | `SchedaVoce` | Riquadro dei dati nella schermata della voce: scelta dell'obbligo, legame con la versione in vigore scritto una volta sola, salvataggio con nonce e permesso, esito del controllo e difetti accanto ai campi | TRASP-05, TRASP-26 |

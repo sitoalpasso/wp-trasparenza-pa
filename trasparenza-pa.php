@@ -98,11 +98,13 @@ const FILE_PRINCIPALE = __FILE__;
 /**
  * File dell'albero delle voci della sezione.
  *
- * E un dato normativo versionato, non codice: si sostituisce con una nuova
- * versione quando cambia l'Allegato A del d.lgs. 33/2013. Finche manca, la
- * sezione non si mostra e chi amministra il sito vede un avviso.
+ * E un dato normativo versionato, non codice. Ogni versione e un file a se,
+ * con la data della versione nel nome; una versione nuova si aggiunge accanto
+ * alle vecchie, che restano come erano, e questa costante passa alla nuova.
+ * Finche manca, la sezione non si mostra e chi amministra il sito vede un
+ * avviso.
  */
-const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/corrente.json';
+const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-28.json';
 
 /**
  * Identificativo del tipo di contenuto della voce di trasparenza.
@@ -140,6 +142,9 @@ require_once __DIR__ . '/src/class-installazione.php';
 require_once __DIR__ . '/src/class-chiusura-pubblicazione.php';
 require_once __DIR__ . '/src/class-modulo-schema.php';
 require_once __DIR__ . '/src/class-scheda-voce.php';
+require_once __DIR__ . '/src/class-blocco.php';
+require_once __DIR__ . '/src/class-responsabile.php';
+require_once __DIR__ . '/src/class-schermata-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-stati.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
@@ -151,6 +156,7 @@ SchedaVoce::aggancia();
 
 PaginaPubblica::aggancia();
 SchermataStati::aggancia();
+SchermataResponsabile::aggancia();
 
 add_action( 'init', array( Permessi::class, 'da_init' ) );
 add_action( 'admin_notices', array( Permessi::class, 'mostra_avviso' ) );

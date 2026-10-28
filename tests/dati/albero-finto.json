@@ -5,6 +5,9 @@
 		"non_applicabile": "L'obbligo di pubblicazione non è applicabile all'amministrazione",
 		"sospeso": "Obbligo di pubblicazione sospeso"
 	},
+	"collocazioni": {
+		"responsabile_trasparenza": "zeta_uno"
+	},
 	"nodi": [
 		{ "id": "radice", "nome": "Amministrazione trasparente", "padre": null, "riferimento": "" },
 		{ "id": "zeta", "nome": "Voce Zeta", "padre": "radice", "riferimento": "Riferimento finto 1" },

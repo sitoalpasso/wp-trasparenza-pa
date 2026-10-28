@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove del caricamento dell'albero: righe T-11 e T-12.
+ * Prove del caricamento dell'albero: righe T-11, T-12 e T-54.
  *
  * @package TrasparenzaPa
  */
@@ -177,6 +177,44 @@ class AlberaturaTest extends WP_UnitTestCase {
 			}
 
 			$this->assertSame( $atteso, $esito->get_error_code() );
+		}
+	}
+
+	/**
+	 * T-54: le collocazioni del file si leggono; senza, nessuna collocazione.
+	 */
+	public function test_t54_collocazioni_lette(): void {
+		$dati                 = $this->valido();
+		$dati['collocazioni'] = array( 'responsabile_trasparenza' => 'b' );
+
+		$albero = Alberatura::da_dati( $dati );
+
+		$this->assertInstanceOf( Alberatura::class, $albero );
+		$this->assertSame( 'b', $albero->collocazione( 'responsabile_trasparenza' ) );
+		$this->assertNull( $albero->collocazione( 'altro' ) );
+		$this->assertNull( Alberatura::da_dati( $this->valido() )->collocazione( 'responsabile_trasparenza' ), 'Senza collocazioni nel file non se ne inventa una.' );
+	}
+
+	/**
+	 * T-54: una collocazione sbagliata e un difetto del file, come un padre inesistente.
+	 */
+	public function test_t54_collocazioni_sbagliate_rifiutate(): void {
+		$guasti = array(
+			'non elenco'       => 'b',
+			'voce inesistente' => array( 'responsabile_trasparenza' => 'manca' ),
+			'radice'           => array( 'responsabile_trasparenza' => 'r' ),
+			'dato non valido'  => array( 'Responsabile' => 'b' ),
+			'dato numerico'    => array( 'b' ),
+			'voce non testo'   => array( 'responsabile_trasparenza' => array( 'b' ) ),
+		);
+
+		foreach ( $guasti as $caso => $collocazioni ) {
+			$dati                 = $this->valido();
+			$dati['collocazioni'] = $collocazioni;
+			$esito                = Alberatura::da_dati( $dati );
+
+			$this->assertWPError( $esito, $caso );
+			$this->assertSame( 'trasparenza_albero_collocazione', $esito->get_error_code(), $caso );
 		}
 	}
 }

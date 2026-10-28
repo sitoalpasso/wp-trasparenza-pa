@@ -10,6 +10,7 @@ declare( strict_types = 1 );
 namespace TrasparenzaPa\Tests;
 
 use TrasparenzaPa\Avvio;
+use TrasparenzaPa\Blocco;
 use TrasparenzaPa\PaginaPubblica;
 use TrasparenzaPa\Permessi;
 use TrasparenzaPa\SchermataStati;
@@ -782,7 +783,7 @@ class GestioneStatiTest extends WP_UnitTestCase {
 
 		$altra = mysqli_init(); // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_init -- serve una seconda connessione, che $wpdb non offre.
 		$this->assertTrue( $altra->real_connect( (string) $host, DB_USER, DB_PASSWORD, DB_NAME, $porta ? (int) $porta : null, $socket ? (string) $socket : null ) );
-		$this->assertSame( '1', (string) $altra->query( "SELECT GET_LOCK('" . $altra->real_escape_string( SchermataStati::nome_blocco() ) . "', 0)" )->fetch_row()[0] );
+		$this->assertSame( '1', (string) $altra->query( "SELECT GET_LOCK('" . $altra->real_escape_string( Blocco::nome() ) . "', 0)" )->fetch_row()[0] );
 
 		wp_set_current_user( $this->responsabile );
 

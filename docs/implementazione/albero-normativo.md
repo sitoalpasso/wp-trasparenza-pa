@@ -1,6 +1,6 @@
 # Scheda di implementazione: albero normativo
 
-Unita T1c. Il file `dati/alberatura/corrente.json`, letto dal motore descritto in
+Unita T1c. Il file `dati/alberatura/2026-10-24.json` (in origine `corrente.json`; dalla versione 2026-10-28 ogni versione ha il suo file), letto dal motore descritto in
 `alberatura.md`. Nessuna riga di PHP cambia: cambia solo il dato.
 
 ## In parole semplici

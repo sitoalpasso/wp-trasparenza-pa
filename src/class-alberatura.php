@@ -73,18 +73,27 @@ final class Alberatura {
 	private $diciture;
 
 	/**
+	 * Dove si mostrano i dati della sezione che non sono voci: dato e voce.
+	 *
+	 * @var array<string, string>
+	 */
+	private $collocazioni;
+
+	/**
 	 * Costruito solo da `carica()`, a controlli superati.
 	 *
 	 * @param array<string, array{id: string, nome: string, padre: string|null, riferimento: string}> $voci     Voci.
 	 * @param string                                                                                  $radice   Radice.
 	 * @param string                                                                                  $versione Versione.
 	 * @param array<string, string>                                                                   $diciture Diciture.
+	 * @param array<string, string>                                                                   $collocazioni Collocazioni.
 	 */
-	private function __construct( array $voci, string $radice, string $versione, array $diciture ) {
-		$this->voci     = $voci;
-		$this->radice   = $radice;
-		$this->versione = $versione;
-		$this->diciture = $diciture;
+	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni ) {
+		$this->voci         = $voci;
+		$this->radice       = $radice;
+		$this->versione     = $versione;
+		$this->diciture     = $diciture;
+		$this->collocazioni = $collocazioni;
 	}
 
 	/**
@@ -205,7 +214,26 @@ final class Alberatura {
 			}
 		}
 
-		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ) );
+		/*
+		 * Le collocazioni sono facoltative: dicono in quale voce si mostra un
+		 * dato della sezione che non e una voce, come il responsabile della
+		 * trasparenza. Stanno nel file e non nel codice perche le decide la
+		 * norma, come le voci. Una collocazione verso una voce che non esiste
+		 * e un difetto del file, come un padre inesistente.
+		 */
+		$collocazioni = $dati['collocazioni'] ?? array();
+
+		if ( ! is_array( $collocazioni ) ) {
+			return self::errore( 'trasparenza_albero_collocazione', __( 'Le collocazioni del file dell\'albero devono essere coppie di dato e voce.', 'trasparenza-pa' ) );
+		}
+
+		foreach ( $collocazioni as $dato => $voce ) {
+			if ( ! is_string( $dato ) || 1 !== preg_match( '/^[a-z0-9_]{1,80}$/', $dato ) || ! is_string( $voce ) || ! isset( $voci[ $voce ] ) || $voce === $radice ) {
+				return self::errore( 'trasparenza_albero_collocazione', __( 'Una collocazione del file dell\'albero non indica un dato valido o porta a una voce che non esiste.', 'trasparenza-pa' ) );
+			}
+		}
+
+		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni );
 	}
 
 	/**
@@ -299,6 +327,16 @@ final class Alberatura {
 	 */
 	public function dicitura( string $stato ): string {
 		return $this->diciture[ $stato ] ?? '';
+	}
+
+	/**
+	 * La voce in cui si mostra un dato della sezione, o nullo se il file non la dice.
+	 *
+	 * @param string $dato Nome del dato.
+	 * @return string|null
+	 */
+	public function collocazione( string $dato ): ?string {
+		return $this->collocazioni[ $dato ] ?? null;
 	}
 
 	/**
