@@ -24,28 +24,31 @@ conserverebbe anche dopo che l'amministrazione li ha cambiati. Un campo che la p
 cambierebbe, come un nome con un pezzo di codice, si rifiuta invece di salvarlo diverso da
 come è stato scritto.
 
-**Come si prova, e come si prova che la prova è vera.** Diciotto prove nuove (righe
-T-54..T-58). Diciassette rotture volute, una per volta e poi tolte, le fanno diventare
+**Come si prova, e come si prova che la prova è vera.** Venti prove nuove (righe
+T-54..T-58). Ventuno rotture volute, una per volta e poi tolte, le fanno diventare
 rosse: collocazione verso la radice accettata, collocazione verso una voce inesistente
 accettata, nome non confrontato con la sua versione ripulita, schema dell'atto di nomina
 non controllato, telefono non controllato, nome stampato senza escaping, controllo del
 permesso tolto, controllo del nonce tolto, valori scritti nel registro, dati scritti prima
 del registro, rilettura tolta, blocco tolto, avviso su tutte le schermate, dati uguali
 registrati come cambio, menu aperto con il permesso generico delle impostazioni, riquadro
-in ogni voce, collocazione normativa spostata su un'altra voce.
+in ogni voce, collocazione normativa spostata su un'altra voce, lettura fallita presa per
+"responsabile mai indicato", file della versione 2026-10-24 ritoccato, versione nuova con lo
+stesso identificativo della vecchia, albero in vigore riportato alla versione vecchia.
 
 ## 1. File toccati
 
 | File | Perché |
 |---|---|
 | `src/class-alberatura.php` | Legge e controlla la chiave facoltativa `collocazioni`; nuovo metodo `collocazione()` |
-| `src/class-responsabile.php` | Nuovo. Dati, controllo, riquadro pubblico |
+| `src/class-responsabile.php` | Nuovo. Dati, controllo, riquadro pubblico; `conservati()` distingue i dati assenti dalla lettura fallita |
 | `src/class-schermata-responsabile.php` | Nuovo. Sottovoce di menu, schermata, salvataggio, avviso |
 | `src/class-blocco.php` | Nuovo. Il blocco della banca dati, prima dentro la schermata degli stati e ora condiviso dalle due schermate |
 | `src/class-schermata-stati.php` | Usa il blocco condiviso; nessun cambio di comportamento |
 | `src/class-pagina-pubblica.php` | Il riquadro nella voce indicata dall'albero |
 | `trasparenza-pa.php` | Caricamento delle classi e aggancio della schermata |
-| `dati/alberatura/corrente.json` | Collocazione del responsabile e sua fonte |
+| `dati/alberatura/2026-10-28.json` | Nuovo. Versione nuova dell'albero: uguale alla 2026-10-24 più la collocazione del responsabile e la sua fonte. La 2026-10-24 resta accanto, nel file `2026-10-24.json`, com'era |
+| `trasparenza-pa.php` | L'albero in vigore è la versione 2026-10-28 |
 | `tests/dati/albero-finto.json` | Collocazione del responsabile nell'albero delle prove |
 | `tests/AlberaturaTest.php`, `tests/AlberoNormativoTest.php`, `tests/ResponsabileTest.php` | Righe T-54..T-58 |
 | `docs/collaudo.md`, `docs/requisiti.md`, `docs/dati.md`, `docs/architettura.md`, `docs/implementazione/alberatura.md` | Righe di collaudo, TRASP-13, dato e voce di registro, parti del plugin, formato del file |
@@ -91,6 +94,7 @@ e i valori stessi sono stati rifiutati all'ingresso se contenevano codice.
 
 | Caso | Esito |
 |---|---|
+| Lettura dei dati attuali fallita | niente scritto, niente nel registro, messaggio; i dati di prima restano e il modulo rimostra quanto inviato |
 | Campo sbagliato, campo non testuale, richiesta senza i dati | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
 | Registro che rifiuta il cambio | niente scritto; il messaggio riporta il motivo |
 | Dati non scritti dopo la voce di registro | l'esito è un errore che dice che il registro contiene un cambio non avvenuto; restano i dati di prima |
