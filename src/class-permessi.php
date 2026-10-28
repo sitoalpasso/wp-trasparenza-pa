@@ -76,6 +76,13 @@ final class Permessi {
 	const RUOLO_INIZIALE = 'administrator';
 
 	/**
+	 * L'esito dell'ultima assegnazione tentata in questa richiesta.
+	 *
+	 * @var true|WP_Error|null
+	 */
+	private static $esito = null;
+
+	/**
 	 * Ruoli e nomi generici che ricevono.
 	 *
 	 * @return array<string, array<int, string>>
@@ -153,7 +160,7 @@ final class Permessi {
 			return;
 		}
 
-		self::assegna();
+		self::$esito = self::assegna();
 	}
 
 	/**
@@ -166,10 +173,21 @@ final class Permessi {
 	 * permesso nei ruoli conservati, cosi una scrittura persa si ritenta alla
 	 * richiesta successiva invece di risultare fatta per sempre.
 	 *
+	 * L'opzione si legge con `Opzione::leggi()` e non con `get_option()`, che
+	 * restituisce "assente" anche quando la lettura fallisce: una lettura
+	 * fallita ridarebbe all'amministratore il permesso che l'ente gli ha tolto.
+	 * Se la lettura fallisce i ruoli non si toccano.
+	 *
 	 * @return true|WP_Error
 	 */
 	public static function assegna() {
-		if ( false !== get_option( self::OPZIONE_ASSEGNATO ) ) {
+		$assegnato = Opzione::leggi( self::OPZIONE_ASSEGNATO );
+
+		if ( is_wp_error( $assegnato ) ) {
+			return new WP_Error( 'trasparenza_permessi_lettura_fallita', __( 'Non si è potuto leggere se il permesso di amministrare la sezione è già stato assegnato: i ruoli non sono stati toccati, si ritenta alla prossima richiesta.', 'trasparenza-pa' ) );
+		}
+
+		if ( null !== $assegnato ) {
 			return true;
 		}
 
@@ -213,14 +231,25 @@ final class Permessi {
 	}
 
 	/**
-	 * Avviso quando nessuno puo dichiarare gli stati.
+	 * Avviso quando l'assegnazione non e riuscita o nessuno puo dichiarare gli stati.
 	 *
 	 * Riservato a chi gestisce i componenti, che e chi puo rimediare. Senza
 	 * questo avviso un ente che ha tolto il permesso a tutti vedrebbe sparire la
 	 * schermata e non saprebbe perche.
 	 */
 	public static function mostra_avviso(): void {
-		if ( ! current_user_can( 'activate_plugins' ) || ! Avvio::registrata() || ! self::nessun_ruolo_possiede() ) {
+		if ( ! current_user_can( 'activate_plugins' ) || ! Avvio::registrata() ) {
+			return;
+		}
+
+		if ( is_wp_error( self::$esito ) ) {
+			printf(
+				'<div class="notice notice-error"><p>%s</p></div>',
+				esc_html( NOME . ': ' . self::$esito->get_error_message() )
+			);
+		}
+
+		if ( ! self::nessun_ruolo_possiede() ) {
 			return;
 		}
 

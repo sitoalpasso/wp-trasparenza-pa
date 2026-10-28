@@ -20,9 +20,10 @@ Poi, una voce alla volta, si scrive nel registro delle modifiche chi ha cambiato
 dopo si cambia lo stato. Due salvataggi nello stesso momento non si pestano i piedi: il
 secondo aspetta che il primo finisca.
 
-**Come si prova, e come si prova che la prova è vera.** Trentuno prove nuove (righe
-T-46..T-53), con l'albero finto delle prove. Ventidue rotture volute, una per volta e poi
-tolte, le fanno diventare rosse: permesso riassegnato a ogni richiesta, controllo del
+**Come si prova, e come si prova che la prova è vera.** Trentadue prove nuove (righe
+T-46..T-53), con l'albero finto delle prove. Venticinque rotture volute, una per volta e poi
+tolte, le fanno diventare rosse: permesso riassegnato a ogni richiesta, lettura della prima assegnazione con `get_option()`,
+errore di quella lettura ignorato, avviso dell'errore tolto, controllo del
 permesso tolto, controllo del nonce tolto, radice accettata, stato scritto prima del
 registro, "Da scegliere" tolto, avviso mostrato a tutti, menu aperto con il permesso
 generico delle impostazioni, permessi assegnati anche a componente inerte, stato uguale
@@ -91,6 +92,7 @@ dargli le impostazioni del sito. Il visitatore anonimo non tocca niente di quest
 | Registro che rifiuta un cambio | quel cambio e i successivi non si fanno; i precedenti restano con la loro traccia; il messaggio dice quanti sono passati e su quale voce si è fermato |
 | Stato non scritto dopo la voce di registro | quel cambio non c'è e i successivi non si fanno; il messaggio dice quanti sono passati, su quale voce si è fermato e che il registro ha per quella voce un cambio non avvenuto |
 | Altro salvataggio in corso | attesa fino a cinque secondi, poi rinuncia senza scrivere |
+| Lettura fallita dell'opzione che ricorda la prima assegnazione del permesso | i ruoli non si toccano, chi gestisce i componenti vede l'errore; si ritenta alla richiesta dopo |
 | Lettura degli stati fallita, o valore conservato che non è un elenco | niente scritto, niente nel registro, messaggio; le dichiarazioni delle altre voci restano |
 | Modulo aperto prima di un altro salvataggio | le voci che l'utente non ha toccato non si applicano, quindi non riportano indietro i cambi dell'altro; una voce toccata e cambiata nel frattempo in modo diverso è un conflitto: niente scritto, e il messaggio nomina la voce |
 | Albero non disponibile | schermata senza modulo, con il motivo; salvataggio rifiutato |
