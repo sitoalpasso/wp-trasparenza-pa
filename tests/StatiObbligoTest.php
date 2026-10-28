@@ -46,6 +46,7 @@ class StatiObbligoTest extends WP_UnitTestCase {
 		$this->assertTrue( StatiObbligo::imposta( $this->albero, 'alfa', StatiObbligo::APPLICABILE ) );
 		$this->assertSame( StatiObbligo::APPLICABILE, StatiObbligo::stato( 'alfa' ) );
 		$this->assertNotContains( 'alfa', StatiObbligo::non_dichiarate( $this->albero ) );
+		$this->assertTrue( StatiObbligo::imposta( $this->albero, 'alfa', StatiObbligo::APPLICABILE ), 'Lo stato che c\'e gia risulta scritto, anche se la banca dati non cambia.' );
 	}
 
 	/**

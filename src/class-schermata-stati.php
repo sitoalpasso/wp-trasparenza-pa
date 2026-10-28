@@ -205,7 +205,21 @@ final class SchermataStati {
 				);
 			}
 
-			StatiObbligo::imposta( $albero, $voce, $dopo );
+			$scritto = StatiObbligo::imposta( $albero, $voce, $dopo );
+
+			if ( is_wp_error( $scritto ) ) {
+				return self::esito(
+					'stato',
+					sprintf(
+						/* translators: 1: cambi salvati, 2: cambi chiesti, 3: nome della voce. */
+						__( 'Salvati %1$d cambi su %2$d. Lo stato della voce "%3$s" non si è potuto scrivere, e da lì in poi non si è salvato niente. Per quella voce il registro delle modifiche contiene un cambio che non è avvenuto: lo stato resta quello di prima.', 'trasparenza-pa' ),
+						count( $salvate ),
+						count( $cambi ),
+						(string) ( $albero->voce( $voce )['nome'] ?? $voce )
+					),
+					$salvate
+				);
+			}
 
 			$salvate[] = $voce;
 		}

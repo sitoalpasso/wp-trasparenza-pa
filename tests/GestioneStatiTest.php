@@ -527,6 +527,52 @@ class GestioneStatiTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-31: se la scrittura dello stato non avviene, il salvataggio si ferma e lo dice.
+	 *
+	 * Il registro accetta, la banca dati no: l'esito non e "salvato", nomina la
+	 * voce e dice che per quella il registro contiene un cambio non avvenuto.
+	 */
+	public function test_t31_stato_non_scritto_ferma_i_cambi(): void {
+		wp_set_current_user( $this->responsabile );
+
+		$scritture = 0;
+
+		/*
+		 * La prima scrittura dello stato passa; la seconda viene riportata al
+		 * valore di prima, come una scrittura andata persa.
+		 */
+		add_filter(
+			'pre_update_option_' . StatiObbligo::OPZIONE,
+			static function ( $valore, $vecchio ) use ( &$scritture ) {
+				return ++$scritture > 1 ? $vecchio : $valore;
+			},
+			10,
+			2
+		);
+
+		$esito = SchermataStati::salva(
+			$this->richiesta(
+				array(
+					'zeta'     => StatiObbligo::APPLICABILE,
+					'alfa'     => StatiObbligo::NON_APPLICABILE,
+					'zeta_uno' => StatiObbligo::SOSPESO,
+				)
+			)
+		);
+		remove_all_filters( 'pre_update_option_' . StatiObbligo::OPZIONE );
+
+		$this->assertSame( 'stato', $esito['codice'] );
+		$this->assertSame( array( 'zeta' ), $esito['salvate'] );
+		$this->assertStringContainsString( 'Salvati 1 cambi su 3', $esito['messaggio'] );
+		$this->assertStringContainsString( '"Voce Alfa"', $esito['messaggio'] );
+		$this->assertStringContainsString( 'cambio che non è avvenuto', $esito['messaggio'] );
+		$this->assertSame( StatiObbligo::APPLICABILE, StatiObbligo::stato( 'zeta' ) );
+		$this->assertNull( StatiObbligo::stato( 'alfa' ) );
+		$this->assertNull( StatiObbligo::stato( 'zeta_uno' ), 'Dopo il guasto non si va avanti.' );
+		$this->assertSame( array( 'zeta', 'alfa' ), wp_list_pluck( wp_list_pluck( $this->tracce(), 'dettagli' ), 'voce' ), 'Il registro ha la voce del cambio non avvenuto, e nessuna dopo.' );
+	}
+
+	/**
 	 * T-32: senza albero la schermata lo dice e il salvataggio si rifiuta.
 	 */
 	public function test_t32_senza_albero(): void {

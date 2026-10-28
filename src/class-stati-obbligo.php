@@ -77,6 +77,11 @@ final class StatiObbligo {
 	 * Chi puo chiamarla lo decide la schermata che la usa: questa funzione
 	 * controlla il dato, non il permesso.
 	 *
+	 * Dopo la scrittura lo stato si rilegge dalla banca dati, perche il valore
+	 * restituito da `update_option()` non basta: e falso anche quando il valore
+	 * era gia quello, e non dice niente di un filtro che ha cambiato la
+	 * scrittura. Conta lo stato conservato, non il tentativo.
+	 *
 	 * @param Alberatura $albero Albero di riferimento.
 	 * @param string     $voce   Identificativo della voce.
 	 * @param string     $stato  Uno dei tre stati ammessi.
@@ -96,6 +101,14 @@ final class StatiObbligo {
 		$stati[ $voce ] = $stato;
 
 		update_option( self::OPZIONE, $stati );
+
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( self::OPZIONE, 'options' );
+
+		if ( self::stato( $voce ) !== $stato ) {
+			/* translators: %s: identificativo della voce. */
+			return new WP_Error( 'trasparenza_stato_non_scritto', sprintf( __( 'Lo stato della voce %s non risulta scritto nella banca dati.', 'trasparenza-pa' ), $voce ) );
+		}
 
 		return true;
 	}

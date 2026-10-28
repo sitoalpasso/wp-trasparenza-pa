@@ -20,14 +20,15 @@ Poi, una voce alla volta, si scrive nel registro delle modifiche chi ha cambiato
 dopo si cambia lo stato. Due salvataggi nello stesso momento non si pestano i piedi: il
 secondo aspetta che il primo finisca.
 
-**Come si prova, e come si prova che la prova è vera.** Ventisei prove nuove (righe
-T-26..T-33), con l'albero finto delle prove. Tredici rotture volute, una per volta e poi
+**Come si prova, e come si prova che la prova è vera.** Ventisette prove nuove (righe
+T-26..T-33), con l'albero finto delle prove. Quindici rotture volute, una per volta e poi
 tolte, le fanno diventare rosse: permesso riassegnato a ogni richiesta, controllo del
 permesso tolto, controllo del nonce tolto, radice accettata, stato scritto prima del
 registro, "Da scegliere" tolto, avviso mostrato a tutti, menu aperto con il permesso
 generico delle impostazioni, permessi assegnati anche a componente inerte, stato uguale
 registrato come cambio, salvataggio a metà davanti a un valore sbagliato, rilettura dalla
-banca dati tolta, blocco tolto.
+banca dati tolta, blocco tolto, rilettura dello stato scritto tolta, esito dello stato
+non scritto ignorato.
 
 ## 1. File toccati
 
@@ -82,6 +83,7 @@ dargli le impostazioni del sito. Il visitatore anonimo non tocca niente di quest
 |---|---|
 | Voce inesistente, radice, valore fuori dai tre, valore non testuale, campo non elenco | niente scritto, niente nel registro, messaggio |
 | Registro che rifiuta un cambio | quel cambio e i successivi non si fanno; i precedenti restano con la loro traccia; il messaggio dice quanti sono passati e su quale voce si è fermato |
+| Stato non scritto dopo la voce di registro | quel cambio non c'è e i successivi non si fanno; il messaggio dice quanti sono passati, su quale voce si è fermato e che il registro ha per quella voce un cambio non avvenuto |
 | Altro salvataggio in corso | attesa fino a cinque secondi, poi rinuncia senza scrivere |
 | Albero non disponibile | schermata senza modulo, con il motivo; salvataggio rifiutato |
 | Sezione non registrata (componente inerte) | nessuna voce di menu, nessun permesso assegnato |
@@ -89,9 +91,10 @@ dargli le impostazioni del sito. Il visitatore anonimo non tocca niente di quest
 
 **Limite dichiarato.** L'ordine è "prima il registro, poi lo stato" perché un cambio senza
 traccia non deve esistere. Il caso opposto resta possibile in un solo modo: la banca dati
-accetta la voce di registro e subito dopo rifiuta la scrittura dello stato. Il registro
-direbbe allora un cambio che non c'è, e lo si vede confrontando la voce con lo stato attuale.
-È il verso meno dannoso dei due.
+accetta la voce di registro e subito dopo non scrive lo stato. Dopo ogni scrittura lo stato si
+rilegge dalla banca dati, quindi il caso si vede subito nell'esito: il salvataggio si ferma su
+quella voce, non risulta "salvato", dice quanti cambi sono passati e che per quella voce il
+registro contiene un cambio non avvenuto. È il verso meno dannoso dei due.
 
 ## 7. Test
 
