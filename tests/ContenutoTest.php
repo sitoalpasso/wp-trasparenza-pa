@@ -423,9 +423,99 @@ class ContenutoTest extends WP_UnitTestCase {
 		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'zeta_uno' );
 
 		$this->assertNull( SchedaContenuto::collocazione( $contenuto ), 'Due valori: nessuna voce valida.' );
-		$this->assertSame( 'lettura', SchedaContenuto::applica( $contenuto, $this->richiesta( $contenuto, 'zeta_due', 'alfa' ) )['codice'] );
+		$this->assertCount( 0, $this->tracce( $contenuto ) );
+	}
+
+	/**
+	 * T-61: con piu voci memorizzate il riquadro lo dice, e una scelta da quel riquadro rimette una voce sola.
+	 */
+	public function test_t61_piu_voci_riordinate(): void {
+		$contenuto = $this->contenuto();
+
+		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'alfa' );
+		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'zeta_uno' );
+
+		$html = SchedaContenuto::riquadro( get_post( $contenuto ) );
+
+		$this->assertStringContainsString( 'più di una voce memorizzata', $html );
+		$this->assertStringContainsString( '<option value="" selected>Da scegliere</option>', $html );
+		$this->assertStringContainsString( 'name="' . SchedaContenuto::CAMPO_PARTENZA . '" value=""', $html );
+
+		// Un modulo aperto quando la voce era una sola e un conflitto.
+		$this->assertSame( 'conflitto', SchedaContenuto::applica( $contenuto, $this->richiesta( $contenuto, 'zeta_due', 'alfa' ) )['codice'] );
 		$this->assertSame( array( 'alfa', 'zeta_uno' ), $this->memorizzate( $contenuto ) );
 		$this->assertCount( 0, $this->tracce( $contenuto ) );
+
+		$esito = SchedaContenuto::applica( $contenuto, $this->richiesta( $contenuto, 'zeta_due', '' ) );
+
+		$this->assertSame( 'salvato', $esito['codice'] );
+		$this->assertStringContainsString( 'più voci memorizzate', $esito['messaggio'] );
+		$this->assertSame( array( 'zeta_due' ), $this->memorizzate( $contenuto ) );
+		$this->assertSame( 'zeta_due', SchedaContenuto::collocazione( $contenuto ) );
+
+		$tracce = $this->tracce( $contenuto );
+
+		$this->assertCount( 1, $tracce );
+		$this->assertSame(
+			array(
+				'prima'   => '',
+				'dopo'    => 'zeta_due',
+				'trovate' => array( 'alfa', 'zeta_uno' ),
+			),
+			$tracce[0]['dettagli']
+		);
+	}
+
+	/**
+	 * T-61: con piu voci memorizzate, voce nuova non scritta: l'esito lo dice.
+	 */
+	public function test_t61_piu_voci_non_scritte(): void {
+		$contenuto = $this->contenuto();
+
+		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'alfa' );
+		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'zeta_uno' );
+
+		add_filter(
+			'add_post_metadata',
+			static function ( $esito, $id, $chiave ) {
+				return SchedaContenuto::META_COLLOCAZIONE === $chiave ? false : $esito;
+			},
+			10,
+			3
+		);
+
+		$esito = SchedaContenuto::applica( $contenuto, $this->richiesta( $contenuto, 'zeta_due', '' ) );
+
+		remove_all_filters( 'add_post_metadata' );
+
+		$this->assertSame( 'scrittura', $esito['codice'] );
+		$this->assertStringContainsString( 'cambio che non è avvenuto', $esito['messaggio'] );
+		$this->assertNull( SchedaContenuto::collocazione( $contenuto ) );
+	}
+
+	/**
+	 * T-61: con piu voci memorizzate, registro che rifiuta: le righe restano come sono.
+	 */
+	public function test_t61_piu_voci_registro_che_rifiuta(): void {
+		global $wpdb;
+
+		$contenuto = $this->contenuto();
+
+		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'alfa' );
+		add_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, 'zeta_uno' );
+
+		$tabella = $wpdb->prefix . 'conformita_core_registro';
+
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $tabella ) {
+				return 0 === strpos( ltrim( (string) $sql ), 'INSERT INTO `' . $tabella . '`' ) ? 'INSERT INTO `' . $tabella . '_inesistente` VALUES (1)' : $sql;
+			}
+		);
+		$wpdb->suppress_errors( true );
+
+		$this->assertSame( 'registro', SchedaContenuto::applica( $contenuto, $this->richiesta( $contenuto, 'zeta_due', '' ) )['codice'] );
+		$this->assertSame( array( 'alfa', 'zeta_uno' ), $this->memorizzate( $contenuto ) );
 	}
 
 	/**
@@ -512,10 +602,37 @@ class ContenutoTest extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'zeta_uno' ), $this->memorizzate( $contenuto ) );
 
-		$avvisi = $this->avvisi_in_bacheca();
+		// Un secondo contenuto salvato subito dopo: il suo esito non cancella quello del primo.
+		$secondo = $this->contenuto();
+		$_POST   = $this->richiesta( $secondo, 'radice' );
+		wp_update_post(
+			array(
+				'ID'         => $secondo,
+				'post_title' => 'Secondo',
+			)
+		);
+		$_POST = array();
+
+		set_current_screen( 'edit-' . TIPO_CONTENUTO );
+		$GLOBALS['post'] = get_post( $contenuto ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- il contenuto della schermata, come lo mette WordPress.
+		$this->assertStringNotContainsString( 'Voce della sezione', $this->avvisi_in_bacheca(), 'Solo sulla schermata del contenuto, non nell\'elenco.' );
+
+		set_current_screen( TIPO_CONTENUTO );
+		$GLOBALS['post'] = get_post( $secondo ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- come sopra.
+		$avvisi          = $this->avvisi_in_bacheca();
+
+		$this->assertStringContainsString( 'la voce scelta non è fra quelle', $avvisi );
+		$this->assertStringNotContainsString( 'Voce della sezione salvata.', $avvisi, 'L\'esito del primo non compare sul secondo.' );
+
+		$GLOBALS['post'] = get_post( $contenuto ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- come sopra.
+		$avvisi          = $this->avvisi_in_bacheca();
 
 		$this->assertStringContainsString( 'Voce della sezione salvata.', $avvisi );
+		$this->assertStringNotContainsString( 'la voce scelta non è fra quelle', $avvisi );
 		$this->assertStringNotContainsString( 'Voce della sezione salvata.', $this->avvisi_in_bacheca(), 'L\'esito si mostra una volta.' );
+
+		unset( $GLOBALS['post'] );
+		set_current_screen( 'front' );
 
 		wp_update_post(
 			array(

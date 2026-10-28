@@ -54,6 +54,9 @@ final class SchedaContenuto {
 
 	/**
 	 * Prefisso del dato temporaneo che porta l'esito alla schermata.
+	 *
+	 * Seguono l'utente e il contenuto: l'esito di un salvataggio si mostra solo
+	 * a chi ha salvato e solo sulla schermata di quel contenuto.
 	 */
 	const ESITO = 'trasparenza_pa_esito_collocazione_';
 
@@ -182,6 +185,10 @@ final class SchedaContenuto {
 			$html .= '<p>' . esc_html__( 'Finché non ha una voce, il contenuto non compare nella sezione, anche se è pubblicato.', 'trasparenza-pa' ) . '</p>';
 		}
 
+		if ( is_array( $valori ) && count( $valori ) > 1 ) {
+			$html .= '<p>' . esc_html__( 'Il contenuto ha più di una voce memorizzata. Scegliendo una voce e salvando, resta solo quella; il registro conserva quelle trovate.', 'trasparenza-pa' ) . '</p>';
+		}
+
 		return $html;
 	}
 
@@ -206,8 +213,18 @@ final class SchedaContenuto {
 		$esito = self::applica( $id, wp_unslash( $_POST ) );
 
 		if ( 'invariato' !== $esito['codice'] ) {
-			set_transient( self::ESITO . get_current_user_id(), $esito, MINUTE_IN_SECONDS );
+			set_transient( self::chiave_esito( $id ), $esito, MINUTE_IN_SECONDS );
 		}
+	}
+
+	/**
+	 * Chiave del dato temporaneo dell'esito, per l'utente corrente e un contenuto.
+	 *
+	 * @param int $contenuto Identificativo del contenuto.
+	 * @return string
+	 */
+	public static function chiave_esito( int $contenuto ): string {
+		return self::ESITO . get_current_user_id() . '_' . $contenuto;
 	}
 
 	/**
@@ -274,8 +291,12 @@ final class SchedaContenuto {
 	private static function scrivi( int $id, string $scelta, string $partenza ): array {
 		$valori = Metadato::leggi( $id, self::META_COLLOCAZIONE );
 
-		if ( is_wp_error( $valori ) || count( $valori ) > 1 ) {
+		if ( is_wp_error( $valori ) ) {
 			return self::esito( 'lettura', __( 'Voce della sezione non salvata: la voce attuale del contenuto non si è potuta leggere dalla banca dati, e senza conoscerla il registro direbbe cambiato quello che non lo è. Riprovare fra qualche minuto.', 'trasparenza-pa' ) );
+		}
+
+		if ( count( $valori ) > 1 ) {
+			return self::riordina( $id, $scelta, $partenza, $valori );
 		}
 
 		$attuale = $valori[0] ?? '';
@@ -318,10 +339,70 @@ final class SchedaContenuto {
 	}
 
 	/**
-	 * Mostra l'esito della scelta della voce, una volta, a chi ha salvato.
+	 * Rimette una sola voce su un contenuto che ne ha memorizzate piu di una.
+	 *
+	 * Piu righe con la stessa chiave non nascono dal riquadro: arrivano da una
+	 * scrittura diretta o da un'importazione. Il contenuto non compare nella
+	 * sezione finche non ha una voce sola, e il riquadro mostra "Da scegliere"
+	 * con partenza vuota. Una scelta fatta da quel riquadro sostituisce tutte le
+	 * righe con una, dopo aver scritto nel registro le voci trovate. Se il
+	 * modulo mostrava una voce, e stato aperto prima che le righe diventassero
+	 * piu di una: e un conflitto.
+	 *
+	 * @param int                $id       Identificativo del contenuto.
+	 * @param string             $scelta   Voce scelta, gia controllata.
+	 * @param string             $partenza Voce mostrata quando il modulo e stato aperto.
+	 * @param array<int, string> $trovate  Voci memorizzate.
+	 * @return array{codice: string, messaggio: string}
+	 */
+	private static function riordina( int $id, string $scelta, string $partenza, array $trovate ): array {
+		if ( '' !== $partenza ) {
+			return self::esito( 'conflitto', __( 'Voce della sezione non salvata: dopo l\'apertura di questa schermata la voce del contenuto è cambiata. Ricaricare la schermata, che mostra la voce attuale, e riprovare.', 'trasparenza-pa' ) );
+		}
+
+		$traccia = conformita_core_registra_voce(
+			array(
+				'sezione'   => SEZIONE,
+				'contenuto' => $id,
+				'azione'    => self::AZIONE_REGISTRO,
+				'dettagli'  => array(
+					'prima'   => '',
+					'dopo'    => $scelta,
+					'trovate' => array_values( $trovate ),
+				),
+			)
+		);
+
+		if ( is_wp_error( $traccia ) ) {
+			return self::esito(
+				'registro',
+				/* translators: %s: motivo riportato dal registro. */
+				sprintf( __( 'Voce della sezione non salvata: il registro delle modifiche non ha accettato il cambio, e un cambio senza traccia nel registro non si fa. Motivo: %s', 'trasparenza-pa' ), $traccia->get_error_message() )
+			);
+		}
+
+		delete_post_meta( $id, self::META_COLLOCAZIONE );
+		add_post_meta( $id, self::META_COLLOCAZIONE, $scelta, true );
+
+		if ( Metadato::leggi( $id, self::META_COLLOCAZIONE ) !== array( $scelta ) ) {
+			return self::esito( 'scrittura', __( 'La voce della sezione non si è potuta scrivere: il contenuto non ha una voce valida e non compare nella sezione. Il registro delle modifiche contiene un cambio che non è avvenuto.', 'trasparenza-pa' ) );
+		}
+
+		return self::esito( 'salvato', __( 'Voce della sezione salvata. Il contenuto aveva più voci memorizzate: ora ha solo questa, e il registro conserva quelle trovate.', 'trasparenza-pa' ) );
+	}
+
+	/**
+	 * Mostra l'esito della scelta della voce, una volta, a chi ha salvato, sulla schermata di quel contenuto.
 	 */
 	public static function mostra_esito(): void {
-		$chiave = self::ESITO . get_current_user_id();
+		$schermata = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$contenuto = get_post();
+
+		if ( null === $schermata || 'post' !== $schermata->base || TIPO_CONTENUTO !== $schermata->post_type || ! $contenuto instanceof WP_Post || TIPO_CONTENUTO !== $contenuto->post_type ) {
+			return;
+		}
+
+		$chiave = self::chiave_esito( $contenuto->ID );
 		$esito  = get_transient( $chiave );
 
 		if ( ! is_array( $esito ) || ! isset( $esito['codice'], $esito['messaggio'] ) ) {
