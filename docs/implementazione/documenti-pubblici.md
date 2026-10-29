@@ -67,6 +67,7 @@ suoi controlli più la condizione di questo componente.
 | Contenuto pubblicato senza voce, con più voci, con una voce che l'albero non ammette | documenti non scaricabili, contenuto non mostrato |
 | Contenuto in bozza, con password, scaduto; allegato di un altro contenuto o cestinato | non scaricabile, per i controlli del componente comune |
 | Lettura fallita della voce | non scaricabile |
+| Riga del file registrato mancante, o file sparito dal disco | il nome resta (il titolo dell'allegato se manca la riga), senza collegamento, con "(file non disponibile)" |
 | Lettura fallita dei documenti mentre la pagina si disegna | avviso di indisponibilità al posto di contenuti e date, come per le altre letture |
 | Componente comune con interfaccia più vecchia di 1.10.0 | il componente non si avvia, come oggi per ogni versione incompatibile |
 
@@ -106,3 +107,6 @@ Due restano verdi, e sono volute:
 - togliere l'escaping al nome del file non cambia niente oggi, perché il deposito ripulisce il
   nome da ogni carattere che l'escaping cambierebbe; l'escaping resta, perché il nome è un
   dato memorizzato.
+
+Correzione successiva, file mancante: quattro rotture, tutte rosse: file sul disco non
+controllato, riga del file non controllata, titolo dell'allegato non usato, avviso tolto.
