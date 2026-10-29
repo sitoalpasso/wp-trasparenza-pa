@@ -39,7 +39,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-06 | da fare | Si aggiunge uno schema come solo file di definizione | funziona senza modifiche al PHP |
 | TRASP-06 | da fare | [attacco, statico] si cercano i nomi dei campi degli schemi nei sorgenti PHP | assenti |
 | TRASP-07/20 | da fare | Si esporta uno schema popolato | formato aperto, condizioni di riutilizzo come parametro, nessun PDF da scansione |
-| TRASP-08 | da fare | Dato con obbligo decorrente nell'anno X | scadenza al 31 dicembre di X+5; casi a cavallo d'anno inclusi |
+| TRASP-08 | in corso | Dato con obbligo decorrente nell'anno X (righe T-63..T-66 per i contenuti delle voci) | scadenza al 31 dicembre di X+5; casi a cavallo d'anno inclusi |
 | TRASP-09 | da fare | Dato scaduto, cron fermo, tutti i percorsi C-10..C-21 | fuori dalla sezione, non cancellato, in archivio controllato |
 | TRASP-10 | da fare | Ogni sottosezione e ogni voce | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
@@ -103,7 +103,7 @@ arriva come file di dati versionato e ha prove sue.
 
 ## Albero normativo (righe T-20..T-25)
 
-Provano il file dell'albero in vigore, `dati/alberatura/2026-10-28.json`, contro le fonti: Allegato A del d.lgs.
+Provano il file dell'albero in vigore, `dati/alberatura/2026-10-28-2.json`, contro le fonti: Allegato A del d.lgs.
 33/2013, Allegato 1 della delibera ANAC 1310/2016, art. 23-bis. I nomi attesi sono scritti
 nella prova e non letti dal file, altrimenti la prova confronterebbe il file con se stesso.
 
@@ -205,6 +205,18 @@ sta. Scheda: `docs/implementazione/contenuti-voci.md`.
 | T-60 | fatto | Permessi del tipo tolti e riassegnati dall'installazione; ruoli Autore, Redattore, Collaboratore | permessi propri del tipo, diversi da quelli della voce, all'amministratore; gli altri ruoli non vedono e non modificano |
 | T-61 | fatto | Riquadro con e senza voce, con una voce che l'albero non ammette piu, albero di una sola voce; salvataggio valido, cambio, stessa voce; [attacco] radice, voce con sottovoci, inesistente, con codice, non testuale; partenza mancante o non testuale; nonce mancante o di un altro contenuto; contenuto di un altro tipo; utente senza permesso; due moduli aperti insieme; lettura fallita; più voci memorizzate, scelta dal riquadro con e senza partenza, registro che rifiuta, voce nuova non scritta; albero non disponibile; registro che rifiuta; dato non scritto; blocco tenuto; salvataggio di due contenuti uno dopo l'altro, con e senza riquadro | solo le voci senza sottovoci, con il percorso, mai la radice; "Da scegliere" e l'avviso finché manca una voce valida; ogni cambio lascia una voce di registro con prima e dopo, scritta prima del dato; la stessa voce non si registra; ogni rifiuto e ogni guasto: niente scritto e niente nel registro, con il motivo; il secondo modulo che cambia la voce e un conflitto, quello che sceglie la voce gia scritta no; dato non scritto: esito che dice del cambio non avvenuto; più voci: il riquadro lo dice, la scelta con partenza vuota lascia una voce sola dopo una voce di registro con quelle trovate, con partenza è un conflitto, con il registro che rifiuta le righe restano, con la voce non scritta l'esito lo dice; l'esito si mostra una volta, solo a chi ha salvato e solo sulla schermata di quel contenuto, e due salvataggi vicini di contenuti diversi non si confondono; senza riquadro la voce non si tocca |
 | T-62 | fatto | Creazione, pubblicazione, modifica e cestino di un contenuto | righe del registro del componente comune con sezione, tipo, contenuto e utente, compresi pubblicazione e rimozione |
+
+## Fine della pubblicazione dei contenuti (righe T-63..T-66)
+
+Provano la data da cui decorre l'obbligo e la fine della pubblicazione calcolata secondo
+l'art. 8, c. 3, del d.lgs. 33/2013 (TRASP-08). Scheda: `docs/implementazione/fine-pubblicazione.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-63 | fatto | Durata nell'albero in vigore; versione che la porta; [attacco] durate non valide nel file | cinque anni, numero scritto nella prova, con la fonte fra le fonti del file; la durata arriva con la versione 2026-10-28-2, in un file suo, uguale alla 2026-10-28 salvo durata e fonte; la 2026-10-28 resta accanto, con l'impronta attesa scritta nella prova, e si legge senza durata; zero, negativi, testo, decimali, vero, nullo, chiavi in più o diverse: il file si rifiuta; senza durata il file si carica e la durata non c'è |
+| T-64 | fatto | Fine per legge da decorrenze a cavallo d'anno, 29 febbraio, durate diverse, limite del 9999; [attacco] date non vere o scritte in altro modo; albero con un'altra durata | 31 dicembre di tanti anni dopo la decorrenza quanti ne dice l'albero; oltre il 9999 nessuna fine; solo AAAA-MM-GG vere del calendario, senza spazi, a capo o altro intorno; la durata si legge dall'albero in vigore, non dal codice |
+| T-65 | fatto | Riquadro con e senza data, con un valore con codice; salvataggio, stessa data, cambio; [attacco] date non valide, data non testuale, partenza mancante o non testuale, nonce mancante o di un altro contenuto, contenuto di un altro tipo, utente senza permesso, data cancellata; due moduli aperti insieme; lettura fallita della data o della fine; più date memorizzate; albero non disponibile o senza durata; registro che rifiuta; data non scritta; fine rifiutata da core; versione dell'albero con un'altra durata; blocco tenuto; salvataggio di due contenuti uno dopo l'altro, con e senza riquadro | avviso finché il contenuto non ha una fine valida; fine mostrata; valori non validi mai mostrati come data e sempre con escaping; ogni cambio lascia una voce di registro con data e fine di prima e di dopo, scritta prima dei dati; la stessa data con la fine giusta non si registra; ogni rifiuto e ogni guasto: niente scritto e niente nel registro, con il motivo; la data scritta non si toglie; il secondo modulo che cambia la data è un conflitto; più date: il riquadro lo dice, con partenza è un conflitto, con partenza vuota resta una riga dopo una voce di registro con quelle trovate; data non scritta: la fine non si tocca; fine rifiutata: l'esito lo dice, il riquadro mostra la differenza, e un nuovo salvataggio la riallinea, anche dopo un cambio di durata; l'esito si mostra una volta, solo a chi ha salvato, solo sulla schermata di quel contenuto; senza riquadro niente si tocca e nessun esito |
+| T-66 | fatto | Contenuto pubblicato senza data, con la data di oggi, con decorrenza di cinque e di sei anni fa | per il componente comune: scaduto senza data; visibile con la data di oggi; visibile fino al 31 dicembre di quest'anno con decorrenza di cinque anni fa; scaduto con decorrenza di sei anni fa |
 
 ## Collaudo congiunto con l'albo pretorio
 

@@ -80,6 +80,13 @@ final class Alberatura {
 	private $collocazioni;
 
 	/**
+	 * Anni di pubblicazione dichiarati dal file, o nullo se il file non li dice.
+	 *
+	 * @var int|null
+	 */
+	private $durata_anni;
+
+	/**
 	 * Costruito solo da `carica()`, a controlli superati.
 	 *
 	 * @param array<string, array{id: string, nome: string, padre: string|null, riferimento: string}> $voci     Voci.
@@ -87,13 +94,15 @@ final class Alberatura {
 	 * @param string                                                                                  $versione Versione.
 	 * @param array<string, string>                                                                   $diciture Diciture.
 	 * @param array<string, string>                                                                   $collocazioni Collocazioni.
+	 * @param int|null                                                                                $durata_anni  Anni di pubblicazione.
 	 */
-	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni ) {
+	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni ) {
 		$this->voci         = $voci;
 		$this->radice       = $radice;
 		$this->versione     = $versione;
 		$this->diciture     = $diciture;
 		$this->collocazioni = $collocazioni;
+		$this->durata_anni  = $durata_anni;
 	}
 
 	/**
@@ -233,7 +242,26 @@ final class Alberatura {
 			}
 		}
 
-		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni );
+		/*
+		 * La durata della pubblicazione e facoltativa nel formato: le versioni
+		 * dell'albero scritte prima non la hanno e restano leggibili. Quando c'e,
+		 * e un numero intero di anni da uno in su e nient'altro: una durata
+		 * sbagliata nasconderebbe o lascerebbe pubblici i contenuti, quindi un
+		 * valore dubbio rende il file illeggibile invece di essere interpretato.
+		 */
+		$durata_anni = null;
+
+		if ( array_key_exists( 'durata_pubblicazione', $dati ) ) {
+			$durata = $dati['durata_pubblicazione'];
+
+			if ( ! is_array( $durata ) || array( 'anni' ) !== array_keys( $durata ) || ! is_int( $durata['anni'] ) || $durata['anni'] < 1 ) {
+				return self::errore( 'trasparenza_albero_durata', __( 'La durata della pubblicazione nel file dell\'albero deve essere un numero intero di anni, da uno in su.', 'trasparenza-pa' ) );
+			}
+
+			$durata_anni = $durata['anni'];
+		}
+
+		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni );
 	}
 
 	/**
@@ -337,6 +365,15 @@ final class Alberatura {
 	 */
 	public function collocazione( string $dato ): ?string {
 		return $this->collocazioni[ $dato ] ?? null;
+	}
+
+	/**
+	 * Anni di pubblicazione dichiarati dal file, o nullo se il file non li dice.
+	 *
+	 * @return int|null
+	 */
+	public function durata_anni(): ?int {
+		return $this->durata_anni;
 	}
 
 	/**

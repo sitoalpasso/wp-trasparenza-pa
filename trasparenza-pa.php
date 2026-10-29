@@ -104,7 +104,7 @@ const FILE_PRINCIPALE = __FILE__;
  * Finche manca, la sezione non si mostra e chi amministra il sito vede un
  * avviso.
  */
-const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-28.json';
+const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-28-2.json';
 
 /**
  * Identificativo del tipo di contenuto della voce di trasparenza.
@@ -154,6 +154,7 @@ require_once __DIR__ . '/src/class-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-stati.php';
 require_once __DIR__ . '/src/class-scheda-contenuto.php';
+require_once __DIR__ . '/src/class-scheda-pubblicazione.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );
@@ -167,6 +168,7 @@ PaginaPubblica::aggancia();
 SchermataStati::aggancia();
 SchermataResponsabile::aggancia();
 SchedaContenuto::aggancia();
+SchedaPubblicazione::aggancia();
 
 add_action( 'init', array( Permessi::class, 'da_init' ) );
 add_action( 'admin_notices', array( Permessi::class, 'mostra_avviso' ) );

@@ -143,7 +143,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-05 | in corso | Schemi obbligatori per artt. 4-bis, 13, 31 | art. 48, delibere ANAC 495/2024 e 481/2025 |
 | TRASP-06 | in corso | Estensibilità dichiarativa ai nuovi schemi | delibere ANAC 495/2024 e 497/2025 |
 | TRASP-07 | da fare | Formato aperto e riutilizzabile | art. 7 |
-| TRASP-08 | da fare | Durata quinquennale calcolata dall'obbligo | art. 8 |
+| TRASP-08 | in corso | Durata quinquennale calcolata dall'obbligo | art. 8 |
 | TRASP-09 | da fare | Scaduto: fuori dalla sezione, mai cancellato | art. 8 |
 | TRASP-10 | da fare | Data di ultimo aggiornamento visibile | art. 6 |
 | TRASP-11 | da fare | Collegamento ammesso se porta al dato vero | art. 9 |
