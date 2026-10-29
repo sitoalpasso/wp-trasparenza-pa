@@ -218,6 +218,31 @@ class DocumentiPubbliciTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-78: [guasto] file registrato mancante o sparito dal disco: il nome resta, il collegamento no.
+	 */
+	public function test_t78_file_mancante(): void {
+		list( , $senza_riga ) = $this->con_documento( 'zeta_uno', 'senza-riga.pdf' );
+		list( , $sparito )    = $this->con_documento( 'zeta_due', 'sparito.pdf' );
+
+		$titolo = get_the_title( $senza_riga );
+
+		$this->assertNotSame( '', $titolo, 'Precondizione: l\'allegato ha un titolo.' );
+
+		delete_post_meta( $senza_riga, '_wp_attached_file' );
+		wp_delete_file( (string) get_attached_file( $sparito ) );
+
+		$html = $this->pagina( 'zeta_uno' );
+
+		$this->assertStringContainsString( '<li>' . esc_html( $titolo ) . ' <span class="trasparenza-pa-non-disponibile">(file non disponibile)</span></li>', $html );
+		$this->assertStringNotContainsString( '<a href="' . esc_url( (string) conformita_core_indirizzo_consegna( $senza_riga ) ) . '">', $html );
+
+		$html = $this->pagina( 'zeta_due' );
+
+		$this->assertStringContainsString( '<li>sparito.pdf <span class="trasparenza-pa-non-disponibile">(file non disponibile)</span></li>', $html );
+		$this->assertStringNotContainsString( '<a href="' . esc_url( (string) conformita_core_indirizzo_consegna( $sparito ) ) . '">', $html );
+	}
+
+	/**
 	 * T-78: [guasto] lettura fallita dei documenti: avviso al posto di contenuti e date.
 	 */
 	public function test_t78_lettura_fallita_dei_documenti(): void {
