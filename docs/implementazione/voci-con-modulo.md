@@ -24,7 +24,7 @@ quell'articolo e lo schema ANAC di quell'articolo ne copre i dati. La versione d
 vigore oggi la dice il catalogo degli schemi, con le sue date. Il codice non conosce né gli
 articoli né le voci.
 
-**Come si prova, e come si prova che la prova è vera.** Prove nuove nelle righe da T-75 in poi;
+**Come si prova, e come si prova che la prova è vera.** Prove nuove nelle righe T-75..T-77;
 ogni regola ha una rottura voluta che fa diventare rossa almeno una prova, elencata in fondo a
 lavoro finito.
 
@@ -74,7 +74,7 @@ chi può creare voci di trasparenza.
 
 ## 7. Test
 
-Righe da T-75 in poi di `docs/collaudo.md`.
+Righe T-75..T-77 di `docs/collaudo.md`, in `tests/AlberoNormativoTest.php` e `tests/VociConModuloTest.php`.
 
 ## 8. Cosa deliberatamente NON fa
 
@@ -100,3 +100,20 @@ Righe da T-75 in poi di `docs/collaudo.md`.
 - La voce dei titolari di incarichi politici cita l'art. 13, c. 1, lett. a), ma contiene anche
   i dati dell'art. 14, che il modulo non copre: l'avviso dice che il modulo copre i dati del
   suo articolo, non tutta la voce.
+
+## Rotture volute, a lavoro finito
+
+Ventidue rotture, una per volta e poi tolte. Venti fanno diventare rossa almeno una
+prova: elenco non oggetto accettato, identificativo non controllato, identificativo senza
+ancore, chiavi non controllate, nome vuoto accettato, nome lungo accettato, nome non
+ripulito, voci vuote accettate, voci con nomi accettate, voce inesistente accettata, voce con
+sottovoci accettata, voce ripetuta accettata, modulo mai trovato, avviso non mostrato,
+catalogo assente ignorato, versione assente ignorata, permesso non controllato, versione non
+detta, bozza non detta, versione nuova dell'albero non in vigore.
+
+Due restano verdi, e sono volute:
+
+- togliere il controllo che la voce non sia la radice non cambia niente, perché la radice ha
+  sempre sottovoci in un albero con più di una voce, e una voce con sottovoci si rifiuta già;
+- togliere il controllo che la voce sia un testo non cambia niente, perché le voci dell'albero
+  hanno identificativi testuali e un numero non ne trova nessuna.
