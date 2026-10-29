@@ -155,6 +155,7 @@ require_once __DIR__ . '/src/class-schermata-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-stati.php';
 require_once __DIR__ . '/src/class-scheda-contenuto.php';
 require_once __DIR__ . '/src/class-scheda-pubblicazione.php';
+require_once __DIR__ . '/src/class-scheda-documenti.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );
@@ -169,6 +170,7 @@ SchermataStati::aggancia();
 SchermataResponsabile::aggancia();
 SchedaContenuto::aggancia();
 SchedaPubblicazione::aggancia();
+SchedaDocumenti::aggancia();
 
 add_action( 'init', array( Permessi::class, 'da_init' ) );
 add_action( 'admin_notices', array( Permessi::class, 'mostra_avviso' ) );
