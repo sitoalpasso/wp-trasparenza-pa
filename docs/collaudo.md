@@ -41,7 +41,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-07/20 | da fare | Si esporta uno schema popolato | formato aperto, condizioni di riutilizzo come parametro, nessun PDF da scansione |
 | TRASP-08 | in corso | Dato con obbligo decorrente nell'anno X (righe T-63..T-66 per i contenuti delle voci) | scadenza al 31 dicembre di X+5; casi a cavallo d'anno inclusi |
 | TRASP-09 | da fare | Dato scaduto, cron fermo, tutti i percorsi C-10..C-21 | fuori dalla sezione, non cancellato, in archivio controllato |
-| TRASP-10 | da fare | Ogni sottosezione e ogni voce | data di ultimo aggiornamento esposta |
+| TRASP-10 | in corso | Ogni sottosezione e ogni voce (righe T-71..T-73 per i contenuti delle voci) | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
 | TRASP-12 | da fare | Si invia una richiesta di accesso civico di prova | modulo raggiungibile, destinatari indicati, richiesta nel registro |
 | TRASP-13 | fatto | Responsabile della trasparenza (righe T-54..T-58) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
@@ -230,6 +230,17 @@ e la verifica della protezione fatta rispondere da un server finto. Scheda:
 | T-68 | fatto | Rimozione su un contenuto in bozza, chiesta due volte nella stessa richiesta, ripetuta; contenuto pubblicato e poi rimesso in bozza; [attacco] contenuto pubblicato, allegato di un altro contenuto, allegato non depositato dal componente comune, numero con caratteri in più, altro tipo, utente senza permesso; lettura fallita degli allegati o dello stato; registro che rifiuta; allegato non cancellato; riga cancellata e file rimasto sul disco; lettura fallita dopo la cancellazione | l'allegato e il suo file spariscono dopo una voce di registro con nome e impronta; una sola rimozione per allegato; rimesso in bozza si toglie; ogni rifiuto e ogni guasto: niente tolto, niente nel registro salvo la rimozione non avvenuta, che l'esito dichiara; file rimasto: esito proprio con il nome del file e mai il percorso, e una voce di registro `file_rimasto` che richiama quella della rimozione; senza poter controllare la cancellazione l'esito chiede di controllare |
 | T-69 | fatto | Riquadro senza documenti, con un documento, su un contenuto pubblicato; modulo della schermata; lettura fallita | nonce, campo del file, "Nessun allegato."; nome del file con il collegamento amministrativo del componente comune e la casella per togliere; pubblicato: nessuna casella e l'avviso su come togliere; il modulo porta i file solo sulla schermata dei contenuti; con la lettura fallita il riquadro lo dice |
 | T-70 | fatto | Salvataggio del contenuto con una rimozione e un file non caricato via HTTP; secondo contenuto salvato subito dopo; salvataggio senza riquadro | la rimozione avviene, il file non si deposita e resta dov'era; gli esiti si mostrano una volta, solo a chi ha salvato, solo sulla schermata di quel contenuto, e non si confondono fra contenuti; senza riquadro niente si tocca e nessun esito |
+
+## Contenuti sulla pagina pubblica (righe T-71..T-73)
+
+Provano quali contenuti compaiono nella pagina pubblica della sezione, con quali date e con
+quale testo. Scheda: `docs/implementazione/pagina-pubblica-contenuti.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-71 | fatto | Da anonimo, un contenuto pubblicato con voce valida e fine futura; [attacco] contenuti in bozza, in revisione, privati, pianificati, cestinati, con password, senza fine, con la fine passata, con più fini, senza voce, con più voci, con una voce che ha sottovoci o che l'albero non ha, di un altro tipo; un altro componente che allarga l'interrogazione; un contenuto con la fine oggi e l'orologio portato a domani; quattro contenuti di date diverse, due con la stessa | il primo compare solo nella sua voce, con titolo e testo, e la voce sopra non lo ripete; nessuno degli altri compare, nemmeno con l'interrogazione allargata; quello che scade sparisce senza che nessuno lo sposti, e resta pubblicato; i più recenti per primi, a parità di data l'ultimo creato |
+| T-72 | fatto | Contenuti in tre voci con date di ultima modifica diverse, una alle 23:30 in UTC; voce vuota; contenuti nascosti più recenti di quelli visibili | ogni contenuto ha la sua data, la voce la più recente dei suoi, ogni voce sopra e la pagina della sezione la più recente fra quelle sotto, tutte nel fuso del sito (le 23:30 in UTC a Roma sono il giorno dopo); voce senza niente di visibile: nessuna data; i nascosti non spostano la data |
+| T-73 | fatto | [attacco] titolo e testo con codice, gestori di eventi, collegamenti `javascript:` e un codice breve, scritti nella banca dati senza il filtro del salvataggio; un amministratore apre la pagina | il codice si toglie, il testo ammesso resta, il codice breve resta testo e non si esegue; l'amministratore vede esattamente la pagina del pubblico |
 
 ## Collaudo congiunto con l'albo pretorio
 

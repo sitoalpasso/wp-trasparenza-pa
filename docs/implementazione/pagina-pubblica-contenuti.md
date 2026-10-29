@@ -104,3 +104,25 @@ Righe da T-71 in poi di `docs/collaudo.md`, in `tests/PaginaContenutiTest.php`.
 
 - TRASP-10 chiede la data "per ogni sottosezione e ogni voce". Qui la si dà dove c'è almeno
   un contenuto; per una voce vuota una data non avrebbe un significato vero.
+
+## Rotture volute, a lavoro finito
+
+Venticinque rotture, una per volta e poi tolte. Ventuno fanno diventare rossa almeno una prova:
+ordine invertito, spareggio invertito, voce non filtrata nell'interrogazione, tipo, stato,
+password e scadenza non ricontrollati sul singolo contenuto, controllo sul singolo non
+chiamato, voce ammessa non ricontrollata, sottovoci non guardate, voci sotto le sottovoci non
+guardate, data più vecchia invece della più recente, data della voce senza le voci sotto, data
+anche dove non c'è niente, contenuti delle voci sotto ripetuti, fuso cablato, testo senza
+filtro, codici brevi eseguiti, titolo senza escaping, data del contenuto tolta, contenuti non
+disegnati sulla pagina.
+
+Quattro restano verdi, e sono volute:
+
+- togliere dall'interrogazione la richiesta dello stato pubblicato o l'esclusione delle
+  password non cambia niente, perché il controllo sul singolo contenuto lo ripete: la
+  richiesta all'interrogazione serve a non caricare contenuti che poi si scartano;
+- leggere la data di modifica locale invece di quella in UTC dà lo stesso istante, perché
+  WordPress la interpreta nel fuso del sito;
+- sopprimere i filtri dell'interrogazione non cambia niente, perché la scadenza si
+  ricontrolla sul singolo contenuto; i filtri restano attivi per lasciare lavorare il filtro
+  in lettura del componente comune e gli altri componenti del sito.
