@@ -168,7 +168,7 @@ final class ContenutiPubblici {
 		$tutti = self::visibili( $albero, self::sottoalbero( $albero, $voce ) );
 
 		if ( is_wp_error( $tutti ) ) {
-			return '<p class="trasparenza-pa-indisponibile" role="alert">' . esc_html__( 'I contenuti di questa voce non sono disponibili in questo momento. Riprovare più tardi.', 'trasparenza-pa' ) . '</p>';
+			return self::indisponibile();
 		}
 
 		$ultimo = self::ultimo_aggiornamento( $tutti );
@@ -191,20 +191,123 @@ final class ContenutiPubblici {
 			return $html;
 		}
 
+		$documenti = array();
+
+		foreach ( $propri as $chiave => $riga ) {
+			$letti = self::documenti( (int) $riga['contenuto']->ID );
+
+			if ( is_wp_error( $letti ) ) {
+				return self::indisponibile();
+			}
+
+			$documenti[ $chiave ] = $letti;
+		}
+
 		$html .= '<div class="trasparenza-pa-contenuti">';
 
-		foreach ( $propri as $riga ) {
+		foreach ( $propri as $chiave => $riga ) {
 			$contenuto = $riga['contenuto'];
 
 			$html .= '<article class="trasparenza-pa-contenuto">';
 			$html .= '<h3>' . esc_html( get_the_title( $contenuto ) ) . '</h3>';
 			$html .= wpautop( wp_kses_post( $contenuto->post_content ) );
+
+			if ( array() !== $documenti[ $chiave ] ) {
+				$html .= '<ul class="trasparenza-pa-documenti">';
+
+				foreach ( $documenti[ $chiave ] as $scaricabile ) {
+					$html .= '<li><a href="' . esc_url( $scaricabile['indirizzo'] ) . '">' . esc_html( $scaricabile['nome'] ) . '</a></li>';
+				}
+
+				$html .= '</ul>';
+			}
+
 			/* translators: %s: data. */
 			$html .= '<p class="trasparenza-pa-aggiornamento">' . esc_html( sprintf( __( 'Aggiornato il %s', 'trasparenza-pa' ), self::giorno( (int) get_post_modified_time( 'U', true, $contenuto ) ) ) ) . '</p>';
 			$html .= '</article>';
 		}
 
 		return $html . '</div>';
+	}
+
+	/**
+	 * L'avviso al posto di contenuti e date quando una lettura non riesce.
+	 *
+	 * @return string
+	 */
+	private static function indisponibile(): string {
+		return '<p class="trasparenza-pa-indisponibile" role="alert">' . esc_html__( 'I contenuti di questa voce non sono disponibili in questo momento. Riprovare più tardi.', 'trasparenza-pa' ) . '</p>';
+	}
+
+	/**
+	 * I documenti di un contenuto che il punto pubblico consegna: indirizzo pubblico e nome del file.
+	 *
+	 * Solo gli allegati nello stato in cui il componente comune li deposita:
+	 * uno cestinato dalla libreria dei media non si scarica, e non si elenca.
+	 *
+	 * @param int $contenuto Contenuto.
+	 * @return array<int, array{indirizzo: string, nome: string}>|WP_Error
+	 */
+	private static function documenti( int $contenuto ) {
+		$allegati = SchedaDocumenti::documenti( $contenuto );
+
+		if ( is_wp_error( $allegati ) ) {
+			return $allegati;
+		}
+
+		$documenti = array();
+
+		foreach ( $allegati as $allegato ) {
+			// Lo stato scritto sull'allegato, non quello che get_post_status() eredita dal padre.
+			$riga = get_post( $allegato );
+
+			if ( ! $riga instanceof WP_Post || 'inherit' !== $riga->post_status ) {
+				continue;
+			}
+
+			$indirizzo = conformita_core_indirizzo_consegna( $allegato );
+
+			if ( is_wp_error( $indirizzo ) ) {
+				return $indirizzo;
+			}
+
+			$documenti[] = array(
+				'indirizzo' => $indirizzo,
+				'nome'      => wp_basename( (string) get_attached_file( $allegato ) ),
+			);
+		}
+
+		return $documenti;
+	}
+
+	/**
+	 * Il punto pubblico del componente comune consegna i file di questo contenuto.
+	 *
+	 * Ultimo controllo, dopo pubblicazione, password, scadenza e appartenenza
+	 * del file al contenuto, che fa il componente comune: il contenuto deve
+	 * comparire nella pagina, cioe avere una voce sola che l'albero in vigore
+	 * ammette. Un contenuto pubblicato senza voce non si vede, e nemmeno i
+	 * suoi file si scaricano. La voce si legge dalla banca dati: una lettura
+	 * fallita vale no.
+	 *
+	 * @param mixed $allegato  Allegato richiesto.
+	 * @param mixed $contenuto Contenuto a cui appartiene.
+	 * @return bool
+	 */
+	public static function allegato_consegnabile( $allegato, $contenuto ): bool {
+		unset( $allegato );
+
+		$albero = PaginaPubblica::albero();
+
+		if ( null === $albero || ! is_int( $contenuto ) || TIPO_CONTENUTO !== get_post_type( $contenuto ) ) {
+			return false;
+		}
+
+		$collocazione = Metadato::leggi( $contenuto, SchedaContenuto::META_COLLOCAZIONE );
+
+		return ! is_wp_error( $collocazione )
+			&& 1 === count( $collocazione )
+			&& in_array( $collocazione[0], SchedaContenuto::voci_ammesse( $albero ), true );
 	}
 
 	/**
