@@ -94,6 +94,13 @@ final class Alberatura {
 	private $moduli;
 
 	/**
+	 * Voci la cui pubblicazione si conta dalla cessazione: voce, regola, nome e anni.
+	 *
+	 * @var array<string, array{regola: string, nome: string, anni: int}>
+	 */
+	private $cessazione;
+
+	/**
 	 * Costruito solo da `carica()`, a controlli superati.
 	 *
 	 * @param array<string, array{id: string, nome: string, padre: string|null, riferimento: string}> $voci     Voci.
@@ -103,8 +110,9 @@ final class Alberatura {
 	 * @param array<string, string>                                                                   $collocazioni Collocazioni.
 	 * @param int|null                                                                                $durata_anni  Anni di pubblicazione.
 	 * @param array<string, array{obbligo: string, nome: string}>                                     $moduli       Voci coperte da un modulo.
+	 * @param array<string, array{regola: string, nome: string, anni: int}>                           $cessazione   Voci legate alla cessazione.
 	 */
-	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni, array $moduli ) {
+	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni, array $moduli, array $cessazione ) {
 		$this->voci         = $voci;
 		$this->radice       = $radice;
 		$this->versione     = $versione;
@@ -112,6 +120,7 @@ final class Alberatura {
 		$this->collocazioni = $collocazioni;
 		$this->durata_anni  = $durata_anni;
 		$this->moduli       = $moduli;
+		$this->cessazione   = $cessazione;
 	}
 
 	/**
@@ -309,7 +318,50 @@ final class Alberatura {
 			}
 		}
 
-		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni, $moduli );
+		/*
+		 * Le voci legate alla cessazione sono facoltative nel formato, come i
+		 * moduli. Ogni regola dice per quanti anni dopo la cessazione si
+		 * pubblica, con un nome da mostrare e la fonte fra le fonti del file,
+		 * perche il termine lo fissa la norma. Le voci sono senza sottovoci, e
+		 * ciascuna sta in una regola sola. Un elenco dubbio rende il file
+		 * illeggibile: un termine sbagliato nasconderebbe o lascerebbe pubblici
+		 * i dati delle persone.
+		 */
+		$cessazione = array();
+		$fonti      = is_array( $dati['fonti'] ?? null ) ? array_filter( array_column( array_filter( $dati['fonti'], 'is_array' ), 'chiave' ), 'is_string' ) : array();
+
+		if ( array_key_exists( 'cessazione', $dati ) ) {
+			if ( ! is_array( $dati['cessazione'] ) ) {
+				return self::errore_cessazione();
+			}
+
+			foreach ( $dati['cessazione'] as $regola => $termine ) {
+				if ( ! is_string( $regola ) || 1 !== preg_match( '/^[a-z0-9_]{1,80}$/', $regola ) || ! is_array( $termine ) ) {
+					return self::errore_cessazione();
+				}
+
+				$chiavi = array_keys( $termine );
+				sort( $chiavi );
+
+				if ( array( 'anni', 'fonte', 'nome', 'voci' ) !== $chiavi || ! is_string( $termine['nome'] ) || '' === trim( $termine['nome'] ) || strlen( $termine['nome'] ) > 200 || ! is_int( $termine['anni'] ) || $termine['anni'] < 1 || ! is_string( $termine['fonte'] ) || ! in_array( $termine['fonte'], $fonti, true ) || ! is_array( $termine['voci'] ) || array() === $termine['voci'] || ! array_is_list( $termine['voci'] ) ) {
+					return self::errore_cessazione();
+				}
+
+				foreach ( $termine['voci'] as $voce ) {
+					if ( ! is_string( $voce ) || ! isset( $voci[ $voce ] ) || $voce === $radice || isset( $padri[ $voce ] ) || isset( $cessazione[ $voce ] ) ) {
+						return self::errore_cessazione();
+					}
+
+					$cessazione[ $voce ] = array(
+						'regola' => $regola,
+						'nome'   => trim( $termine['nome'] ),
+						'anni'   => $termine['anni'],
+					);
+				}
+			}
+		}
+
+		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni, $moduli, $cessazione );
 	}
 
 	/**
@@ -432,6 +484,25 @@ final class Alberatura {
 	 */
 	public function modulo( string $voce ): ?array {
 		return $this->moduli[ $voce ] ?? null;
+	}
+
+	/**
+	 * La regola che conta la pubblicazione di una voce dalla cessazione, o nullo se nessuna.
+	 *
+	 * @param string $voce Voce.
+	 * @return array{regola: string, nome: string, anni: int}|null
+	 */
+	public function cessazione( string $voce ): ?array {
+		return $this->cessazione[ $voce ] ?? null;
+	}
+
+	/**
+	 * Errore dell'elenco delle voci legate alla cessazione.
+	 *
+	 * @return WP_Error
+	 */
+	private static function errore_cessazione(): WP_Error {
+		return self::errore( 'trasparenza_albero_cessazione', __( 'L\'elenco delle voci legate alla cessazione nel file dell\'albero deve dare a ogni regola un nome, un numero intero di anni da uno in su, una fonte fra le fonti del file e voci senza sottovoci, ciascuna in una regola sola.', 'trasparenza-pa' ) );
 	}
 
 	/**
