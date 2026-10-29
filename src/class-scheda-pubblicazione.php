@@ -2,7 +2,7 @@
 /**
  * Il riquadro in cui si scrive da quando decorre l'obbligo di pubblicare un contenuto.
  *
- * Righe di collaudo T-64..T-66.
+ * Righe di collaudo T-64..T-66 e T-81..T-83.
  *
  * @package TrasparenzaPa
  */
@@ -25,6 +25,11 @@ defined( 'ABSPATH' ) || exit;
  * quanti ne dice quel numero. Il numero sta nel file dell'albero, con la sua fonte, e non qui. La
  * fine la scrive il componente comune, che la usa per nascondere il contenuto
  * da quel momento in ogni percorso di lettura.
+ *
+ * Lo stesso comma aggiunge "e comunque fino a che gli atti pubblicati
+ * producono i loro effetti": una seconda data, facoltativa, dice fino a quando
+ * l'atto produce effetti, e la fine e la piu lontana delle due. La seconda
+ * data prolunga e non accorcia.
  *
  * Le regole delle altre schermate della sezione: nonce legato al contenuto e
  * permesso di modificarlo; data controllata; un salvataggio alla volta; i dati
@@ -49,6 +54,21 @@ final class SchedaPubblicazione {
 	 * Campo nascosto con la data mostrata quando il modulo e stato aperto.
 	 */
 	const CAMPO_PARTENZA = 'trasparenza_pa_decorrenza_partenza';
+
+	/**
+	 * Metadato che porta l'ultimo giorno in cui l'atto produce effetti, AAAA-MM-GG; facoltativo.
+	 */
+	const META_EFFETTI = '_trasparenza_pa_effetti';
+
+	/**
+	 * Campo del modulo con la fine degli effetti scritta.
+	 */
+	const CAMPO_EFFETTI = 'trasparenza_pa_effetti';
+
+	/**
+	 * Campo nascosto con la fine degli effetti mostrata quando il modulo e stato aperto.
+	 */
+	const CAMPO_EFFETTI_PARTENZA = 'trasparenza_pa_effetti_partenza';
 
 	/**
 	 * Campo del nonce.
@@ -122,6 +142,24 @@ final class SchedaPubblicazione {
 	}
 
 	/**
+	 * La fine della pubblicazione: la piu lontana fra quella di legge e la fine degli effetti.
+	 *
+	 * @param string $decorrenza Data da cui decorre l'obbligo, gia controllata.
+	 * @param string $effetti    Fine degli effetti, gia controllata, o vuota.
+	 * @param int    $anni       Anni di pubblicazione.
+	 * @return string|null La data AAAA-MM-GG, o nullo se quella di legge andrebbe oltre il 9999.
+	 */
+	public static function fine( string $decorrenza, string $effetti, int $anni ): ?string {
+		$legge = self::fine_di_legge( $decorrenza, $anni );
+
+		if ( null === $legge ) {
+			return null;
+		}
+
+		return strcmp( $effetti, $legge ) > 0 ? $effetti : $legge;
+	}
+
+	/**
 	 * Aggiunge il riquadro alla schermata del contenuto.
 	 */
 	public static function aggiungi_riquadro(): void {
@@ -146,11 +184,14 @@ final class SchedaPubblicazione {
 	 * @return string
 	 */
 	public static function riquadro( WP_Post $contenuto ): string {
-		$valori   = get_post_meta( $contenuto->ID, self::META_DECORRENZA, false );
-		$attuale  = is_array( $valori ) && 1 === count( $valori ) && self::data_valida( $valori[0] ) ? $valori[0] : '';
-		$partenza = is_array( $valori ) && 1 === count( $valori ) && is_string( $valori[0] ) ? $valori[0] : '';
-		$albero   = PaginaPubblica::albero();
-		$anni     = null === $albero ? null : $albero->durata_anni();
+		$valori     = get_post_meta( $contenuto->ID, self::META_DECORRENZA, false );
+		$attuale    = is_array( $valori ) && 1 === count( $valori ) && self::data_valida( $valori[0] ) ? $valori[0] : '';
+		$partenza   = is_array( $valori ) && 1 === count( $valori ) && is_string( $valori[0] ) ? $valori[0] : '';
+		$albero     = PaginaPubblica::albero();
+		$anni       = null === $albero ? null : $albero->durata_anni();
+		$effetti    = get_post_meta( $contenuto->ID, self::META_EFFETTI, false );
+		$e_attuale  = is_array( $effetti ) && 1 === count( $effetti ) && self::data_valida( $effetti[0] ) ? $effetti[0] : '';
+		$e_partenza = is_array( $effetti ) && 1 === count( $effetti ) && is_string( $effetti[0] ) ? $effetti[0] : '';
 
 		$html  = wp_nonce_field( self::azione_nonce( $contenuto->ID ), self::CAMPO_NONCE, false, false );
 		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA ) . '" value="' . esc_attr( $partenza ) . '">';
@@ -168,6 +209,15 @@ final class SchedaPubblicazione {
 			$html .= '<p>' . esc_html__( 'Il contenuto ha più di una data memorizzata. Scrivendo una data e salvando, resta solo quella; il registro conserva quelle trovate.', 'trasparenza-pa' ) . '</p>';
 		}
 
+		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_EFFETTI_PARTENZA ) . '" value="' . esc_attr( $e_partenza ) . '">';
+		$html .= '<p><label for="trasparenza-pa-effetti">' . esc_html__( 'L\'atto produce effetti fino al (facoltativa)', 'trasparenza-pa' ) . '</label></p>';
+		$html .= '<input type="date" id="trasparenza-pa-effetti" name="' . esc_attr( self::CAMPO_EFFETTI ) . '" value="' . esc_attr( $e_attuale ) . '" class="widefat">';
+		$html .= '<p>' . esc_html__( 'Se l\'atto produce effetti oltre la fine di legge, la pubblicazione dura fino all\'ultimo giorno degli effetti. Una data più vicina non accorcia la pubblicazione.', 'trasparenza-pa' ) . '</p>';
+
+		if ( is_array( $effetti ) && count( $effetti ) > 1 ) {
+			$html .= '<p>' . esc_html__( 'Il contenuto ha più di una data di fine degli effetti memorizzata. Salvando, resta solo quella scritta, o nessuna; il registro conserva quelle trovate.', 'trasparenza-pa' ) . '</p>';
+		}
+
 		$fine = conformita_core_fine_pubblicazione( $contenuto->ID );
 		$fine = is_string( $fine ) && '' !== $fine ? $fine : '';
 
@@ -178,7 +228,14 @@ final class SchedaPubblicazione {
 			$html .= '<p>' . esc_html( sprintf( __( 'Fine della pubblicazione: %s.', 'trasparenza-pa' ), self::leggibile( $fine ) ) ) . '</p>';
 		}
 
-		$attesa = '' !== $attuale && null !== $anni ? self::fine_di_legge( $attuale, $anni ) : null;
+		$legge  = '' !== $attuale && null !== $anni ? self::fine_di_legge( $attuale, $anni ) : null;
+		$attesa = null !== $legge ? self::fine( $attuale, $e_attuale, (int) $anni ) : null;
+
+		if ( null !== $legge && '' !== $e_attuale ) {
+			$html .= '<p>' . ( $attesa !== $legge
+				? esc_html__( 'La fine viene dalla data degli effetti, oltre la durata di legge.', 'trasparenza-pa' )
+				: esc_html__( 'La data degli effetti non prolunga la pubblicazione: la fine resta quella di legge.', 'trasparenza-pa' ) ) . '</p>';
+		}
 
 		if ( null !== $attesa && $attesa !== $fine ) {
 			/* translators: %s: data di fine calcolata. */
@@ -243,21 +300,35 @@ final class SchedaPubblicazione {
 			return self::esito( 'permesso', __( 'Data della pubblicazione non salvata: non avete il permesso di modificare questo contenuto.', 'trasparenza-pa' ) );
 		}
 
-		$scelta   = $richiesta[ self::CAMPO ] ?? null;
-		$partenza = $richiesta[ self::CAMPO_PARTENZA ] ?? null;
+		$scelta     = $richiesta[ self::CAMPO ] ?? null;
+		$partenza   = $richiesta[ self::CAMPO_PARTENZA ] ?? null;
+		$effetti    = $richiesta[ self::CAMPO_EFFETTI ] ?? null;
+		$e_partenza = $richiesta[ self::CAMPO_EFFETTI_PARTENZA ] ?? null;
 
-		if ( ! is_string( $scelta ) || ! is_string( $partenza ) ) {
-			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la richiesta non diceva quale data era scritta e quale era mostrata. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
+		if ( ! is_string( $scelta ) || ! is_string( $partenza ) || ! is_string( $effetti ) || ! is_string( $e_partenza ) ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la richiesta non diceva quali date erano scritte e quali erano mostrate. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
 		}
 
 		if ( '' === $scelta ) {
-			return '' === $partenza
+			if ( '' !== $partenza ) {
+				return self::esito( 'cancellata', __( 'Data della pubblicazione non cancellata: una volta scritta si può cambiare ma non togliere, e la fine della pubblicazione resta quella registrata.', 'trasparenza-pa' ) );
+			}
+
+			return '' === $effetti
 				? self::esito( 'invariato', '' )
-				: self::esito( 'cancellata', __( 'Data della pubblicazione non cancellata: una volta scritta si può cambiare ma non togliere, e la fine della pubblicazione resta quella registrata.', 'trasparenza-pa' ) );
+				: self::esito( 'dati', __( 'Data della pubblicazione non salvata: per la fine degli effetti serve la data da cui decorre l\'obbligo, senza la quale non c\'è una fine da prolungare.', 'trasparenza-pa' ) );
 		}
 
 		if ( ! self::data_valida( $scelta ) ) {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la data non esiste nel calendario o non è scritta per intero.', 'trasparenza-pa' ) );
+		}
+
+		if ( '' !== $effetti && ! self::data_valida( $effetti ) ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la fine degli effetti non esiste nel calendario o non è scritta per intero.', 'trasparenza-pa' ) );
+		}
+
+		if ( '' !== $effetti && strcmp( $effetti, $scelta ) < 0 ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la fine degli effetti viene prima della data da cui decorre l\'obbligo, e un atto non smette di produrre effetti prima che decorra l\'obbligo di pubblicarlo.', 'trasparenza-pa' ) );
 		}
 
 		$albero = PaginaPubblica::albero();
@@ -267,7 +338,7 @@ final class SchedaPubblicazione {
 			return self::esito( 'albero', __( 'Data della pubblicazione non salvata: l\'albero delle voci in vigore non è disponibile o non dice la durata della pubblicazione, e senza non si può calcolare la fine.', 'trasparenza-pa' ) );
 		}
 
-		$fine = self::fine_di_legge( $scelta, $anni );
+		$fine = self::fine( $scelta, $effetti, $anni );
 
 		if ( null === $fine ) {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la fine della pubblicazione cadrebbe oltre il 9999.', 'trasparenza-pa' ) );
@@ -278,7 +349,7 @@ final class SchedaPubblicazione {
 		}
 
 		try {
-			return self::scrivi( $id, $scelta, $partenza, $fine );
+			return self::scrivi( $id, $scelta, $partenza, $effetti, $e_partenza, $fine, $anni );
 		} finally {
 			Blocco::rilascia();
 		}
@@ -298,40 +369,56 @@ final class SchedaPubblicazione {
 	 * stessa data e una fine diversa, per esempio dopo una fine rifiutata o una
 	 * versione nuova dell'albero, il salvataggio riallinea la fine.
 	 *
-	 * @param int    $id       Identificativo del contenuto.
-	 * @param string $scelta   Data scritta, gia controllata.
-	 * @param string $partenza Data mostrata quando il modulo e stato aperto.
-	 * @param string $fine     Fine calcolata.
+	 * La fine degli effetti segue le stesse regole, con una differenza: si puo
+	 * togliere, e con piu righe il riquadro mostrato con la partenza vuota le
+	 * sostituisce con quella scritta, o le toglie tutte.
+	 *
+	 * @param int    $id         Identificativo del contenuto.
+	 * @param string $scelta     Data scritta, gia controllata.
+	 * @param string $partenza   Data mostrata quando il modulo e stato aperto.
+	 * @param string $effetti    Fine degli effetti scritta, gia controllata, o vuota.
+	 * @param string $e_partenza Fine degli effetti mostrata quando il modulo e stato aperto.
+	 * @param string $fine       Fine calcolata.
+	 * @param int    $anni       Anni di pubblicazione per legge.
 	 * @return array{codice: string, messaggio: string}
 	 */
-	private static function scrivi( int $id, string $scelta, string $partenza, string $fine ): array {
-		$date = Metadato::leggi( $id, self::META_DECORRENZA );
-		$fini = Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() );
+	private static function scrivi( int $id, string $scelta, string $partenza, string $effetti, string $e_partenza, string $fine, int $anni ): array {
+		$date      = Metadato::leggi( $id, self::META_DECORRENZA );
+		$fini      = Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() );
+		$memoria_e = Metadato::leggi( $id, self::META_EFFETTI );
 
-		if ( is_wp_error( $date ) || is_wp_error( $fini ) ) {
+		if ( is_wp_error( $date ) || is_wp_error( $fini ) || is_wp_error( $memoria_e ) ) {
 			return self::esito( 'lettura', __( 'Data della pubblicazione non salvata: le date attuali del contenuto non si sono potute leggere dalla banca dati, e senza conoscerle il registro direbbe cambiato quello che non lo è. Riprovare fra qualche minuto.', 'trasparenza-pa' ) );
 		}
 
-		$piu     = count( $date ) > 1;
-		$attuale = $piu ? '' : ( $date[0] ?? '' );
+		$piu       = count( $date ) > 1;
+		$attuale   = $piu ? '' : ( $date[0] ?? '' );
+		$piu_e     = count( $memoria_e ) > 1;
+		$e_attuale = $piu_e ? '' : ( $memoria_e[0] ?? '' );
 
-		if ( ! $piu && $attuale === $scelta && array( $fine ) === $fini ) {
+		if ( ! $piu && ! $piu_e && $attuale === $scelta && $e_attuale === $effetti && array( $fine ) === $fini ) {
 			return self::esito( 'invariato', '' );
 		}
 
-		if ( $attuale !== $partenza ) {
+		if ( $attuale !== $partenza || $e_attuale !== $e_partenza ) {
 			return self::esito( 'conflitto', __( 'Data della pubblicazione non salvata: dopo l\'apertura di questa schermata la data del contenuto è cambiata. Ricaricare la schermata, che mostra la data attuale, e riprovare.', 'trasparenza-pa' ) );
 		}
 
 		$dettagli = array(
-			'prima'      => $attuale,
-			'dopo'       => $scelta,
-			'fine_prima' => array_values( $fini ),
-			'fine_dopo'  => $fine,
+			'prima'         => $attuale,
+			'dopo'          => $scelta,
+			'effetti_prima' => $e_attuale,
+			'effetti_dopo'  => $effetti,
+			'fine_prima'    => array_values( $fini ),
+			'fine_dopo'     => $fine,
 		);
 
 		if ( $piu ) {
 			$dettagli['trovate'] = array_values( $date );
+		}
+
+		if ( $piu_e ) {
+			$dettagli['effetti_trovati'] = array_values( $memoria_e );
 		}
 
 		$traccia = conformita_core_registra_voce(
@@ -362,10 +449,29 @@ final class SchedaPubblicazione {
 			return self::esito( 'scrittura', __( 'La data della pubblicazione non si è potuta scrivere, e la fine non è stata toccata. Il registro delle modifiche contiene un cambio che non è avvenuto.', 'trasparenza-pa' ) );
 		}
 
+		if ( $piu_e || ( '' === $effetti && '' !== $e_attuale ) ) {
+			delete_post_meta( $id, self::META_EFFETTI );
+		}
+
+		if ( '' !== $effetti && ( $piu_e || '' === $e_attuale ) ) {
+			add_post_meta( $id, self::META_EFFETTI, $effetti, true );
+		} elseif ( '' !== $effetti && $e_attuale !== $effetti ) {
+			update_post_meta( $id, self::META_EFFETTI, $effetti );
+		}
+
+		if ( Metadato::leggi( $id, self::META_EFFETTI ) !== ( '' === $effetti ? array() : array( $effetti ) ) ) {
+			return self::esito( 'scrittura', __( 'La data della pubblicazione è salvata, ma la fine degli effetti non si è potuta scrivere o togliere, e la fine della pubblicazione non è stata toccata. Il registro delle modifiche contiene un cambio che non è avvenuto del tutto.', 'trasparenza-pa' ) );
+		}
+
 		$scritta = conformita_core_imposta_fine_pubblicazione( $id, $fine );
 
 		if ( is_wp_error( $scritta ) || Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() ) !== array( $fine ) ) {
 			return self::esito( 'fine', __( 'La data della pubblicazione è salvata, ma la fine della pubblicazione non si è potuta scrivere: il riquadro mostra la differenza, e salvando di nuovo si riallinea. Finché il contenuto non ha una fine valida, non compare al pubblico.', 'trasparenza-pa' ) );
+		}
+
+		if ( self::fine_di_legge( $scelta, $anni ) !== $fine ) {
+			/* translators: 1: data di fine della pubblicazione; 2: anni di pubblicazione per legge. */
+			return self::esito( 'salvato', sprintf( __( 'Data della pubblicazione salvata. Fine della pubblicazione: %1$s, oltre i %2$d anni di legge perché l\'atto produce effetti fino a quel giorno.', 'trasparenza-pa' ), self::leggibile( $fine ), $anni ) );
 		}
 
 		/* translators: %s: data di fine della pubblicazione. */

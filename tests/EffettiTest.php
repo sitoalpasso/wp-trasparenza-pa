@@ -235,7 +235,7 @@ class EffettiTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_EFFETTI . '" value=""', $riquadro );
 		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_EFFETTI_PARTENZA . '" value=""', $riquadro );
-		$this->assertStringContainsString( 'L\'atto produce effetti fino al', $riquadro );
+		$this->assertStringContainsString( esc_html( 'L\'atto produce effetti fino al' ), $riquadro );
 
 		$esito = SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2026-03-10', '2035-06-30' ) );
 
