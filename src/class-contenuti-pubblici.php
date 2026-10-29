@@ -216,7 +216,9 @@ final class ContenutiPubblici {
 				$html .= '<ul class="trasparenza-pa-documenti">';
 
 				foreach ( $documenti[ $chiave ] as $scaricabile ) {
-					$html .= '<li><a href="' . esc_url( $scaricabile['indirizzo'] ) . '">' . esc_html( $scaricabile['nome'] ) . '</a></li>';
+					$html .= null === $scaricabile['indirizzo']
+						? '<li>' . esc_html( $scaricabile['nome'] ) . ' <span class="trasparenza-pa-non-disponibile">' . esc_html__( '(file non disponibile)', 'trasparenza-pa' ) . '</span></li>'
+						: '<li><a href="' . esc_url( $scaricabile['indirizzo'] ) . '">' . esc_html( $scaricabile['nome'] ) . '</a></li>';
 				}
 
 				$html .= '</ul>';
@@ -246,7 +248,7 @@ final class ContenutiPubblici {
 	 * uno cestinato dalla libreria dei media non si scarica, e non si elenca.
 	 *
 	 * @param int $contenuto Contenuto.
-	 * @return array<int, array{indirizzo: string, nome: string}>|WP_Error
+	 * @return array<int, array{indirizzo: string|null, nome: string}>|WP_Error
 	 */
 	private static function documenti( int $contenuto ) {
 		$allegati = SchedaDocumenti::documenti( $contenuto );
@@ -271,9 +273,18 @@ final class ContenutiPubblici {
 				return $indirizzo;
 			}
 
+			/*
+			 * Senza il file sul disco il punto pubblico non consegna niente: il
+			 * collegamento sarebbe un vicolo cieco. Il nome resta, perche chi
+			 * legge sappia che il file c'era; senza la riga del file registrato
+			 * il nome e il titolo dell'allegato.
+			 */
+			$percorso = (string) get_attached_file( $allegato );
+			$nome     = '' !== $percorso ? wp_basename( $percorso ) : trim( $riga->post_title );
+
 			$documenti[] = array(
-				'indirizzo' => $indirizzo,
-				'nome'      => wp_basename( (string) get_attached_file( $allegato ) ),
+				'indirizzo' => '' !== $percorso && is_file( $percorso ) ? $indirizzo : null,
+				'nome'      => '' !== $nome ? $nome : __( 'Allegato senza nome', 'trasparenza-pa' ),
 			);
 		}
 
