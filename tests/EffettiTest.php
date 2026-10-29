@@ -283,6 +283,19 @@ class EffettiTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-82: un cambio della data degli effetti che non cambia la fine si salva e si registra lo stesso.
+	 */
+	public function test_t82_cambio_senza_cambio_di_fine(): void {
+		$contenuto = $this->contenuto();
+
+		$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2026-03-10', '2030-06-30' ) )['codice'] );
+		$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2026-03-10', '2029-06-30' ) )['codice'] );
+		$this->assertSame( array( '2029-06-30' ), $this->effetti( $contenuto ) );
+		$this->assertSame( array( '2031-12-31' ), $this->fini( $contenuto ) );
+		$this->assertCount( 2, $this->tracce( $contenuto ) );
+	}
+
+	/**
 	 * T-82: [attacco] due moduli aperti insieme, un valore con codice, lettura fallita degli effetti.
 	 */
 	public function test_t82_conflitto_escaping_lettura(): void {

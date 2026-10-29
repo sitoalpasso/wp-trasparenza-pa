@@ -108,3 +108,23 @@ Righe T-81..T-83 di `docs/collaudo.md`, in `tests/EffettiTest.php`; le prove T-6
 - "Fino a che producono i loro effetti": si legge come l'ultimo giorno in cui l'atto produce
   effetti, compreso. È la stessa regola della fine di legge, che il componente comune tratta
   come giorno compreso.
+
+## Rotture volute, a lavoro finito
+
+Ventotto rotture, una per volta e poi tolte. Ventisette fanno diventare rossa almeno una
+prova: effetti ignorati nella fine, effetti che accorciano, limite del 9999 tolto, partenza
+degli effetti non testuale ammessa, effetti senza decorrenza ammessi, effetti non controllati
+nel calendario, effetti prima della decorrenza ammessi, lettura fallita degli effetti
+ignorata, cambio degli effetti trattato come nessun cambio quando la fine resta la stessa,
+conflitto sugli effetti tolto, effetti di prima non registrati, effetti di dopo non
+registrati, effetti trovati non registrati, righe in più non tolte, rimozione non fatta,
+prima scrittura tolta, cambio non scritto, rilettura degli effetti tolta, esito che non dice
+il prolungamento, campo del riquadro senza valore, partenza del riquadro vuota, escaping della
+partenza tolto, valore non valido mostrato come data, avviso delle più date tolto, riquadro che
+calcola la fine senza effetti, riquadro che dice sempre "non prolunga", salvataggio che scrive
+la sola fine di legge.
+
+Una resta verde, ed è voluta: togliere il controllo che la data degli effetti sia un testo
+non cambia niente, perché il controllo del calendario che segue rifiuta ogni valore non
+testuale, e senza decorrenza lo rifiuta il confronto con il vuoto. Il controllo resta, perché
+dice che cosa si aspetta il modulo.
