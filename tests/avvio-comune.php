@@ -96,6 +96,7 @@ function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = 
 
 			require_once __DIR__ . '/ambiente-trasparenza.php';
 			require_once __DIR__ . '/schemi-finti.php';
+			require_once __DIR__ . '/deposito-di-prova.php';
 
 			if ( ! $avvio_automatico ) {
 				remove_action( 'plugins_loaded', array( 'TrasparenzaPa\\Avvio', 'da_plugins_loaded' ) );
