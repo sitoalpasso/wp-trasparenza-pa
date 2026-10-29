@@ -442,16 +442,17 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 	 * Riga T-63: la durata e arrivata con la versione 2026-10-28-2, e la 2026-10-28 resta com'era.
 	 *
 	 * Il nome della versione nuova e il giorno seguito da un numero, perche
-	 * il giorno aveva gia una versione distribuita.
+	 * il giorno aveva gia una versione distribuita. La 2026-10-28-2 non e piu
+	 * quella in vigore, e si guarda per nome.
 	 */
 	public function test_t63_versione_nuova_accanto_alla_vecchia(): void {
 		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-28.json';
+		$durata  = dirname( FILE_ALBERATURA ) . '/2026-10-28-2.json';
 
 		$this->assertSame( 'fdd8b013e96999e5499ca6470ebedb10b8ad8b7cabea206dc271ff9bda4a874d', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-28 non si modifica.' );
-		$this->assertSame( '2026-10-28-2.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-28-2.' );
 
 		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
-		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( $durata ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
 
 		$this->assertSame( '2026-10-28-2', $ora['versione'], 'Il nome del file dice la versione.' );
 		$this->assertArrayNotHasKey( 'durata_pubblicazione', $prima );
@@ -502,5 +503,138 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 
 		unset( $dati['durata_pubblicazione'] );
 		$this->assertNull( Alberatura::da_dati( $dati )->durata_anni(), 'Senza durata il file si carica, e la durata non c\'e.' );
+	}
+
+	/**
+	 * Riga T-75: le voci coperte da un modulo stanno nell'albero in vigore, con la loro fonte.
+	 *
+	 * L'elenco atteso e scritto qui e non letto dal file: una voce tolta o
+	 * aggiunta nel file fa diventare rossa la prova.
+	 */
+	public function test_t75_voci_coperte_da_un_modulo(): void {
+		$albero   = $this->albero();
+		$attese   = array(
+			'organi_di_indirizzo_politico_amministativo'  => 'art_13',
+			'articolazione_uffici'                        => 'art_13',
+			'telefono_e_posta_elettronica'                => 'art_13',
+			'nuclei_di_valutazione'                       => 'art_31',
+			'organi_revisione_amministrativa_e_contabile' => 'art_31',
+			'corte_dei_conti'                             => 'art_31',
+			'dati_sui_pagamenti'                          => 'art_4_bis',
+		);
+		$articoli = array(
+			'art_13'    => 'Art. 13, ',
+			'art_31'    => 'Art. 31, ',
+			'art_4_bis' => 'Art. 4-bis, ',
+		);
+		$trovate  = array();
+
+		foreach ( $albero->identificativi() as $voce ) {
+			$modulo = $albero->modulo( $voce );
+
+			if ( null !== $modulo ) {
+				$trovate[ $voce ] = $modulo['obbligo'];
+				$this->assertStringContainsString( $articoli[ $modulo['obbligo'] ], (string) $albero->voce( $voce )['riferimento'], 'Il riferimento della voce cita l\'articolo del modulo: ' . $voce );
+			}
+		}
+
+		ksort( $attese );
+		ksort( $trovate );
+		$this->assertSame( $attese, $trovate );
+		$this->assertSame( 'art. 13 del d.lgs. 33/2013', $albero->modulo( 'articolazione_uffici' )['nome'] );
+		$this->assertSame( 'art. 4-bis del d.lgs. 33/2013', $albero->modulo( 'dati_sui_pagamenti' )['nome'] );
+
+		$catalogo = \TrasparenzaPa\CatalogoSchemi::carica( \TrasparenzaPa\FILE_CATALOGO_SCHEMI );
+
+		foreach ( array_unique( $attese ) as $obbligo ) {
+			$this->assertNotSame( array(), $catalogo->versioni( $obbligo ), 'Ogni modulo dell\'albero ha versioni nel catalogo: ' . $obbligo );
+		}
+
+		$dati   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$fonti  = array_column( $dati['fonti'], null, 'chiave' );
+		$chiave = $dati['fonte_moduli'] ?? '';
+
+		$this->assertSame( 'anac_schemi_pubblicazione', $chiave );
+		$this->assertArrayHasKey( $chiave, $fonti, 'La fonte citata deve essere fra le fonti del file.' );
+		$this->assertStringContainsString( 'guida-servizi.anticorruzione.it', $fonti[ $chiave ]['url'] );
+	}
+
+	/**
+	 * Riga T-75: l'elenco e arrivato con la versione 2026-10-29, in vigore, e la 2026-10-28-2 resta com'era.
+	 */
+	public function test_t75_versione_nuova_accanto_alla_vecchia(): void {
+		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-28-2.json';
+
+		$this->assertSame( '11b6171e28bc0b01cbcc97fc436da45826dbc415723945a0d08ac388202d39c4', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-28-2 non si modifica.' );
+		$this->assertSame( '2026-10-29.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-29.' );
+
+		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+
+		$this->assertSame( '2026-10-29', $ora['versione'], 'Il nome del file dice la versione.' );
+		$this->assertArrayNotHasKey( 'moduli', $prima );
+		$this->assertNull( Alberatura::carica( $vecchio )->modulo( 'articolazione_uffici' ), 'La versione vecchia resta leggibile, senza moduli.' );
+
+		$ora['fonti'] = array_values( array_filter( $ora['fonti'], static fn( array $fonte ): bool => 'anac_schemi_pubblicazione' !== $fonte['chiave'] ) );
+
+		unset( $ora['versione'], $ora['moduli'], $ora['fonte_moduli'], $prima['versione'] );
+
+		$this->assertSame( $prima, $ora, 'La versione nuova aggiunge l\'elenco e la sua fonte e non cambia altro.' );
+	}
+
+	/**
+	 * Riga T-76: [attacco] elenchi delle voci coperte da un modulo non validi nel file.
+	 */
+	public function test_t76_moduli_non_validi(): void {
+		$dati  = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$buono = array(
+			'nome' => 'art. 13 del d.lgs. 33/2013',
+			'voci' => array( 'articolazione_uffici' ),
+		);
+
+		$casi = array(
+			'non un elenco'         => 'art_13',
+			'elenco senza nomi'     => array( $buono ),
+			'identificativo strano' => array( 'Art 13' => $buono ),
+			'identificativo lungo'  => array( str_repeat( 'a', 81 ) => $buono ),
+			'modulo non elenco'     => array( 'art_13' => 'articolazione_uffici' ),
+			'senza nome'            => array( 'art_13' => array( 'voci' => $buono['voci'] ) ),
+			'senza voci'            => array( 'art_13' => array( 'nome' => $buono['nome'] ) ),
+			'chiave in piu'         => array( 'art_13' => $buono + array( 'dal' => '2026-06-10' ) ),
+			'nome vuoto'            => array( 'art_13' => array( 'nome' => '  ' ) + $buono ),
+			'nome non testo'        => array( 'art_13' => array( 'nome' => 13 ) + $buono ),
+			'nome troppo lungo'     => array( 'art_13' => array( 'nome' => str_repeat( 'a', 201 ) ) + $buono ),
+			'voci vuote'            => array( 'art_13' => array( 'voci' => array() ) + $buono ),
+			'voci con nomi'         => array( 'art_13' => array( 'voci' => array( 'x' => 'articolazione_uffici' ) ) + $buono ),
+			'voce non testo'        => array( 'art_13' => array( 'voci' => array( 13 ) ) + $buono ),
+			'voce inesistente'      => array( 'art_13' => array( 'voci' => array( 'voce_inesistente' ) ) + $buono ),
+			'radice'                => array( 'art_13' => array( 'voci' => array( 'amministrazione_trasparente' ) ) + $buono ),
+			'voce con sottovoci'    => array( 'art_13' => array( 'voci' => array( 'organizzazione' ) ) + $buono ),
+			'voce ripetuta'         => array( 'art_13' => array( 'voci' => array( 'articolazione_uffici', 'articolazione_uffici' ) ) + $buono ),
+			'voce in due moduli'    => array(
+				'art_13' => $buono,
+				'art_31' => $buono,
+			),
+		);
+
+		foreach ( $casi as $nome => $moduli ) {
+			$prova           = $dati;
+			$prova['moduli'] = $moduli;
+
+			$esito = Alberatura::da_dati( $prova );
+
+			$this->assertWPError( $esito, $nome );
+			$this->assertSame( 'trasparenza_albero_moduli', $esito->get_error_code(), $nome );
+		}
+
+		$prova           = $dati;
+		$prova['moduli'] = array( 'art_13' => array( 'nome' => "  art. 13\n" ) + $buono );
+		$this->assertSame( 'art. 13', Alberatura::da_dati( $prova )->modulo( 'articolazione_uffici' )['nome'], 'Il nome si ripulisce dagli spazi ai bordi.' );
+
+		$prova['moduli'] = array();
+		$this->assertNull( Alberatura::da_dati( $prova )->modulo( 'articolazione_uffici' ), 'Un elenco vuoto si accetta.' );
+
+		unset( $dati['moduli'] );
+		$this->assertNull( Alberatura::da_dati( $dati )->modulo( 'articolazione_uffici' ), 'Senza elenco il file si carica, e nessuna voce ha un modulo.' );
 	}
 }
