@@ -124,3 +124,36 @@ Righe T-84..T-88 di `docs/collaudo.md`, in `tests/AlberoNormativoTest.php` e
 - La Corte costituzionale, sentenza 20/2019, ha tolto per i dirigenti l'obbligo dei dati
   patrimoniali dell'art. 14, c. 1, lett. f): riguarda il passo sulla situazione patrimoniale,
   non questo.
+
+## Rotture volute, a lavoro finito
+
+Cinquantuno rotture, una per volta e poi tolte. Cinquanta fanno diventare rossa almeno una
+prova.
+
+- Nel file dell'albero: elenco non oggetto accettato, identificativo non controllato, chiavi
+  non controllate, nome vuoto accettato, nome lungo accettato, anni non interi accettati, anni
+  zero accettati, fonte non controllata, voci vuote accettate, voci con nomi accettate, voce
+  inesistente accettata, voce con sottovoci accettata, voce ripetuta accettata, nome non
+  ripulito, regola mai trovata, versione nuova dell'albero non in vigore.
+- Nel calcolo: un giorno in meno, limite del 9999 tolto.
+- Nel salvataggio: aggancio prima della voce, partenza non testuale ammessa, cessazione senza
+  decorrenza ammessa, cessazione non controllata nel calendario, prima della decorrenza
+  ammessa, insieme alla fine degli effetti ammessa, lettura fallita della cessazione ignorata,
+  lettura fallita della voce ignorata, più voci ammesse, voce non controllata, limite del 9999
+  ignorato, cambio della cessazione trattato come nessun cambio quando la fine resta la
+  stessa, conflitto tolto, cessazione di prima non registrata, cessazione di dopo non
+  registrata, cessazioni trovate non registrate, righe in più non tolte, rimozione non fatta,
+  prima scrittura tolta, cambio non scritto, rilettura tolta, esito che non dice la regola,
+  fine che non usa la cessazione.
+- Nel riquadro: regola mai trovata, campo sempre nascosto, campo nascosto con una data già
+  scritta in una voce senza regola, valore non valido mostrato come data, partenza vuota,
+  avviso della voce senza regola tolto, richiesta della data tolta, avviso delle più date
+  tolto, fine attesa calcolata senza cessazione.
+
+Una resta verde, ed è voluta: togliere il controllo che la cessazione sia un testo non cambia
+niente, perché il controllo del calendario che segue rifiuta ogni valore non testuale, come
+per la fine degli effetti. Il controllo resta, perché dice che cosa si aspetta il modulo.
+
+Una rottura rimasta verde al primo giro, il cambio trattato come nessun cambio, ha portato una
+prova in più: togliere una cessazione che dà la stessa fine della regola generale è un cambio,
+e si registra.

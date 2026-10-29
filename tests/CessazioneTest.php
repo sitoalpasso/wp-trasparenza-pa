@@ -294,6 +294,20 @@ class CessazioneTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-87: togliere una cessazione che da la stessa fine della regola generale e un cambio, e si registra.
+	 */
+	public function test_t87_rimozione_con_la_stessa_fine(): void {
+		$contenuto = $this->contenuto();
+
+		$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2027-12-31' ) )['codice'] );
+		$this->assertSame( array( '2030-12-31' ), $this->fini( $contenuto ) );
+		$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '' ) )['codice'] );
+		$this->assertSame( array(), $this->cessazioni( $contenuto ) );
+		$this->assertSame( array( '2030-12-31' ), $this->fini( $contenuto ) );
+		$this->assertCount( 2, $this->tracce( $contenuto ) );
+	}
+
+	/**
 	 * T-87: [attacco] date non valide, prima della decorrenza, con la fine degli effetti, voce che non la prevede o assente, campi mancanti.
 	 */
 	public function test_t87_rifiuti(): void {

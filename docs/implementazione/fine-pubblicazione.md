@@ -116,8 +116,8 @@ Righe T-63..T-66 di `docs/collaudo.md`.
   quest'anno: fine 2031. Costruito dopo, in `effetti-oltre-cinque-anni.md`.
 - Non applica i termini diversi richiamati dallo stesso comma (artt. 14, c. 2, e 15, c. 4, e
   la normativa sui dati personali) né quelli che ANAC può fissare con il c. 3-bis: oggi la
-  durata è una sola per tutta la sezione. Se serviranno durate per voce, si aggiungono al file
-  dell'albero accanto a quella generale.
+  durata è una sola per tutta la sezione. Gli artt. 14 e 15 sono costruiti dopo, in
+  `cessazione-per-voce.md`.
 - Non ricalcola da solo le fini già scritte se una versione nuova dell'albero cambia la
   durata: il riquadro mostra la differenza, e chi pubblica la riallinea salvando.
 - Non mostra niente sulla pagina pubblica (quarto passo).
