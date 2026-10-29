@@ -113,7 +113,7 @@ Righe T-63..T-66 di `docs/collaudo.md`.
 - Non prolunga la pubblicazione oltre i cinque anni per gli atti che producono ancora effetti
   ("e comunque fino a che gli atti pubblicati producono i loro effetti"): serve una seconda
   data, più lontana, scelta da chi pubblica. Primo contenuto a scadere con decorrenza di
-  quest'anno: fine 2031. Unità futura, prima della consegna.
+  quest'anno: fine 2031. Costruito dopo, in `effetti-oltre-cinque-anni.md`.
 - Non applica i termini diversi richiamati dallo stesso comma (artt. 14, c. 2, e 15, c. 4, e
   la normativa sui dati personali) né quelli che ANAC può fissare con il c. 3-bis: oggi la
   durata è una sola per tutta la sezione. Se serviranno durate per voce, si aggiungono al file
