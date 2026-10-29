@@ -23,8 +23,7 @@ vigore ammette: cioè solo se il contenuto compare davvero nella pagina. Un cont
 pubblicato ma senza voce non si vede, e nemmeno i suoi documenti si scaricano, anche da chi
 conosce i numeri dell'indirizzo. Se la voce non si riesce a leggere, la risposta è no.
 
-**Come si prova, e come si prova che la prova è vera.** Prove nuove nelle righe da T-78 in
-poi, con file veri depositati dal componente comune e scaricati dal suo punto pubblico; ogni
+**Come si prova, e come si prova che la prova è vera.** Prove nuove nelle righe T-78..T-80, con file veri depositati dal componente comune e scaricati dal suo punto pubblico; ogni
 regola ha una rottura voluta che fa diventare rossa almeno una prova, elencata in fondo a
 lavoro finito.
 
@@ -73,7 +72,7 @@ suoi controlli più la condizione di questo componente.
 
 ## 7. Test
 
-Righe da T-78 in poi di `docs/collaudo.md`.
+Righe T-78..T-80 di `docs/collaudo.md`, in `tests/DocumentiPubbliciTest.php`; la prova T-04 della compatibilità guarda ora le versioni attorno alla 1.10.0.
 
 ## 8. Cosa deliberatamente NON fa
 
@@ -89,3 +88,21 @@ Righe da T-78 in poi di `docs/collaudo.md`.
 3. Tolgo la voce al contenuto e salvo: il contenuto sparisce dalla pagina, e il collegamento
    copiato prima non scarica più niente.
 4. Ripristino: si cestina il contenuto di prova.
+
+## Rotture volute, a lavoro finito
+
+Quattordici rotture, una per volta e poi tolte. Dodici fanno diventare rossa almeno una
+prova: condizione non dichiarata (i file seguirebbero la sezione per ogni contenuto
+pubblicato), condizione sempre vera, albero assente ignorato, numero del contenuto non
+controllato, tipo non controllato, lettura fallita della voce ignorata, più voci accettate,
+voce ammessa non controllata, documenti non elencati, cestinati elencati, lettura fallita dei
+documenti ignorata, interfaccia vecchia richiesta.
+
+Due restano verdi, e sono volute:
+
+- prendere l'indirizzo dell'allegato da WordPress invece di chiederlo al componente comune
+  non cambia niente, perché il componente comune riscrive quell'indirizzo con il suo punto di
+  consegna; la chiamata diretta resta, perché dice che cosa si vuole;
+- togliere l'escaping al nome del file non cambia niente oggi, perché il deposito ripulisce il
+  nome da ogni carattere che l'escaping cambierebbe; l'escaping resta, perché il nome è un
+  dato memorizzato.

@@ -32,7 +32,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | Req | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
 | TRASP-01 | da fare | Si controllano denominazione e collegamento in home | dicitura esatta, link presente |
-| TRASP-02 | da fare | Si visita ogni pagina della sezione da utente anonimo | tutto accessibile senza autenticazione |
+| TRASP-02 | in corso | Si visita ogni pagina della sezione da utente anonimo (righe T-71, T-79 per i contenuti delle voci e i loro documenti) | tutto accessibile senza autenticazione |
 | TRASP-03 | da fare | Si ispezionano meta robots, robots.txt e sitemap della sezione | nessun noindex, nessun blocco, URL in sitemap |
 | TRASP-04 | fatto | Si confronta l'alberatura generata con l'Allegato A, voce per voce (righe T-20..T-25) | ogni nodo previsto esiste, denominazione conforme; esiste "Controlli sulle attività economiche" e non esiste "Controlli sulle imprese" |
 | TRASP-05 | da fare | Si compilano i tre obblighi; si caricano le fixture ufficiali ANAC, integre e corrotte | solo campi strutturati; il dato valida; le fixture integre passano, le corrotte no con errore sul campo |
@@ -253,6 +253,18 @@ all'addetto nel riquadro del contenuto. Scheda: `docs/implementazione/voci-con-m
 | T-75 | fatto | Elenco nell'albero in vigore; versione che lo porta | sette voci, scritte nella prova: tre per l'art. 13, tre per l'art. 31, una per l'art. 4-bis, ciascuna con un riferimento che cita l'articolo del modulo, e ogni modulo ha versioni nel catalogo degli schemi; fonte dichiarata e presente fra le fonti del file; l'elenco arriva con la versione 2026-10-29, ora in vigore, uguale alla 2026-10-28-2 salvo elenco e fonte; la 2026-10-28-2 resta accanto, con l'impronta attesa scritta nella prova, e si legge senza moduli |
 | T-76 | fatto | [attacco] elenchi non validi nel file: non un oggetto, senza nomi, identificativo strano o troppo lungo, modulo non oggetto, senza nome o senza voci, chiave in più, nome vuoto, non testo o troppo lungo, voci vuote o con nomi, voce non testo, inesistente, radice, con sottovoci, ripetuta, in due moduli; nome con spazi ai bordi; elenco vuoto; senza elenco | ogni sbaglio rifiuta il file con `trasparenza_albero_moduli`; il nome si ripulisce; elenco vuoto e file senza elenco si caricano, e nessuna voce ha un modulo |
 | T-77 | fatto | Riquadro di un contenuto collocato in una voce degli artt. 13, 31 e 4-bis; in una voce senza modulo, in una con sottovoci, in nessuna; utente che non può creare voci; catalogo senza versioni per quei moduli; catalogo non leggibile | avviso con il nome del modulo e la versione in vigore detta con la sua data, che i dati del modulo restano in bozza e che al pubblico arriva il testo, e collegamento per compilare il modulo; nessun avviso senza modulo; senza permesso l'avviso c'è e il collegamento no; senza versione in vigore e senza catalogo l'avviso lo dice, senza collegamento |
+
+## Documenti scaricabili dalla pagina pubblica (righe T-78..T-80)
+
+Provano i documenti dei contenuti sulla pagina pubblica e il loro scaricamento dal punto
+pubblico del componente comune, con file veri depositati e risposte raccolte al posto
+dell'emissione. Scheda: `docs/implementazione/documenti-pubblici.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-78 | fatto | Contenuto con due documenti; contenuto senza documenti; documento cestinato; [guasto] lettura fallita dei documenti | sotto il contenuto l'elenco dei documenti, in ordine di deposito, con l'indirizzo pubblico del componente comune e il nome del file, mai l'indirizzo della cartella dei caricamenti; senza documenti nessun elenco; il cestinato non si elenca e non si scarica; con la lettura fallita l'avviso di indisponibilità al posto di contenuti e date |
+| T-79 | fatto | Da anonimo, documento di un contenuto mostrato sulla pagina; [attacco] contenuto pubblicato senza voce, con una voce che ha sottovoci, con una voce che l'albero non ha, con più voci; in bozza, con password, con la fine passata; [guasto] lettura fallita della voce | il primo si scarica; tutti gli altri no, anche con l'indirizzo, e non compaiono sulla pagina |
+| T-80 | fatto | La funzione dichiarata al componente comune chiamata con il contenuto come testo, nullo, zero, di un altro tipo, e senza albero in vigore | sempre no; senza albero anche il punto pubblico rifiuta |
 
 ## Collaudo congiunto con l'albo pretorio
 
