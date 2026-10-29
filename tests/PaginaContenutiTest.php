@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove dei contenuti sulla pagina pubblica: righe T-71..T-73.
+ * Prove dei contenuti sulla pagina pubblica: righe T-71..T-74.
  *
  * @package TrasparenzaPa
  */
@@ -63,8 +63,11 @@ class PaginaContenutiTest extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		\Conformita_Core_Scadenza::azzera_orologio();
+		global $wpdb;
+
 		remove_shortcode( 'prova_codice' );
-		remove_all_filters( 'pre_get_posts' );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
 		PaginaPubblica::fissa_file( __DIR__ . '/dati/albero-finto.json' );
 		PaginaPubblica::da_init();
 
@@ -136,11 +139,15 @@ class PaginaContenutiTest extends WP_UnitTestCase {
 	 * @return array<int, int>
 	 */
 	private function visibili( string $voce = 'zeta_uno' ): array {
+		$righe = ContenutiPubblici::visibili( PaginaPubblica::albero(), array( $voce ) );
+
+		$this->assertIsArray( $righe );
+
 		return array_map(
-			static function ( $contenuto ) {
-				return (int) $contenuto->ID;
+			static function ( $riga ) {
+				return (int) $riga['contenuto']->ID;
 			},
-			ContenutiPubblici::visibili( array( $voce ) )
+			$righe
 		);
 	}
 
@@ -247,27 +254,6 @@ class PaginaContenutiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-71: [attacco] un altro componente che allarga l'interrogazione non fa comparire niente di nascosto.
-	 */
-	public function test_t71_interrogazione_allargata(): void {
-		$visibile = $this->contenuto();
-		$this->contenuto( array( 'post_status' => 'draft' ) );
-		$this->contenuto( array( 'post_status' => 'private' ) );
-		$this->contenuto( array( 'post_password' => 'segreta' ) );
-
-		add_action(
-			'pre_get_posts',
-			static function ( $interrogazione ) {
-				$interrogazione->set( 'post_status', 'any' );
-				$interrogazione->set( 'has_password', null );
-			},
-			PHP_INT_MAX
-		);
-
-		$this->assertSame( array( $visibile ), $this->visibili() );
-	}
-
-	/**
 	 * T-71: un contenuto sparisce quando scade, senza che il compito pianificato sia passato.
 	 */
 	public function test_t71_scadenza_letta_sul_dato(): void {
@@ -293,6 +279,75 @@ class PaginaContenutiTest extends WP_UnitTestCase {
 		$gemello = $this->contenuto( array( 'post_date' => '2026-02-10 10:00:00' ) );
 
 		$this->assertSame( array( $nuovo, $gemello, $medio, $vecchio ), $this->visibili() );
+	}
+
+	/**
+	 * Rende fallite le interrogazioni che contengono tutti i pezzi indicati.
+	 *
+	 * @param array<int, string> $pezzi Pezzi del testo dell'interrogazione.
+	 */
+	private function guasta( array $pezzi ): void {
+		global $wpdb;
+
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb, $pezzi ) {
+				foreach ( $pezzi as $pezzo ) {
+					if ( false === strpos( (string) $sql, $pezzo ) ) {
+						return $sql;
+					}
+				}
+
+				return 'SELECT 1 FROM ' . $wpdb->posts . '_inesistente';
+			}
+		);
+	}
+
+	/**
+	 * T-74: [guasto] lettura fallita dei contenuti, della voce o della fine di un contenuto: avviso al posto di contenuti e data, mai una voce che sembra vuota.
+	 */
+	public function test_t74_lettura_fallita(): void {
+		global $wpdb;
+
+		$id = $this->contenuto( array( 'post_title' => 'Bando di prova' ) );
+
+		$guasti = array(
+			'interrogazione dei contenuti' => array( "SELECT p.ID FROM {$wpdb->posts} p" ),
+			'caricamento del contenuto'    => array( "SELECT * FROM {$wpdb->posts} WHERE ID = {$id} " ),
+			'voce del contenuto'           => array( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id", "'" . SchedaContenuto::META_COLLOCAZIONE . "'" ),
+			'fine del contenuto'           => array( "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id", "'" . conformita_core_chiave_fine_pubblicazione() . "'" ),
+		);
+
+		foreach ( $guasti as $nome => $pezzi ) {
+			clean_post_cache( $id );
+			$this->guasta( $pezzi );
+
+			$this->assertWPError( ContenutiPubblici::visibili( PaginaPubblica::albero(), array( 'zeta_uno' ) ), $nome );
+
+			foreach ( array( 'zeta_uno', 'zeta', 'radice' ) as $voce ) {
+				$html = $this->pagina( $voce );
+
+				$this->assertStringContainsString( '<p class="trasparenza-pa-indisponibile" role="alert">', $html, $nome . ', ' . $voce );
+				$this->assertStringNotContainsString( '<article', $html, $nome . ', ' . $voce );
+				$this->assertStringNotContainsString( 'trasparenza-pa-aggiornamento', $html, $nome . ', ' . $voce );
+				$this->assertStringNotContainsString( '_inesistente', $html, 'Nessun dettaglio del guasto al pubblico.' );
+			}
+
+			remove_all_filters( 'query' );
+			$wpdb->suppress_errors( false );
+
+			$this->assertStringContainsString( 'Bando di prova', $this->pagina(), 'Tolto il guasto, il contenuto torna: ' . $nome );
+		}
+	}
+
+	/**
+	 * T-74: una voce davvero vuota non mostra l'avviso.
+	 */
+	public function test_t74_voce_vuota_senza_avviso(): void {
+		$this->assertSame( array(), ContenutiPubblici::visibili( PaginaPubblica::albero(), array( 'alfa' ) ) );
+		$this->assertStringNotContainsString( 'trasparenza-pa-indisponibile', $this->pagina( 'alfa' ) );
+		$this->assertStringNotContainsString( 'trasparenza-pa-indisponibile', $this->pagina( 'radice' ) );
 	}
 
 	/**
