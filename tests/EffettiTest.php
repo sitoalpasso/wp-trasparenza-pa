@@ -124,6 +124,7 @@ class EffettiTest extends WP_UnitTestCase {
 			SchedaPubblicazione::CAMPO_EFFETTI_PARTENZA    => $partenza ?? $this->attuale( $contenuto, SchedaPubblicazione::META_EFFETTI ),
 			SchedaPubblicazione::CAMPO_CESSAZIONE          => '',
 			SchedaPubblicazione::CAMPO_CESSAZIONE_PARTENZA => '',
+			SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA => '',
 		);
 	}
 

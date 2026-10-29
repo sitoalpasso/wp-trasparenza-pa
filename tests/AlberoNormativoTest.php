@@ -674,6 +674,8 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 		$this->assertSame( $attese, $trovate );
 		$this->assertSame( 'art. 14, c. 2, del d.lgs. 33/2013', $albero->cessazione( 'dirigenti_cessati' )['nome'] );
 		$this->assertSame( 'art. 15, c. 4, del d.lgs. 33/2013', $albero->cessazione( 'titolari_incarichi_collaborazione_consulenza' )['nome'] );
+		$this->assertSame( 0, $albero->cessazione( 'dirigenti_cessati' )['patrimoniali'], 'Art. 14, c. 2: la situazione patrimoniale solo fino alla cessazione.' );
+		$this->assertNull( $albero->cessazione( 'titolari_incarichi_collaborazione_consulenza' )['patrimoniali'], 'L\'art. 15 non ha un termine per i dati patrimoniali.' );
 		$this->assertNull( $albero->cessazione( 'bandi_di_concorso' ) );
 
 		$dati  = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
@@ -747,6 +749,10 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 			'radice'                => array( 'art_15_c_4' => array( 'voci' => array( 'amministrazione_trasparente' ) ) + $buona ),
 			'voce con sottovoci'    => array( 'art_15_c_4' => array( 'voci' => array( 'personale' ) ) + $buona ),
 			'voce ripetuta'         => array( 'art_15_c_4' => array( 'voci' => array( 'dirigenti_cessati', 'dirigenti_cessati' ) ) + $buona ),
+			'patrimoniali negativi' => array( 'art_15_c_4' => $buona + array( 'anni_patrimoniali' => -1 ) ),
+			'patrimoniali testo'    => array( 'art_15_c_4' => $buona + array( 'anni_patrimoniali' => '0' ) ),
+			'patrimoniali decimali' => array( 'art_15_c_4' => $buona + array( 'anni_patrimoniali' => 0.0 ) ),
+			'patrimoniali oltre'    => array( 'art_15_c_4' => $buona + array( 'anni_patrimoniali' => 4 ) ),
 			'voce in due regole'    => array(
 				'art_15_c_4' => $buona,
 				'art_14_c_2' => $buona,
@@ -767,13 +773,17 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 		$prova['cessazione'] = array( 'art_15_c_4' => array( 'nome' => "  art. 15\n" ) + $buona );
 		$this->assertSame(
 			array(
-				'regola' => 'art_15_c_4',
-				'nome'   => 'art. 15',
-				'anni'   => 3,
+				'regola'       => 'art_15_c_4',
+				'nome'         => 'art. 15',
+				'anni'         => 3,
+				'patrimoniali' => null,
 			),
 			Alberatura::da_dati( $prova )->cessazione( 'titolari_incarichi_collaborazione_consulenza' ),
 			'Il nome si ripulisce dagli spazi ai bordi.'
 		);
+
+		$prova['cessazione'] = array( 'art_15_c_4' => $buona + array( 'anni_patrimoniali' => 3 ) );
+		$this->assertSame( 3, Alberatura::da_dati( $prova )->cessazione( 'titolari_incarichi_collaborazione_consulenza' )['patrimoniali'], 'Fino agli anni della regola si accetta.' );
 
 		$prova['cessazione'] = array();
 		$this->assertNull( Alberatura::da_dati( $prova )->cessazione( 'dirigenti_cessati' ), 'Un elenco vuoto si accetta.' );

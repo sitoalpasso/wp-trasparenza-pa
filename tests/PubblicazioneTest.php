@@ -154,6 +154,7 @@ class PubblicazioneTest extends WP_UnitTestCase {
 			SchedaPubblicazione::CAMPO_EFFETTI_PARTENZA    => $effetti,
 			SchedaPubblicazione::CAMPO_CESSAZIONE          => '',
 			SchedaPubblicazione::CAMPO_CESSAZIONE_PARTENZA => '',
+			SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA => '',
 		);
 	}
 

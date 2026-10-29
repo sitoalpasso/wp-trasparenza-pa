@@ -134,10 +134,11 @@ class CessazioneTest extends WP_UnitTestCase {
 	 * @param mixed      $cessazione Cessazione scritta.
 	 * @param mixed|null $partenza   Cessazione mostrata all'apertura; se non indicata, quella attuale.
 	 * @param mixed      $effetti    Fine degli effetti scritta.
+	 * @param mixed|null $patrimoniale Casella dei dati patrimoniali; nullo se non spuntata.
 	 * @return array<string, mixed>
 	 */
-	private function richiesta( int $contenuto, $decorrenza, $cessazione, $partenza = null, $effetti = '' ): array {
-		return array(
+	private function richiesta( int $contenuto, $decorrenza, $cessazione, $partenza = null, $effetti = '', $patrimoniale = null ): array {
+		$richiesta = array(
 			SchedaPubblicazione::CAMPO_NONCE               => wp_create_nonce( SchedaPubblicazione::azione_nonce( $contenuto ) ),
 			SchedaPubblicazione::CAMPO                     => $decorrenza,
 			SchedaPubblicazione::CAMPO_PARTENZA            => $this->attuale( $contenuto, SchedaPubblicazione::META_DECORRENZA ),
@@ -145,7 +146,14 @@ class CessazioneTest extends WP_UnitTestCase {
 			SchedaPubblicazione::CAMPO_EFFETTI_PARTENZA    => $this->attuale( $contenuto, SchedaPubblicazione::META_EFFETTI ),
 			SchedaPubblicazione::CAMPO_CESSAZIONE          => $cessazione,
 			SchedaPubblicazione::CAMPO_CESSAZIONE_PARTENZA => $partenza ?? $this->attuale( $contenuto, SchedaPubblicazione::META_CESSAZIONE ),
+			SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA => array( '1' ) === get_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, false ) ? '1' : '',
 		);
+
+		if ( null !== $patrimoniale ) {
+			$richiesta[ SchedaPubblicazione::CAMPO_PATRIMONIALE ] = $patrimoniale;
+		}
+
+		return $richiesta;
 	}
 
 	/**
@@ -496,6 +504,133 @@ class CessazioneTest extends WP_UnitTestCase {
 		$this->assertSame( array( self::VOCE_CESSAZIONE ), get_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, false ) );
 		$this->assertSame( array( '2026-01-31' ), $this->cessazioni( $contenuto ) );
 		$this->assertSame( array( '2029-01-31' ), $this->fini( $contenuto ) );
+	}
+
+	/**
+	 * T-89: nelle voci dell'art. 14 i dati patrimoniali finiscono il giorno della cessazione; la casella si registra e si toglie.
+	 */
+	public function test_t89_dati_patrimoniali(): void {
+		$fuori = SchedaPubblicazione::riquadro( get_post( $this->contenuto() ) );
+
+		$this->assertStringNotContainsString( 'name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE . '"', $fuori, 'L\'art. 15 non ha un termine per i dati patrimoniali.' );
+		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA . '" value=""', $fuori );
+
+		$contenuto = $this->contenuto( 'dirigenti_cessati' );
+		$riquadro  = SchedaPubblicazione::riquadro( get_post( $contenuto ) );
+
+		$this->assertStringContainsString( '<input type="checkbox" id="trasparenza-pa-patrimoniale" name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE . '" value="1">', $riquadro );
+		$this->assertStringContainsString( 'situazione patrimoniale', $riquadro );
+		$this->assertStringContainsString( 'solo fino alla cessazione', $riquadro );
+
+		$esito = SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '', null, '', '1' ) );
+		$this->assertSame( 'dati', $esito['codice'], 'Senza cessazione i dati patrimoniali non si salvano.' );
+		$this->assertStringContainsString( 'serve la data di cessazione', $esito['messaggio'] );
+
+		foreach ( array( '0', 'si', '1 ', array( '1' ) ) as $valore ) {
+			$this->assertSame( 'dati', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', $valore ) )['codice'], (string) wp_json_encode( $valore ) );
+		}
+
+		$partenza_strana = $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' );
+		$partenza_strana[ SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA ] = array();
+		$this->assertSame( 'dati', SchedaPubblicazione::applica( $contenuto, $partenza_strana )['codice'], 'Partenza non testuale.' );
+
+		$senza_partenza = $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' );
+		unset( $senza_partenza[ SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA ] );
+		$this->assertSame( 'dati', SchedaPubblicazione::applica( $contenuto, $senza_partenza )['codice'], 'Partenza mancante.' );
+
+		$this->assertCount( 0, $this->tracce( $contenuto ) );
+
+		$esito = SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' ) );
+
+		$this->assertSame( 'salvato', $esito['codice'] );
+		$this->assertStringContainsString( 'Fine della pubblicazione: 2026-01-31', $esito['messaggio'] );
+		$this->assertSame( array( '1' ), get_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, false ) );
+		$this->assertSame( array( '2026-01-31' ), $this->fini( $contenuto ), 'I dati patrimoniali finiscono il giorno della cessazione.' );
+
+		$riquadro = SchedaPubblicazione::riquadro( get_post( $contenuto ) );
+
+		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE . '" value="1" checked', $riquadro );
+		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA . '" value="1"', $riquadro );
+		$this->assertStringNotContainsString( 'Salvando il contenuto si riallinea', $riquadro );
+
+		$this->assertSame( 'invariato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' ) )['codice'] );
+
+		$di_altri = $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', null );
+		$di_altri[ SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA ] = '';
+		$this->assertSame( 'conflitto', SchedaPubblicazione::applica( $contenuto, $di_altri )['codice'], 'La casella cambiata da un altro e un conflitto.' );
+
+		$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31' ) )['codice'], 'La casella si toglie.' );
+		$this->assertSame( array(), get_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, false ) );
+		$this->assertSame( array( '2029-01-31' ), $this->fini( $contenuto ) );
+
+		$this->assertSame(
+			array(
+				array( '', '1', '2026-01-31' ),
+				array( '1', '', '2029-01-31' ),
+			),
+			array_map(
+				static function ( $voce ) {
+					$dettagli = $voce['dettagli'];
+
+					return array( $dettagli['patrimoniale_prima'], $dettagli['patrimoniale_dopo'], $dettagli['fine_dopo'] );
+				},
+				$this->tracce( $contenuto )
+			)
+		);
+
+		$consulente = $this->contenuto();
+		$esito      = SchedaPubblicazione::applica( $consulente, $this->richiesta( $consulente, '2025-02-01', '2026-01-31', null, '', '1' ) );
+		$this->assertSame( 'voce', $esito['codice'], 'La regola dell\'art. 15 non ha un termine per i dati patrimoniali.' );
+		$this->assertStringContainsString( 'non prevede un termine per i dati patrimoniali', $esito['messaggio'] );
+
+		$generale = $this->contenuto( self::VOCE_GENERALE );
+		$this->assertSame( 'voce', SchedaPubblicazione::applica( $generale, $this->richiesta( $generale, '2025-02-01', '2026-01-31', null, '', '1' ) )['codice'] );
+	}
+
+	/**
+	 * T-89: [attacco] casella memorizzata con un altro valore o in piu righe: il riquadro non la mostra spuntata, il salvataggio la rimette in una riga e registra quelle trovate; [guasto] lettura fallita, casella non scritta.
+	 */
+	public function test_t89_valori_strani_e_guasti(): void {
+		global $wpdb;
+
+		$contenuto = $this->contenuto( 'dirigenti_cessati' );
+
+		add_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, '"><b>' );
+		add_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, '1' );
+
+		$riquadro = SchedaPubblicazione::riquadro( get_post( $contenuto ) );
+
+		$this->assertStringNotContainsString( '<b>', $riquadro );
+		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE . '" value="1">', $riquadro, 'Non spuntata.' );
+		$this->assertStringContainsString( 'name="' . SchedaPubblicazione::CAMPO_PATRIMONIALE_PARTENZA . '" value=""', $riquadro );
+
+		$this->guasta_lettura( SchedaPubblicazione::META_PATRIMONIALE );
+		$this->assertSame( 'lettura', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' ) )['codice'] );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+
+		$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' ) )['codice'] );
+		$this->assertSame( array( '1' ), get_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, false ) );
+
+		$tracce = $this->tracce( $contenuto );
+
+		$this->assertCount( 1, $tracce );
+		$this->assertSame( array( '"><b>', '1' ), $tracce[0]['dettagli']['patrimoniale_trovati'] );
+
+		add_filter(
+			'delete_post_metadata',
+			static function ( $esito, $id, $chiave ) {
+				return SchedaPubblicazione::META_PATRIMONIALE === $chiave ? false : $esito;
+			},
+			10,
+			3
+		);
+
+		$esito = SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31' ) );
+
+		$this->assertSame( 'scrittura', $esito['codice'] );
+		$this->assertStringContainsString( 'casella dei dati patrimoniali non si è potuta scrivere', $esito['messaggio'] );
+		$this->assertSame( array( '2026-01-31' ), $this->fini( $contenuto ), 'Casella non tolta: la fine non si tocca.' );
 	}
 
 	/**
