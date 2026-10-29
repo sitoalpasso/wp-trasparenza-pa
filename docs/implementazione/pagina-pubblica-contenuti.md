@@ -58,7 +58,7 @@ sotto di loro.
 
 ## 4. Dati letti e scritti
 
-Solo lettura: contenuti pubblicati del tipo `trasparenza_testo`, la loro voce
+Solo lettura, dalla banca dati con interrogazioni che distinguono "nessun contenuto" da "lettura fallita": contenuti pubblicati del tipo `trasparenza_testo`, la loro voce
 (`_trasparenza_pa_collocazione`, una riga sola e ammessa dall'albero in vigore), la fine
 della pubblicazione del componente comune, la data di ultima modifica di WordPress. Niente
 si scrive.
@@ -76,11 +76,12 @@ pubblico.
 | Contenuto senza fine della pubblicazione, con la fine passata, con più fini | non compare |
 | Contenuto senza voce, con più voci, con una voce che l'albero in vigore non ammette | non compare |
 | Albero non disponibile | la pagina non disegna niente, come prima |
+| Lettura fallita dell'elenco dei contenuti, di un contenuto, della sua voce o della sua fine | al posto di contenuti e date compare un avviso di indisponibilità, nella voce e in quelle sopra: una voce non deve sembrare vuota per un guasto |
 | Testo con codice o con codici brevi | il codice si toglie, i codici brevi restano testo |
 
 ## 7. Test
 
-Righe da T-71 in poi di `docs/collaudo.md`, in `tests/PaginaContenutiTest.php`.
+Righe T-71..T-74 di `docs/collaudo.md`, in `tests/PaginaContenutiTest.php`.
 
 ## 8. Cosa deliberatamente NON fa
 
@@ -107,10 +108,12 @@ Righe da T-71 in poi di `docs/collaudo.md`, in `tests/PaginaContenutiTest.php`.
 
 ## Rotture volute, a lavoro finito
 
-Venticinque rotture, una per volta e poi tolte. Ventuno fanno diventare rossa almeno una prova:
-ordine invertito, spareggio invertito, voce non filtrata nell'interrogazione, tipo, stato,
-password e scadenza non ricontrollati sul singolo contenuto, controllo sul singolo non
-chiamato, voce ammessa non ricontrollata, sottovoci non guardate, voci sotto le sottovoci non
+Trentuno rotture, una per volta e poi tolte. Ventisette fanno diventare rossa almeno una
+prova: errore dell'interrogazione ignorato, errore della voce ignorato, errore della fine
+ignorato, contenuto non caricato ignorato, errore mostrato come voce vuota, ordine invertito,
+spareggio invertito, voce non filtrata nell'interrogazione, voci ammesse non considerate, più
+voci accettate, controllo sul singolo contenuto non chiamato, tipo, stato, password e scadenza
+non ricontrollati sul singolo contenuto, sottovoci non guardate, voci sotto le sottovoci non
 guardate, data più vecchia invece della più recente, data della voce senza le voci sotto, data
 anche dove non c'è niente, contenuti delle voci sotto ripetuti, fuso cablato, testo senza
 filtro, codici brevi eseguiti, titolo senza escaping, data del contenuto tolta, contenuti non
@@ -121,8 +124,13 @@ Quattro restano verdi, e sono volute:
 - togliere dall'interrogazione la richiesta dello stato pubblicato o l'esclusione delle
   password non cambia niente, perché il controllo sul singolo contenuto lo ripete: la
   richiesta all'interrogazione serve a non caricare contenuti che poi si scartano;
+- togliere il controllo che la voce letta sia fra quelle chieste non cambia niente, perché
+  l'interrogazione ha già preteso una riga fra quelle voci e il contenuto ne ha una sola;
 - leggere la data di modifica locale invece di quella in UTC dà lo stesso istante, perché
-  WordPress la interpreta nel fuso del sito;
-- sopprimere i filtri dell'interrogazione non cambia niente, perché la scadenza si
-  ricontrolla sul singolo contenuto; i filtri restano attivi per lasciare lavorare il filtro
-  in lettura del componente comune e gli altri componenti del sito.
+  WordPress la interpreta nel fuso del sito.
+
+Limite dichiarato: la scadenza la decide il componente comune, che oggi tratta una propria
+lettura fallita come data assente, cioè contenuto scaduto. Questo componente legge la stessa
+riga subito prima e si ferma se la sua lettura fallisce, ma un guasto che colpisse solo la
+lettura del componente comune nasconderebbe il contenuto senza avviso. Da chiudere nel
+componente comune.

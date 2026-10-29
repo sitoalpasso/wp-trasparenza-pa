@@ -41,7 +41,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-07/20 | da fare | Si esporta uno schema popolato | formato aperto, condizioni di riutilizzo come parametro, nessun PDF da scansione |
 | TRASP-08 | in corso | Dato con obbligo decorrente nell'anno X (righe T-63..T-66 per i contenuti delle voci) | scadenza al 31 dicembre di X+5; casi a cavallo d'anno inclusi |
 | TRASP-09 | da fare | Dato scaduto, cron fermo, tutti i percorsi C-10..C-21 | fuori dalla sezione, non cancellato, in archivio controllato |
-| TRASP-10 | in corso | Ogni sottosezione e ogni voce (righe T-71..T-73 per i contenuti delle voci) | data di ultimo aggiornamento esposta |
+| TRASP-10 | in corso | Ogni sottosezione e ogni voce (righe T-71..T-74 per i contenuti delle voci) | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
 | TRASP-12 | da fare | Si invia una richiesta di accesso civico di prova | modulo raggiungibile, destinatari indicati, richiesta nel registro |
 | TRASP-13 | fatto | Responsabile della trasparenza (righe T-54..T-58) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
@@ -231,7 +231,7 @@ e la verifica della protezione fatta rispondere da un server finto. Scheda:
 | T-69 | fatto | Riquadro senza documenti, con un documento, su un contenuto pubblicato; modulo della schermata; lettura fallita | nonce, campo del file, "Nessun allegato."; nome del file con il collegamento amministrativo del componente comune e la casella per togliere; pubblicato: nessuna casella e l'avviso su come togliere; il modulo porta i file solo sulla schermata dei contenuti; con la lettura fallita il riquadro lo dice |
 | T-70 | fatto | Salvataggio del contenuto con una rimozione e un file non caricato via HTTP; secondo contenuto salvato subito dopo; salvataggio senza riquadro | la rimozione avviene, il file non si deposita e resta dov'era; gli esiti si mostrano una volta, solo a chi ha salvato, solo sulla schermata di quel contenuto, e non si confondono fra contenuti; senza riquadro niente si tocca e nessun esito |
 
-## Contenuti sulla pagina pubblica (righe T-71..T-73)
+## Contenuti sulla pagina pubblica (righe T-71..T-74)
 
 Provano quali contenuti compaiono nella pagina pubblica della sezione, con quali date e con
 quale testo. Scheda: `docs/implementazione/pagina-pubblica-contenuti.md`.
@@ -242,6 +242,7 @@ quale testo. Scheda: `docs/implementazione/pagina-pubblica-contenuti.md`.
 | T-72 | fatto | Contenuti in tre voci con date di ultima modifica diverse, una alle 23:30 in UTC; voce vuota; contenuti nascosti più recenti di quelli visibili | ogni contenuto ha la sua data, la voce la più recente dei suoi, ogni voce sopra e la pagina della sezione la più recente fra quelle sotto, tutte nel fuso del sito (le 23:30 in UTC a Roma sono il giorno dopo); voce senza niente di visibile: nessuna data; i nascosti non spostano la data |
 | T-73 | fatto | [attacco] titolo e testo con codice, gestori di eventi, collegamenti `javascript:` e un codice breve, scritti nella banca dati senza il filtro del salvataggio; un amministratore apre la pagina | il codice si toglie, il testo ammesso resta, il codice breve resta testo e non si esegue; l'amministratore vede esattamente la pagina del pubblico |
 
+| T-74 | fatto | [guasto] lettura fallita dell'elenco dei contenuti, del caricamento di un contenuto, della sua voce o della sua fine; voce davvero vuota | la voce, quelle sopra e la pagina della sezione mostrano l'avviso di indisponibilità al posto di contenuti e date, senza dettagli del guasto; tolto il guasto il contenuto torna; una voce vuota non mostra l'avviso |
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
