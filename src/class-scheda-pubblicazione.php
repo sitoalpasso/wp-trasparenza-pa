@@ -2,7 +2,7 @@
 /**
  * Il riquadro in cui si scrive da quando decorre l'obbligo di pubblicare un contenuto.
  *
- * Righe di collaudo T-64..T-66 e T-81..T-83.
+ * Righe di collaudo T-64..T-66, T-81..T-83 e T-86..T-88.
  *
  * @package TrasparenzaPa
  */
@@ -30,6 +30,11 @@ defined( 'ABSPATH' ) || exit;
  * producono i loro effetti": una seconda data, facoltativa, dice fino a quando
  * l'atto produce effetti, e la fine e la piu lontana delle due. La seconda
  * data prolunga e non accorcia.
+ *
+ * Lo stesso comma fa salvi i termini diversi degli artt. 14, c. 2, e 15,
+ * c. 4: nelle voci che il file dell'albero lega alla cessazione, una terza
+ * data, la cessazione del mandato o dell'incarico, da la fine: tanti anni
+ * dopo quanti ne dice l'albero, al posto della regola generale.
  *
  * Le regole delle altre schermate della sezione: nonce legato al contenuto e
  * permesso di modificarlo; data controllata; un salvataggio alla volta; i dati
@@ -71,6 +76,21 @@ final class SchedaPubblicazione {
 	const CAMPO_EFFETTI_PARTENZA = 'trasparenza_pa_effetti_partenza';
 
 	/**
+	 * Metadato che porta la cessazione del mandato o dell'incarico, AAAA-MM-GG; facoltativo.
+	 */
+	const META_CESSAZIONE = '_trasparenza_pa_cessazione';
+
+	/**
+	 * Campo del modulo con la cessazione scritta.
+	 */
+	const CAMPO_CESSAZIONE = 'trasparenza_pa_cessazione';
+
+	/**
+	 * Campo nascosto con la cessazione mostrata quando il modulo e stato aperto.
+	 */
+	const CAMPO_CESSAZIONE_PARTENZA = 'trasparenza_pa_cessazione_partenza';
+
+	/**
 	 * Campo del nonce.
 	 */
 	const CAMPO_NONCE = 'trasparenza_pa_nonce_pubblicazione';
@@ -95,7 +115,8 @@ final class SchedaPubblicazione {
 	 */
 	public static function aggancia(): void {
 		add_action( 'add_meta_boxes_' . TIPO_CONTENUTO, array( self::class, 'aggiungi_riquadro' ) );
-		add_action( 'save_post_' . TIPO_CONTENUTO, array( self::class, 'da_save_post' ), 10, 2 );
+		// Dopo la voce, che decide se la cessazione e ammessa: nello stesso salvataggio la voce si scrive prima.
+		add_action( 'save_post_' . TIPO_CONTENUTO, array( self::class, 'da_save_post' ), 20, 2 );
 		add_action( 'admin_notices', array( self::class, 'mostra_esito' ) );
 	}
 
@@ -160,6 +181,28 @@ final class SchedaPubblicazione {
 	}
 
 	/**
+	 * La fine della pubblicazione contata dalla cessazione: lo stesso giorno, tanti anni dopo.
+	 *
+	 * Dal 29 febbraio, quando quel giorno manca nel calendario di arrivo, la fine cade il 1 marzo: fra
+	 * le due letture e quella che non accorcia la pubblicazione.
+	 *
+	 * @param string $cessazione Data di cessazione, gia controllata.
+	 * @param int    $anni       Anni dopo la cessazione.
+	 * @return string|null La data AAAA-MM-GG, o nullo se andrebbe oltre il 9999.
+	 */
+	public static function fine_da_cessazione( string $cessazione, int $anni ): ?string {
+		$giorno = DateTimeImmutable::createFromFormat( '!Y-m-d', $cessazione, wp_timezone() );
+
+		if ( false === $giorno ) {
+			return null;
+		}
+
+		$fine = $giorno->modify( '+' . $anni . ' years' );
+
+		return (int) $fine->format( 'Y' ) <= 9999 ? $fine->format( 'Y-m-d' ) : null;
+	}
+
+	/**
 	 * Aggiunge il riquadro alla schermata del contenuto.
 	 */
 	public static function aggiungi_riquadro(): void {
@@ -192,6 +235,12 @@ final class SchedaPubblicazione {
 		$effetti    = get_post_meta( $contenuto->ID, self::META_EFFETTI, false );
 		$e_attuale  = is_array( $effetti ) && 1 === count( $effetti ) && self::data_valida( $effetti[0] ) ? $effetti[0] : '';
 		$e_partenza = is_array( $effetti ) && 1 === count( $effetti ) && is_string( $effetti[0] ) ? $effetti[0] : '';
+		$collocate  = get_post_meta( $contenuto->ID, SchedaContenuto::META_COLLOCAZIONE, false );
+		$regola     = null !== $albero && is_array( $collocate ) && 1 === count( $collocate ) && is_string( $collocate[0] ) ? $albero->cessazione( $collocate[0] ) : null;
+		$cessazioni = get_post_meta( $contenuto->ID, self::META_CESSAZIONE, false );
+		$cessazioni = is_array( $cessazioni ) ? $cessazioni : array();
+		$c_attuale  = 1 === count( $cessazioni ) && self::data_valida( $cessazioni[0] ) ? $cessazioni[0] : '';
+		$c_partenza = 1 === count( $cessazioni ) && is_string( $cessazioni[0] ) ? $cessazioni[0] : '';
 
 		$html  = wp_nonce_field( self::azione_nonce( $contenuto->ID ), self::CAMPO_NONCE, false, false );
 		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA ) . '" value="' . esc_attr( $partenza ) . '">';
@@ -218,6 +267,30 @@ final class SchedaPubblicazione {
 			$html .= '<p>' . esc_html__( 'Il contenuto ha più di una data di fine degli effetti memorizzata. Salvando, resta solo quella scritta, o nessuna; il registro conserva quelle trovate.', 'trasparenza-pa' ) . '</p>';
 		}
 
+		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_CESSAZIONE_PARTENZA ) . '" value="' . esc_attr( $c_partenza ) . '">';
+
+		if ( null !== $regola || array() !== $cessazioni ) {
+			$html .= '<p><label for="trasparenza-pa-cessazione">' . esc_html__( 'Data di cessazione del mandato o dell\'incarico', 'trasparenza-pa' ) . '</label></p>';
+			$html .= '<input type="date" id="trasparenza-pa-cessazione" name="' . esc_attr( self::CAMPO_CESSAZIONE ) . '" value="' . esc_attr( $c_attuale ) . '" class="widefat">';
+
+			if ( null === $regola ) {
+				$html .= '<p>' . esc_html__( 'La voce del contenuto non prevede la data di cessazione: toglierla e salvare, e la fine torna quella della regola generale.', 'trasparenza-pa' ) . '</p>';
+			} else {
+				/* translators: 1: norma che fissa il termine; 2: anni dopo la cessazione. */
+				$html .= '<p>' . esc_html( sprintf( __( 'Per i dati di un titolare di incarico o di un consulente vale l\'%1$s: la pubblicazione dura %2$d anni dopo la cessazione. Se l\'incarico è in corso, scrivere la fine prevista dall\'atto di nomina e aggiornarla se cambia. Senza data vale la regola generale, che per i dati di una persona non basta.', 'trasparenza-pa' ), $regola['nome'], $regola['anni'] ) ) . '</p>';
+
+				if ( '' === $c_attuale ) {
+					$html .= '<p>' . esc_html__( 'Per i dati di una persona serve la data di cessazione.', 'trasparenza-pa' ) . '</p>';
+				}
+			}
+
+			if ( count( $cessazioni ) > 1 ) {
+				$html .= '<p>' . esc_html__( 'Il contenuto ha più di una data di cessazione memorizzata. Salvando, resta solo quella scritta, o nessuna; il registro conserva quelle trovate.', 'trasparenza-pa' ) . '</p>';
+			}
+		} else {
+			$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_CESSAZIONE ) . '" value="">';
+		}
+
 		$fine = conformita_core_fine_pubblicazione( $contenuto->ID );
 		$fine = is_string( $fine ) && '' !== $fine ? $fine : '';
 
@@ -231,7 +304,10 @@ final class SchedaPubblicazione {
 		$legge  = '' !== $attuale && null !== $anni ? self::fine_di_legge( $attuale, $anni ) : null;
 		$attesa = null !== $legge ? self::fine( $attuale, $e_attuale, (int) $anni ) : null;
 
-		if ( null !== $legge && '' !== $e_attuale ) {
+		if ( '' !== $attuale && '' !== $c_attuale && null !== $regola ) {
+			$attesa = self::fine_da_cessazione( $c_attuale, $regola['anni'] );
+			$html  .= '<p>' . esc_html__( 'La fine viene dalla data di cessazione.', 'trasparenza-pa' ) . '</p>';
+		} elseif ( null !== $legge && '' !== $e_attuale ) {
 			$html .= '<p>' . ( $attesa !== $legge
 				? esc_html__( 'La fine viene dalla data degli effetti, oltre la durata di legge.', 'trasparenza-pa' )
 				: esc_html__( 'La data degli effetti non prolunga la pubblicazione: la fine resta quella di legge.', 'trasparenza-pa' ) ) . '</p>';
@@ -304,8 +380,10 @@ final class SchedaPubblicazione {
 		$partenza   = $richiesta[ self::CAMPO_PARTENZA ] ?? null;
 		$effetti    = $richiesta[ self::CAMPO_EFFETTI ] ?? null;
 		$e_partenza = $richiesta[ self::CAMPO_EFFETTI_PARTENZA ] ?? null;
+		$cessazione = $richiesta[ self::CAMPO_CESSAZIONE ] ?? null;
+		$c_partenza = $richiesta[ self::CAMPO_CESSAZIONE_PARTENZA ] ?? null;
 
-		if ( ! is_string( $scelta ) || ! is_string( $partenza ) || ! is_string( $effetti ) || ! is_string( $e_partenza ) ) {
+		if ( ! is_string( $scelta ) || ! is_string( $partenza ) || ! is_string( $effetti ) || ! is_string( $e_partenza ) || ! is_string( $cessazione ) || ! is_string( $c_partenza ) ) {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la richiesta non diceva quali date erano scritte e quali erano mostrate. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
 		}
 
@@ -314,9 +392,9 @@ final class SchedaPubblicazione {
 				return self::esito( 'cancellata', __( 'Data della pubblicazione non cancellata: una volta scritta si può cambiare ma non togliere, e la fine della pubblicazione resta quella registrata.', 'trasparenza-pa' ) );
 			}
 
-			return '' === $effetti
+			return '' === $effetti && '' === $cessazione
 				? self::esito( 'invariato', '' )
-				: self::esito( 'dati', __( 'Data della pubblicazione non salvata: per la fine degli effetti serve la data da cui decorre l\'obbligo, senza la quale non c\'è una fine da prolungare.', 'trasparenza-pa' ) );
+				: self::esito( 'dati', __( 'Data della pubblicazione non salvata: per la fine degli effetti e per la cessazione serve la data da cui decorre l\'obbligo, senza la quale non c\'è una pubblicazione da far finire.', 'trasparenza-pa' ) );
 		}
 
 		if ( ! self::data_valida( $scelta ) ) {
@@ -331,16 +409,28 @@ final class SchedaPubblicazione {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la fine degli effetti viene prima della data da cui decorre l\'obbligo, e un atto non smette di produrre effetti prima che decorra l\'obbligo di pubblicarlo.', 'trasparenza-pa' ) );
 		}
 
+		if ( '' !== $cessazione && ! self::data_valida( $cessazione ) ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la data di cessazione non esiste nel calendario o non è scritta per intero.', 'trasparenza-pa' ) );
+		}
+
+		if ( '' !== $cessazione && strcmp( $cessazione, $scelta ) < 0 ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la data di cessazione viene prima della data da cui decorre l\'obbligo.', 'trasparenza-pa' ) );
+		}
+
+		if ( '' !== $cessazione && '' !== $effetti ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: con la data di cessazione la fine viene dalla regola sui titolari di incarichi e sui consulenti, e la fine degli effetti non si usa. Lasciarne vuota una delle due.', 'trasparenza-pa' ) );
+		}
+
 		$albero = PaginaPubblica::albero();
 		$anni   = null === $albero ? null : $albero->durata_anni();
 
-		if ( null === $anni ) {
+		if ( null === $albero || null === $anni ) {
 			return self::esito( 'albero', __( 'Data della pubblicazione non salvata: l\'albero delle voci in vigore non è disponibile o non dice la durata della pubblicazione, e senza non si può calcolare la fine.', 'trasparenza-pa' ) );
 		}
 
 		$fine = self::fine( $scelta, $effetti, $anni );
 
-		if ( null === $fine ) {
+		if ( null === $fine && '' === $cessazione ) {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la fine della pubblicazione cadrebbe oltre il 9999.', 'trasparenza-pa' ) );
 		}
 
@@ -349,7 +439,20 @@ final class SchedaPubblicazione {
 		}
 
 		try {
-			return self::scrivi( $id, $scelta, $partenza, $effetti, $e_partenza, $fine, $anni );
+			return self::scrivi(
+				$id,
+				$albero,
+				array(
+					'scelta'     => $scelta,
+					'partenza'   => $partenza,
+					'effetti'    => $effetti,
+					'e_partenza' => $e_partenza,
+					'cessazione' => $cessazione,
+					'c_partenza' => $c_partenza,
+				),
+				$fine,
+				$anni
+			);
 		} finally {
 			Blocco::rilascia();
 		}
@@ -369,56 +472,87 @@ final class SchedaPubblicazione {
 	 * stessa data e una fine diversa, per esempio dopo una fine rifiutata o una
 	 * versione nuova dell'albero, il salvataggio riallinea la fine.
 	 *
-	 * La fine degli effetti segue le stesse regole, con una differenza: si puo
-	 * togliere, e con piu righe il riquadro mostrato con la partenza vuota le
-	 * sostituisce con quella scritta, o le toglie tutte.
+	 * La fine degli effetti e la cessazione seguono le stesse regole, con una
+	 * differenza: si possono togliere, e con piu righe il riquadro mostrato con
+	 * la partenza vuota le sostituisce con quella scritta, o le toglie tutte.
 	 *
-	 * @param int    $id         Identificativo del contenuto.
-	 * @param string $scelta     Data scritta, gia controllata.
-	 * @param string $partenza   Data mostrata quando il modulo e stato aperto.
-	 * @param string $effetti    Fine degli effetti scritta, gia controllata, o vuota.
-	 * @param string $e_partenza Fine degli effetti mostrata quando il modulo e stato aperto.
-	 * @param string $fine       Fine calcolata.
-	 * @param int    $anni       Anni di pubblicazione per legge.
+	 * La cessazione e ammessa solo se la voce del contenuto, letta qui sotto
+	 * il blocco, e una di quelle che l'albero lega alla cessazione; allora la
+	 * fine viene dalla cessazione e non dalla regola generale.
+	 *
+	 * @param int                   $id     Identificativo del contenuto.
+	 * @param Alberatura            $albero Albero in vigore.
+	 * @param array<string, string> $date   Date scritte e mostrate, gia controllate: scelta, partenza, effetti, e_partenza, cessazione, c_partenza.
+	 * @param string|null           $fine   Fine per la regola generale, nullo se oltre il 9999.
+	 * @param int                   $anni   Anni di pubblicazione per legge.
 	 * @return array{codice: string, messaggio: string}
 	 */
-	private static function scrivi( int $id, string $scelta, string $partenza, string $effetti, string $e_partenza, string $fine, int $anni ): array {
-		$date      = Metadato::leggi( $id, self::META_DECORRENZA );
-		$fini      = Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() );
-		$memoria_e = Metadato::leggi( $id, self::META_EFFETTI );
+	private static function scrivi( int $id, Alberatura $albero, array $date, ?string $fine, int $anni ): array {
+		$scelta     = $date['scelta'];
+		$effetti    = $date['effetti'];
+		$cessazione = $date['cessazione'];
+		$righe      = Metadato::leggi( $id, self::META_DECORRENZA );
+		$fini       = Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() );
+		$memoria_e  = Metadato::leggi( $id, self::META_EFFETTI );
+		$memoria_c  = Metadato::leggi( $id, self::META_CESSAZIONE );
+		$collocate  = '' === $cessazione ? array() : Metadato::leggi( $id, SchedaContenuto::META_COLLOCAZIONE );
 
-		if ( is_wp_error( $date ) || is_wp_error( $fini ) || is_wp_error( $memoria_e ) ) {
+		if ( is_wp_error( $righe ) || is_wp_error( $fini ) || is_wp_error( $memoria_e ) || is_wp_error( $memoria_c ) || is_wp_error( $collocate ) ) {
 			return self::esito( 'lettura', __( 'Data della pubblicazione non salvata: le date attuali del contenuto non si sono potute leggere dalla banca dati, e senza conoscerle il registro direbbe cambiato quello che non lo è. Riprovare fra qualche minuto.', 'trasparenza-pa' ) );
 		}
 
-		$piu       = count( $date ) > 1;
-		$attuale   = $piu ? '' : ( $date[0] ?? '' );
+		$regola = null;
+
+		if ( '' !== $cessazione ) {
+			$regola = 1 === count( $collocate ) ? $albero->cessazione( (string) $collocate[0] ) : null;
+
+			if ( null === $regola ) {
+				return self::esito( 'voce', __( 'Data della pubblicazione non salvata: la voce del contenuto non prevede la data di cessazione, che vale solo nelle voci dei titolari di incarichi e dei consulenti. Toglierla, oppure scegliere prima la voce giusta e salvare.', 'trasparenza-pa' ) );
+			}
+
+			$fine = self::fine_da_cessazione( $cessazione, $regola['anni'] );
+		}
+
+		if ( null === $fine ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la fine della pubblicazione cadrebbe oltre il 9999.', 'trasparenza-pa' ) );
+		}
+
+		$piu       = count( $righe ) > 1;
+		$attuale   = $piu ? '' : ( $righe[0] ?? '' );
 		$piu_e     = count( $memoria_e ) > 1;
 		$e_attuale = $piu_e ? '' : ( $memoria_e[0] ?? '' );
+		$piu_c     = count( $memoria_c ) > 1;
+		$c_attuale = $piu_c ? '' : ( $memoria_c[0] ?? '' );
 
-		if ( ! $piu && ! $piu_e && $attuale === $scelta && $e_attuale === $effetti && array( $fine ) === $fini ) {
+		if ( ! $piu && ! $piu_e && ! $piu_c && $attuale === $scelta && $e_attuale === $effetti && $c_attuale === $cessazione && array( $fine ) === $fini ) {
 			return self::esito( 'invariato', '' );
 		}
 
-		if ( $attuale !== $partenza || $e_attuale !== $e_partenza ) {
+		if ( $attuale !== $date['partenza'] || $e_attuale !== $date['e_partenza'] || $c_attuale !== $date['c_partenza'] ) {
 			return self::esito( 'conflitto', __( 'Data della pubblicazione non salvata: dopo l\'apertura di questa schermata la data del contenuto è cambiata. Ricaricare la schermata, che mostra la data attuale, e riprovare.', 'trasparenza-pa' ) );
 		}
 
 		$dettagli = array(
-			'prima'         => $attuale,
-			'dopo'          => $scelta,
-			'effetti_prima' => $e_attuale,
-			'effetti_dopo'  => $effetti,
-			'fine_prima'    => array_values( $fini ),
-			'fine_dopo'     => $fine,
+			'prima'            => $attuale,
+			'dopo'             => $scelta,
+			'effetti_prima'    => $e_attuale,
+			'effetti_dopo'     => $effetti,
+			'cessazione_prima' => $c_attuale,
+			'cessazione_dopo'  => $cessazione,
+			'fine_prima'       => array_values( $fini ),
+			'fine_dopo'        => $fine,
 		);
 
 		if ( $piu ) {
-			$dettagli['trovate'] = array_values( $date );
+			$dettagli['trovate'] = array_values( $righe );
 		}
 
 		if ( $piu_e ) {
 			$dettagli['effetti_trovati'] = array_values( $memoria_e );
+		}
+
+		if ( $piu_c ) {
+			$dettagli['cessazione_trovate'] = array_values( $memoria_c );
 		}
 
 		$traccia = conformita_core_registra_voce(
@@ -463,10 +597,29 @@ final class SchedaPubblicazione {
 			return self::esito( 'scrittura', __( 'La data della pubblicazione è salvata, ma la fine degli effetti non si è potuta scrivere o togliere, e la fine della pubblicazione non è stata toccata. Il registro delle modifiche contiene un cambio che non è avvenuto del tutto.', 'trasparenza-pa' ) );
 		}
 
+		if ( $piu_c || ( '' === $cessazione && '' !== $c_attuale ) ) {
+			delete_post_meta( $id, self::META_CESSAZIONE );
+		}
+
+		if ( '' !== $cessazione && ( $piu_c || '' === $c_attuale ) ) {
+			add_post_meta( $id, self::META_CESSAZIONE, $cessazione, true );
+		} elseif ( '' !== $cessazione && $c_attuale !== $cessazione ) {
+			update_post_meta( $id, self::META_CESSAZIONE, $cessazione );
+		}
+
+		if ( Metadato::leggi( $id, self::META_CESSAZIONE ) !== ( '' === $cessazione ? array() : array( $cessazione ) ) ) {
+			return self::esito( 'scrittura', __( 'La data della pubblicazione è salvata, ma la data di cessazione non si è potuta scrivere o togliere, e la fine della pubblicazione non è stata toccata. Il registro delle modifiche contiene un cambio che non è avvenuto del tutto.', 'trasparenza-pa' ) );
+		}
+
 		$scritta = conformita_core_imposta_fine_pubblicazione( $id, $fine );
 
 		if ( is_wp_error( $scritta ) || Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() ) !== array( $fine ) ) {
 			return self::esito( 'fine', __( 'La data della pubblicazione è salvata, ma la fine della pubblicazione non si è potuta scrivere: il riquadro mostra la differenza, e salvando di nuovo si riallinea. Finché il contenuto non ha una fine valida, non compare al pubblico.', 'trasparenza-pa' ) );
+		}
+
+		if ( null !== $regola ) {
+			/* translators: 1: data di fine della pubblicazione; 2: anni dopo la cessazione; 3: norma che fissa il termine. */
+			return self::esito( 'salvato', sprintf( __( 'Data della pubblicazione salvata. Fine della pubblicazione: %1$s, %2$d anni dopo la cessazione secondo l\'%3$s.', 'trasparenza-pa' ), self::leggibile( $fine ), $regola['anni'], $regola['nome'] ) );
 		}
 
 		if ( self::fine_di_legge( $scelta, $anni ) !== $fine ) {

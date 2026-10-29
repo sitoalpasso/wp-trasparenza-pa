@@ -45,17 +45,18 @@ class CessazioneTest extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
+		// Da sola anche quando i tipi sono gia registrati: una prova precedente puo aver azzerato l'avvio.
+		if ( ! Avvio::registrata() ) {
+			\Conformita_Core_Sezioni::azzera();
+			Avvio::azzera();
+			update_option( 'active_plugins', array( plugin_basename( \TrasparenzaPa\FILE_PRINCIPALE ) ) );
+			Avvio::esegui();
+		}
+
 		if ( ! TipoVoce::registrato() || ! TipoContenuto::registrato() ) {
 			\Conformita_Core_Tipi::azzera();
 			TipoVoce::azzera();
 			TipoContenuto::azzera();
-
-			if ( ! Avvio::registrata() ) {
-				\Conformita_Core_Sezioni::azzera();
-				Avvio::azzera();
-				update_option( 'active_plugins', array( plugin_basename( \TrasparenzaPa\FILE_PRINCIPALE ) ) );
-				Avvio::esegui();
-			}
 
 			$this->assertTrue( TipoVoce::registra() );
 			$this->assertTrue( TipoContenuto::registra() );
