@@ -24,8 +24,8 @@ perché contiene dati personali, rimette il contenuto in bozza, toglie il docume
 ripubblica: tre passaggi, tutti nel registro. Ogni aggiunta e ogni rimozione lasciano una
 voce di registro con il nome del file e la sua impronta.
 
-**Come si prova, e come si prova che la prova è vera.** Prove nuove nelle righe da T-67 in
-poi, con file veri depositati dal componente comune e la verifica della protezione fatta
+**Come si prova, e come si prova che la prova è vera.** Nove prove nuove nelle righe
+T-67..T-70, con file veri depositati dal componente comune e la verifica della protezione fatta
 rispondere da un server finto; ogni regola ha una rottura voluta che fa diventare rossa
 almeno una prova, elencata in fondo a lavoro finito.
 
@@ -58,7 +58,7 @@ un documento e salva: il documento e il suo file spariscono, la riga di registro
 |---|---|
 | Allegati del contenuto | gli allegati con il contenuto come padre e la marca di deposito del componente comune, letti dalla banca dati con un'interrogazione che distingue "nessuno" da "lettura fallita" |
 | File | depositato da `conformita_core_deposita_allegato()`; tolto con `wp_delete_attachment()`, file compreso |
-| Registro di core | una riga per ogni aggiunta e ogni rimozione: azione `documento_contenuto`, dettagli con l'operazione, il documento, il nome del file e l'impronta |
+| Registro di core | una riga per ogni aggiunta e ogni rimozione: azione `documento_contenuto`, dettagli con l'operazione (`aggiunto` o `tolto`), l'allegato, il nome del file e l'impronta. Nei sorgenti si dice "allegato" e non "documento", perché `documento` è il nome di un campo degli schemi ANAC e la prova T-32 lo vieta nel codice |
 | Dato temporaneo `trasparenza_pa_esito_documenti_<utente>_<contenuto>` | l'esito, per un minuto, solo sulla schermata di quel contenuto |
 | Blocco della banca dati | lo stesso delle altre schermate |
 
@@ -84,7 +84,7 @@ permesso del tipo.
 
 ## 7. Test
 
-Righe da T-67 in poi di `docs/collaudo.md`, in `tests/DocumentiTest.php`.
+Righe T-67..T-70 di `docs/collaudo.md`, in `tests/DocumentiTest.php`.
 
 ## 8. Cosa deliberatamente NON fa
 
@@ -117,3 +117,25 @@ Righe da T-67 in poi di `docs/collaudo.md`, in `tests/DocumentiTest.php`.
 - Togliere un documento da un contenuto pubblicato richiede di rimetterlo in bozza. Se
   l'ente preferisce un ritiro diretto con motivazione obbligatoria, si aggiunge senza
   cambiare il dato.
+
+## Rotture volute, a lavoro finito
+
+Trentaquattro rotture, una per volta e poi tolte. Trentatré fanno diventare rossa almeno
+una prova: nonce non controllato, nonce non legato al contenuto, permesso non controllato,
+tipo non controllato, permesso tolto dal deposito, permesso tolto dalla rimozione, rimozione
+ammessa su un contenuto pubblicato, appartenenza al contenuto non controllata, marca del
+componente comune non controllata, errore di lettura degli allegati ignorato, stato letto dalla
+memoria, errore di lettura dello stato ignorato, cancellazione prima del registro, controllo
+della cancellazione tolto, lettura fallita del controllo presa per cancellazione avvenuta,
+allegato lasciato quando il registro rifiuta, file lasciato nella rimozione, impronta non
+registrata, blocco tolto dal deposito, blocco tolto dalla rimozione, origine del modulo
+dichiarata come percorso locale, errore di caricamento ignorato, valore non in elenco ammesso,
+numeri senza ancore, doppioni non tolti, casella per togliere su un contenuto pubblicato,
+collegamento amministrativo tolto, modulo con i file su ogni schermata, errore di lettura
+taciuto nel riquadro, esito legato al solo utente, esito mostrato su ogni schermata, esito
+mostrato a ogni richiesta, salvataggio senza controllare che la richiesta venga dal riquadro.
+
+Una resta verde, ed è voluta: cancellare l'allegato appena depositato senza forzare non
+cambia niente in un'installazione normale, perché WordPress cancella comunque gli allegati
+quando il cestino dei media non è attivo. La cancellazione forzata resta, per le
+installazioni che lo attivano.
