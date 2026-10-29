@@ -185,11 +185,56 @@ final class SchedaContenuto {
 			$html .= '<p>' . esc_html__( 'Finché non ha una voce, il contenuto non compare nella sezione, anche se è pubblicato.', 'trasparenza-pa' ) . '</p>';
 		}
 
+		$modulo = null === $attuale ? null : $albero->modulo( $attuale );
+
+		if ( null !== $modulo ) {
+			$html .= self::avviso_modulo( $modulo );
+		}
+
 		if ( is_array( $valori ) && count( $valori ) > 1 ) {
 			$html .= '<p>' . esc_html__( 'Il contenuto ha più di una voce memorizzata. Scegliendo una voce e salvando, resta solo quella; il registro conserva quelle trovate.', 'trasparenza-pa' ) . '</p>';
 		}
 
 		return $html;
+	}
+
+	/**
+	 * L'avviso per una voce coperta da un modulo ANAC.
+	 *
+	 * Scelta del 28 ottobre 2026: il testo libero resta ammesso finché la
+	 * compilazione sul modulo non è obbligatoria, e l'addetto sa che il modulo
+	 * esiste. Oggi la pubblicazione dal modulo non è aperta, e l'avviso dice
+	 * che al pubblico arriva il testo.
+	 *
+	 * @param array{obbligo: string, nome: string} $modulo Modulo che copre la voce.
+	 * @return string
+	 */
+	public static function avviso_modulo( array $modulo ): string {
+		$motore = SchedaVoce::motore();
+
+		if ( is_wp_error( $motore ) ) {
+			/* translators: %s: articolo di legge del modulo. */
+			return '<div class="trasparenza-pa-modulo"><p>' . esc_html( sprintf( __( 'Per i dati dell\'%s questa voce ha un modulo ANAC, ma il catalogo dei moduli non si è potuto leggere.', 'trasparenza-pa' ), $modulo['nome'] ) ) . '</p></div>';
+		}
+
+		$versione = $motore->versione_in_vigore( $modulo['obbligo'] );
+
+		if ( null === $versione ) {
+			/* translators: %s: articolo di legge del modulo. */
+			return '<div class="trasparenza-pa-modulo"><p>' . esc_html( sprintf( __( 'Per i dati dell\'%s ANAC prevede un modulo, ma nessuna sua versione è ancora in vigore: per ora si usa il testo di questo contenuto.', 'trasparenza-pa' ), $modulo['nome'] ) ) . '</p></div>';
+		}
+
+		/* translators: 1: articolo di legge del modulo, 2: versione e data di approvazione. */
+		$html  = '<div class="trasparenza-pa-modulo"><p>' . esc_html( sprintf( __( 'Per i dati dell\'%1$s questa voce ha un modulo ANAC, %2$s.', 'trasparenza-pa' ), $modulo['nome'], (string) $motore->descrivi( $modulo['obbligo'], $versione ) ) ) . '</p>';
+		$html .= '<p>' . esc_html__( 'Oggi i dati compilati sul modulo restano in bozza, perché la pubblicazione dal modulo non è ancora aperta: al pubblico arriva il testo di questo contenuto. Il testo resta ammesso finché la compilazione sul modulo non è obbligatoria; compilare anche il modulo aiuta ad abituarsi allo standard.', 'trasparenza-pa' ) . '</p>';
+
+		$tipo = get_post_type_object( TIPO_VOCE );
+
+		if ( null !== $tipo && current_user_can( $tipo->cap->create_posts ) ) {
+			$html .= '<p><a href="' . esc_url( admin_url( 'post-new.php?post_type=' . TIPO_VOCE ) ) . '">' . esc_html__( 'Compila il modulo', 'trasparenza-pa' ) . '</a></p>';
+		}
+
+		return $html . '</div>';
 	}
 
 	/**

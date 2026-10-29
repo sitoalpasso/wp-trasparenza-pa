@@ -103,7 +103,7 @@ arriva come file di dati versionato e ha prove sue.
 
 ## Albero normativo (righe T-20..T-25)
 
-Provano il file dell'albero in vigore, `dati/alberatura/2026-10-28-2.json`, contro le fonti: Allegato A del d.lgs.
+Provano il file dell'albero in vigore, `dati/alberatura/2026-10-29.json`, contro le fonti: Allegato A del d.lgs.
 33/2013, Allegato 1 della delibera ANAC 1310/2016, art. 23-bis. I nomi attesi sono scritti
 nella prova e non letti dal file, altrimenti la prova confronterebbe il file con se stesso.
 
@@ -243,6 +243,17 @@ quale testo. Scheda: `docs/implementazione/pagina-pubblica-contenuti.md`.
 | T-73 | fatto | [attacco] titolo e testo con codice, gestori di eventi, collegamenti `javascript:` e un codice breve, scritti nella banca dati senza il filtro del salvataggio; un amministratore apre la pagina | il codice si toglie, il testo ammesso resta, il codice breve resta testo e non si esegue; l'amministratore vede esattamente la pagina del pubblico |
 
 | T-74 | fatto | [guasto] lettura fallita dell'elenco dei contenuti, del caricamento di un contenuto, della sua voce o della sua fine; voce davvero vuota | la voce, quelle sopra e la pagina della sezione mostrano l'avviso di indisponibilità al posto di contenuti e date, senza dettagli del guasto; tolto il guasto il contenuto torna; una voce vuota non mostra l'avviso |
+## Voci coperte da un modulo ANAC (righe T-75..T-77)
+
+Provano l'elenco delle voci coperte da un modulo ANAC nel file dell'albero e l'avviso
+all'addetto nel riquadro del contenuto. Scheda: `docs/implementazione/voci-con-modulo.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-75 | fatto | Elenco nell'albero in vigore; versione che lo porta | sette voci, scritte nella prova: tre per l'art. 13, tre per l'art. 31, una per l'art. 4-bis, ciascuna con un riferimento che cita l'articolo del modulo, e ogni modulo ha versioni nel catalogo degli schemi; fonte dichiarata e presente fra le fonti del file; l'elenco arriva con la versione 2026-10-29, ora in vigore, uguale alla 2026-10-28-2 salvo elenco e fonte; la 2026-10-28-2 resta accanto, con l'impronta attesa scritta nella prova, e si legge senza moduli |
+| T-76 | fatto | [attacco] elenchi non validi nel file: non un oggetto, senza nomi, identificativo strano o troppo lungo, modulo non oggetto, senza nome o senza voci, chiave in più, nome vuoto, non testo o troppo lungo, voci vuote o con nomi, voce non testo, inesistente, radice, con sottovoci, ripetuta, in due moduli; nome con spazi ai bordi; elenco vuoto; senza elenco | ogni sbaglio rifiuta il file con `trasparenza_albero_moduli`; il nome si ripulisce; elenco vuoto e file senza elenco si caricano, e nessuna voce ha un modulo |
+| T-77 | fatto | Riquadro di un contenuto collocato in una voce degli artt. 13, 31 e 4-bis; in una voce senza modulo, in una con sottovoci, in nessuna; utente che non può creare voci; catalogo senza versioni per quei moduli; catalogo non leggibile | avviso con il nome del modulo e la versione in vigore detta con la sua data, che i dati del modulo restano in bozza e che al pubblico arriva il testo, e collegamento per compilare il modulo; nessun avviso senza modulo; senza permesso l'avviso c'è e il collegamento no; senza versione in vigore e senza catalogo l'avviso lo dice, senza collegamento |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in

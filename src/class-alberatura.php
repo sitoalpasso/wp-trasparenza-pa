@@ -87,6 +87,13 @@ final class Alberatura {
 	private $durata_anni;
 
 	/**
+	 * Voci coperte da un modulo: voce, identificativo e nome del modulo.
+	 *
+	 * @var array<string, array{obbligo: string, nome: string}>
+	 */
+	private $moduli;
+
+	/**
 	 * Costruito solo da `carica()`, a controlli superati.
 	 *
 	 * @param array<string, array{id: string, nome: string, padre: string|null, riferimento: string}> $voci     Voci.
@@ -95,14 +102,16 @@ final class Alberatura {
 	 * @param array<string, string>                                                                   $diciture Diciture.
 	 * @param array<string, string>                                                                   $collocazioni Collocazioni.
 	 * @param int|null                                                                                $durata_anni  Anni di pubblicazione.
+	 * @param array<string, array{obbligo: string, nome: string}>                                     $moduli       Voci coperte da un modulo.
 	 */
-	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni ) {
+	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni, array $moduli ) {
 		$this->voci         = $voci;
 		$this->radice       = $radice;
 		$this->versione     = $versione;
 		$this->diciture     = $diciture;
 		$this->collocazioni = $collocazioni;
 		$this->durata_anni  = $durata_anni;
+		$this->moduli       = $moduli;
 	}
 
 	/**
@@ -261,7 +270,46 @@ final class Alberatura {
 			$durata_anni = $durata['anni'];
 		}
 
-		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni );
+		/*
+		 * Le voci coperte da un modulo ANAC sono facoltative nel formato, come
+		 * la durata. Ogni modulo ha un nome da mostrare e un elenco di voci
+		 * senza sottovoci, le sole in cui si colloca un contenuto; una voce sta
+		 * in un modulo solo. Un elenco dubbio rende il file illeggibile.
+		 */
+		$moduli = array();
+		$padri  = array_flip( array_filter( array_column( $voci, 'padre' ), 'is_string' ) );
+
+		if ( array_key_exists( 'moduli', $dati ) ) {
+			if ( ! is_array( $dati['moduli'] ) ) {
+				return self::errore_moduli();
+			}
+
+			foreach ( $dati['moduli'] as $obbligo => $modulo ) {
+				if ( ! is_string( $obbligo ) || 1 !== preg_match( '/^[a-z0-9_]{1,80}$/', $obbligo ) || ! is_array( $modulo ) ) {
+					return self::errore_moduli();
+				}
+
+				$chiavi = array_keys( $modulo );
+				sort( $chiavi );
+
+				if ( array( 'nome', 'voci' ) !== $chiavi || ! is_string( $modulo['nome'] ) || '' === trim( $modulo['nome'] ) || strlen( $modulo['nome'] ) > 200 || ! is_array( $modulo['voci'] ) || array() === $modulo['voci'] || ! array_is_list( $modulo['voci'] ) ) {
+					return self::errore_moduli();
+				}
+
+				foreach ( $modulo['voci'] as $voce ) {
+					if ( ! is_string( $voce ) || ! isset( $voci[ $voce ] ) || $voce === $radice || isset( $padri[ $voce ] ) || isset( $moduli[ $voce ] ) ) {
+						return self::errore_moduli();
+					}
+
+					$moduli[ $voce ] = array(
+						'obbligo' => $obbligo,
+						'nome'    => trim( $modulo['nome'] ),
+					);
+				}
+			}
+		}
+
+		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni, $moduli );
 	}
 
 	/**
@@ -374,6 +422,25 @@ final class Alberatura {
 	 */
 	public function durata_anni(): ?int {
 		return $this->durata_anni;
+	}
+
+	/**
+	 * Il modulo ANAC che copre una voce, o nullo se nessuno.
+	 *
+	 * @param string $voce Voce.
+	 * @return array{obbligo: string, nome: string}|null
+	 */
+	public function modulo( string $voce ): ?array {
+		return $this->moduli[ $voce ] ?? null;
+	}
+
+	/**
+	 * Errore dell'elenco delle voci coperte da un modulo.
+	 *
+	 * @return WP_Error
+	 */
+	private static function errore_moduli(): WP_Error {
+		return self::errore( 'trasparenza_albero_moduli', __( 'L\'elenco delle voci coperte da un modulo nel file dell\'albero deve dare a ogni modulo un nome e voci senza sottovoci, ciascuna in un modulo solo.', 'trasparenza-pa' ) );
 	}
 
 	/**
