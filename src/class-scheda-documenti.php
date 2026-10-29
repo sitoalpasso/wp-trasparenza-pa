@@ -297,15 +297,21 @@ final class SchedaDocumenti {
 			$traccia  = self::registra( $id, 'aggiunto', $allegato, $nome );
 
 			if ( is_wp_error( $traccia ) ) {
-				wp_delete_attachment( $allegato, true );
-
 				$motivo = $traccia->get_error_message();
+				$esito  = self::cancella( $allegato );
 
-				return self::esiste( $allegato )
+				if ( 'riga' === $esito ) {
 					/* translators: %s: motivo riportato dal registro. */
-					? self::esito( 'registro', sprintf( __( 'Il registro delle modifiche non ha accettato l\'allegato, e l\'allegato non si è potuto togliere: resta senza traccia nel registro. Toglierlo a mano. Motivo: %s', 'trasparenza-pa' ), $motivo ) )
-					/* translators: %s: motivo riportato dal registro. */
-					: self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta, e un cambio senza traccia nel registro non si fa. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
+					return self::esito( 'registro', sprintf( __( 'Il registro delle modifiche non ha accettato l\'allegato, e l\'allegato non si è potuto togliere: resta senza traccia nel registro. Toglierlo a mano. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
+				}
+
+				if ( 'file' === $esito ) {
+					/* translators: 1: nome del file, 2: motivo riportato dal registro. */
+					return self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta. L\'allegato è tolto dall\'elenco, ma il file %1$s è rimasto nella cartella protetta, dove nessuno lo scarica: va tolto a mano dal server. Motivo: %2$s', 'trasparenza-pa' ), $nome, $motivo ) );
+				}
+
+				/* translators: %s: motivo riportato dal registro. */
+				return self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta, e un cambio senza traccia nel registro non si fa. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
 			}
 
 			/* translators: %s: nome del file. */
@@ -360,10 +366,41 @@ final class SchedaDocumenti {
 				);
 			}
 
-			wp_delete_attachment( $allegato, true );
+			$esito = self::cancella( $allegato );
 
-			if ( self::esiste( $allegato ) ) {
+			if ( 'riga' === $esito ) {
 				return self::esito( 'scrittura', __( 'Non risulta che l\'allegato sia stato tolto: controllare l\'elenco dei documenti. Il registro delle modifiche contiene una rimozione che potrebbe non essere avvenuta.', 'trasparenza-pa' ) );
+			}
+
+			if ( 'file' === $esito ) {
+				/*
+				 * La voce di prima dice "tolto", ed e vero per l'elenco. Il file
+				 * rimasto si annota con una voce che la richiama, cosi il
+				 * registro dice tutto quello che e successo.
+				 */
+				$annotata = conformita_core_registra_voce(
+					array(
+						'sezione'     => SEZIONE,
+						'contenuto'   => $id,
+						'azione'      => self::AZIONE_REGISTRO,
+						'riferimento' => (int) $traccia,
+						'dettagli'    => array(
+							'operazione' => 'file_rimasto',
+							'allegato'   => $allegato,
+							'nome'       => $nome,
+						),
+					)
+				);
+
+				return self::esito(
+					'file',
+					sprintf(
+						/* translators: 1: nome del file, 2: frase sul registro, oppure vuoto. */
+						__( 'L\'allegato è tolto dall\'elenco, ma il file %1$s è rimasto nella cartella protetta, dove nessuno lo scarica: va tolto a mano dal server.%2$s', 'trasparenza-pa' ),
+						$nome,
+						is_wp_error( $annotata ) ? '' : ' ' . __( 'Il registro delle modifiche lo annota.', 'trasparenza-pa' )
+					)
+				);
 			}
 
 			/* translators: %s: nome del file. */
@@ -429,6 +466,30 @@ final class SchedaDocumenti {
 		$stato = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 
 		return '' === $wpdb->last_error && is_string( $stato ) ? $stato : null;
+	}
+
+	/**
+	 * Cancella un allegato con il suo file, e controlla che siano spariti tutti e due.
+	 *
+	 * WordPress puo cancellare la riga e non il file, per esempio con la
+	 * cartella non scrivibile: senza la riga nessuna schermata ritrova piu quel
+	 * file, quindi il percorso si prende prima e il file si controlla dopo.
+	 *
+	 * @param int $allegato Identificativo dell'allegato.
+	 * @return string `tolto`; `riga` se la riga c'e ancora; `file` se la riga e sparita e il file no.
+	 */
+	private static function cancella( int $allegato ): string {
+		$percorso = (string) get_attached_file( $allegato, true );
+
+		wp_delete_attachment( $allegato, true );
+
+		if ( self::esiste( $allegato ) ) {
+			return 'riga';
+		}
+
+		clearstatcache();
+
+		return '' !== $percorso && file_exists( $percorso ) ? 'file' : 'tolto';
 	}
 
 	/**

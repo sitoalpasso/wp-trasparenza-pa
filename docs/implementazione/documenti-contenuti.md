@@ -80,6 +80,7 @@ permesso del tipo.
 | Lettura fallita degli allegati o dello stato del contenuto | niente tolto, niente nel registro |
 | Registro che rifiuta la rimozione | niente tolto |
 | Documento non cancellato dopo la riga di registro | messaggio che dice della rimozione non avvenuta |
+| Riga cancellata e file rimasto sul disco, per esempio con la cartella non scrivibile | il percorso si prende prima di cancellare e il file si controlla dopo: messaggio con il nome del file, mai il percorso, che chiede di toglierlo a mano dal server; nella rimozione, una voce di registro `file_rimasto` che richiama quella della rimozione. Vale anche per l'allegato tolto quando il registro rifiuta l'aggiunta |
 | Altro salvataggio in corso | attesa fino a cinque secondi, poi rinuncia |
 
 ## 7. Test
@@ -120,7 +121,7 @@ Righe T-67..T-70 di `docs/collaudo.md`, in `tests/DocumentiTest.php`.
 
 ## Rotture volute, a lavoro finito
 
-Trentaquattro rotture, una per volta e poi tolte. Trentatré fanno diventare rossa almeno
+Quaranta rotture, una per volta e poi tolte. Trentanove fanno diventare rossa almeno
 una prova: nonce non controllato, nonce non legato al contenuto, permesso non controllato,
 tipo non controllato, permesso tolto dal deposito, permesso tolto dalla rimozione, rimozione
 ammessa su un contenuto pubblicato, appartenenza al contenuto non controllata, marca del
@@ -133,7 +134,9 @@ dichiarata come percorso locale, errore di caricamento ignorato, valore non in e
 numeri senza ancore, doppioni non tolti, casella per togliere su un contenuto pubblicato,
 collegamento amministrativo tolto, modulo con i file su ogni schermata, errore di lettura
 taciuto nel riquadro, esito legato al solo utente, esito mostrato su ogni schermata, esito
-mostrato a ogni richiesta, salvataggio senza controllare che la richiesta venga dal riquadro.
+mostrato a ogni richiesta, salvataggio senza controllare che la richiesta venga dal riquadro, controllo del file sparito tolto,
+percorso preso dopo la cancellazione, file rimasto ignorato nel deposito, file rimasto ignorato
+nella rimozione, voce del file rimasto senza riferimento, voce del file rimasto tolta.
 
 Una resta verde, ed è voluta: cancellare l'allegato appena depositato senza forzare non
 cambia niente in un'installazione normale, perché WordPress cancella comunque gli allegati

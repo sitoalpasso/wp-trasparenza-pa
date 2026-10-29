@@ -72,6 +72,7 @@ class DocumentiTest extends WP_UnitTestCase {
 		$_FILES = array();
 		remove_all_filters( 'query' );
 		remove_all_filters( 'pre_delete_attachment' );
+		remove_all_filters( 'wp_delete_file' );
 		$wpdb->suppress_errors( false );
 		$this->sgancia_server_finto();
 
@@ -182,6 +183,7 @@ class DocumentiTest extends WP_UnitTestCase {
 
 		remove_all_filters( 'query' );
 		remove_all_filters( 'pre_delete_attachment' );
+		remove_all_filters( 'wp_delete_file' );
 		$wpdb->suppress_errors( false );
 	}
 
@@ -312,6 +314,20 @@ class DocumentiTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'Toglierlo a mano', $esito['messaggio'], 'Se il documento non si toglie, l\'esito lo dice.' );
 		$this->assertCount( 1, SchedaDocumenti::documenti( $contenuto ) );
 
+		// La riga si cancella, il file no: l'esito lo dice con il nome del file, mai con il percorso.
+		$rimasto = $this->contenuto();
+
+		$this->registro_che_rifiuta();
+		add_filter( 'wp_delete_file', '__return_empty_string' );
+		$esito = SchedaDocumenti::deposita( $rimasto, $this->file_temporaneo( 'rimasto.pdf' ), 'percorso_locale' );
+		$this->ripara();
+
+		$this->assertSame( 'registro', $esito['codice'] );
+		$this->assertStringContainsString( 'il file rimasto.pdf è rimasto nella cartella protetta', $esito['messaggio'] );
+		$this->assertStringNotContainsString( \Conformita_Core_Allegati::cartella(), $esito['messaggio'] );
+		$this->assertSame( array(), SchedaDocumenti::documenti( $rimasto ) );
+		$this->assertCount( 2, $this->documenti_sul_disco(), 'Il file e rimasto davvero, accanto a quello dell\'allegato non tolto.' );
+
 		list( $host, $porta, $socket ) = $wpdb->parse_db_host( DB_HOST );
 
 		$altra = mysqli_init(); // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_init -- serve una seconda connessione, che $wpdb non offre.
@@ -423,7 +439,38 @@ class DocumentiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * T-68: guasti: letture fallite, registro che rifiuta, documento non cancellato.
+	 * T-68: la riga si cancella e il file no: esito proprio con il nome del file, voce di registro che richiama la rimozione.
+	 */
+	public function test_t68_file_rimasto(): void {
+		$contenuto = $this->contenuto();
+		$allegato  = $this->deposita( $contenuto, 'dati-personali.pdf' );
+
+		add_filter( 'wp_delete_file', '__return_empty_string' );
+		$esito = SchedaDocumenti::togli( $contenuto, $allegato );
+		$this->ripara();
+
+		$this->assertSame( 'file', $esito['codice'] );
+		$this->assertStringContainsString( 'il file dati-personali.pdf è rimasto nella cartella protetta', $esito['messaggio'] );
+		$this->assertStringContainsString( 'Il registro delle modifiche lo annota.', $esito['messaggio'] );
+		$this->assertStringNotContainsString( \Conformita_Core_Allegati::cartella(), $esito['messaggio'] );
+		$this->assertSame( array(), SchedaDocumenti::documenti( $contenuto ) );
+		$this->assertCount( 1, $this->documenti_sul_disco() );
+
+		$tracce = array();
+
+		foreach ( $this->tracce( $contenuto ) as $voce ) {
+			$tracce[ $voce['dettagli']['operazione'] ] = $voce;
+		}
+
+		ksort( $tracce );
+
+		$this->assertSame( array( 'aggiunto', 'file_rimasto', 'tolto' ), array_keys( $tracce ) );
+		$this->assertSame( $tracce['tolto']['id'], $tracce['file_rimasto']['riferimento'], 'La voce del file rimasto richiama quella della rimozione.' );
+		$this->assertSame( 'dati-personali.pdf', $tracce['file_rimasto']['dettagli']['nome'] );
+	}
+
+	/**
+	 * T-68: guasti: letture fallite, registro che rifiuta, allegato non cancellato.
 	 */
 	public function test_t68_guasti(): void {
 		$contenuto = $this->contenuto();
