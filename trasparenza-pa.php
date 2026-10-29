@@ -45,7 +45,7 @@ const PHP_MINIMO = '8.1';
  * comune e non la sua versione, perche accetta slug e non vincoli di versione:
  * il vincolo di versione vive qui e si verifica a ogni avvio.
  */
-const CORE_API_RICHIESTA = '1.7.0';
+const CORE_API_RICHIESTA = '1.10.0';
 
 /**
  * Nome visibile del componente, come compare negli avvisi della bacheca.

@@ -58,9 +58,11 @@ final class TipoContenuto {
 		$esito = conformita_core_registra_tipo(
 			TIPO_CONTENUTO,
 			array(
-				'sezione'      => SEZIONE,
-				'show_in_rest' => false,
-				'argomenti'    => self::argomenti(),
+				'sezione'                     => SEZIONE,
+				'show_in_rest'                => false,
+				'argomenti'                   => self::argomenti(),
+				// I contenuti non hanno pagina propria: i loro file seguono la pagina della sezione, se il contenuto vi compare.
+				'allegati_seguono_la_sezione' => array( ContenutiPubblici::class, 'allegato_consegnabile' ),
 			)
 		);
 

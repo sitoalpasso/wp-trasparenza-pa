@@ -137,7 +137,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | ID | Stato | In una riga | Fonte principale |
 |---|---|---|---|
 | TRASP-01 | da fare | Denominazione esatta e link in home | d.lgs. 33/2013 art. 9 |
-| TRASP-02 | da fare | Accesso senza autenticazione | art. 9 |
+| TRASP-02 | in corso | Accesso senza autenticazione | art. 9 |
 | TRASP-03 | da fare | Indicizzazione consentita e non ostacolata | art. 9 |
 | TRASP-04 | fatto | Albero conforme all'Allegato A | Allegato A, delibera ANAC 1310/2016, d.lgs. 103/2024 |
 | TRASP-05 | in corso | Schemi obbligatori per artt. 4-bis, 13, 31 | art. 48, delibere ANAC 495/2024 e 481/2025 |
