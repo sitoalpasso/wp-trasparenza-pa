@@ -94,9 +94,9 @@ final class Alberatura {
 	private $moduli;
 
 	/**
-	 * Voci la cui pubblicazione si conta dalla cessazione: voce, regola, nome e anni.
+	 * Voci la cui pubblicazione si conta dalla cessazione: voce, regola, nome, anni e anni dei dati patrimoniali.
 	 *
-	 * @var array<string, array{regola: string, nome: string, anni: int}>
+	 * @var array<string, array{regola: string, nome: string, anni: int, patrimoniali: int|null}>
 	 */
 	private $cessazione;
 
@@ -110,7 +110,7 @@ final class Alberatura {
 	 * @param array<string, string>                                                                   $collocazioni Collocazioni.
 	 * @param int|null                                                                                $durata_anni  Anni di pubblicazione.
 	 * @param array<string, array{obbligo: string, nome: string}>                                     $moduli       Voci coperte da un modulo.
-	 * @param array<string, array{regola: string, nome: string, anni: int}>                           $cessazione   Voci legate alla cessazione.
+	 * @param array<string, array{regola: string, nome: string, anni: int, patrimoniali: int|null}>   $cessazione   Voci legate alla cessazione.
 	 */
 	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni, array $moduli, array $cessazione ) {
 		$this->voci         = $voci;
@@ -322,7 +322,9 @@ final class Alberatura {
 		 * Le voci legate alla cessazione sono facoltative nel formato, come i
 		 * moduli. Ogni regola dice per quanti anni dopo la cessazione si
 		 * pubblica, con un nome da mostrare e la fonte fra le fonti del file,
-		 * perche il termine lo fissa la norma. Le voci sono senza sottovoci, e
+		 * perche il termine lo fissa la norma. Una regola puo dire anche un
+		 * termine piu breve per i dati patrimoniali, da zero anni dopo la
+		 * cessazione agli anni della regola. Le voci sono senza sottovoci, e
 		 * ciascuna sta in una regola sola. Un elenco dubbio rende il file
 		 * illeggibile: un termine sbagliato nasconderebbe o lascerebbe pubblici
 		 * i dati delle persone.
@@ -343,7 +345,9 @@ final class Alberatura {
 				$chiavi = array_keys( $termine );
 				sort( $chiavi );
 
-				if ( array( 'anni', 'fonte', 'nome', 'voci' ) !== $chiavi || ! is_string( $termine['nome'] ) || '' === trim( $termine['nome'] ) || strlen( $termine['nome'] ) > 200 || ! is_int( $termine['anni'] ) || $termine['anni'] < 1 || ! is_string( $termine['fonte'] ) || ! in_array( $termine['fonte'], $fonti, true ) || ! is_array( $termine['voci'] ) || array() === $termine['voci'] || ! array_is_list( $termine['voci'] ) ) {
+				$patrimoniali = $termine['anni_patrimoniali'] ?? null;
+
+				if ( ( array( 'anni', 'fonte', 'nome', 'voci' ) !== $chiavi && array( 'anni', 'anni_patrimoniali', 'fonte', 'nome', 'voci' ) !== $chiavi ) || ( in_array( 'anni_patrimoniali', $chiavi, true ) && ( ! is_int( $patrimoniali ) || $patrimoniali < 0 || ! is_int( $termine['anni'] ) || $patrimoniali > $termine['anni'] ) ) || ! is_string( $termine['nome'] ) || '' === trim( $termine['nome'] ) || strlen( $termine['nome'] ) > 200 || ! is_int( $termine['anni'] ) || $termine['anni'] < 1 || ! is_string( $termine['fonte'] ) || ! in_array( $termine['fonte'], $fonti, true ) || ! is_array( $termine['voci'] ) || array() === $termine['voci'] || ! array_is_list( $termine['voci'] ) ) {
 					return self::errore_cessazione();
 				}
 
@@ -353,9 +357,10 @@ final class Alberatura {
 					}
 
 					$cessazione[ $voce ] = array(
-						'regola' => $regola,
-						'nome'   => trim( $termine['nome'] ),
-						'anni'   => $termine['anni'],
+						'regola'       => $regola,
+						'nome'         => trim( $termine['nome'] ),
+						'anni'         => $termine['anni'],
+						'patrimoniali' => $patrimoniali,
 					);
 				}
 			}
@@ -490,7 +495,7 @@ final class Alberatura {
 	 * La regola che conta la pubblicazione di una voce dalla cessazione, o nullo se nessuna.
 	 *
 	 * @param string $voce Voce.
-	 * @return array{regola: string, nome: string, anni: int}|null
+	 * @return array{regola: string, nome: string, anni: int, patrimoniali: int|null}|null
 	 */
 	public function cessazione( string $voce ): ?array {
 		return $this->cessazione[ $voce ] ?? null;
@@ -502,7 +507,7 @@ final class Alberatura {
 	 * @return WP_Error
 	 */
 	private static function errore_cessazione(): WP_Error {
-		return self::errore( 'trasparenza_albero_cessazione', __( 'L\'elenco delle voci legate alla cessazione nel file dell\'albero deve dare a ogni regola un nome, un numero intero di anni da uno in su, una fonte fra le fonti del file e voci senza sottovoci, ciascuna in una regola sola.', 'trasparenza-pa' ) );
+		return self::errore( 'trasparenza_albero_cessazione', __( 'L\'elenco delle voci legate alla cessazione nel file dell\'albero deve dare a ogni regola un nome, un numero intero di anni da uno in su, una fonte fra le fonti del file e voci senza sottovoci, ciascuna in una regola sola; per i dati patrimoniali, se c\'è, un numero intero di anni da zero a quelli della regola.', 'trasparenza-pa' ) );
 	}
 
 	/**

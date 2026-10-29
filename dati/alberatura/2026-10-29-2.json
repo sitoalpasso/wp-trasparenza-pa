@@ -38,6 +38,7 @@
 		"art_14_c_2": {
 			"nome": "art. 14, c. 2, del d.lgs. 33/2013",
 			"anni": 3,
+			"anni_patrimoniali": 0,
 			"fonte": "dlgs_33_2013_art_14",
 			"voci": ["organi_di_indirizzo_politico_amministativo", "incarichi_amministrativi_di_vertice", "titolari_incarichi_dirigenziali_non_generali", "dirigenti_cessati", "posizioni_organizzative"]
 		},
@@ -104,7 +105,7 @@
 			"titolo": "d.lgs. 14 marzo 2013, n. 33, art. 14, c. 2, testo in vigore dal 28 febbraio 2019",
 			"url": "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2013-03-14;33~art14",
 			"consultata": "2026-10-29",
-			"uso": "voci legate alla cessazione: i dati dei commi 1 e 1-bis si pubblicano per i tre anni successivi alla cessazione del mandato o dell'incarico; voci senza sottovoci il cui riferimento, trascritto da anac_1310_2016_all_1, cita l'art. 14"
+			"uso": "voci legate alla cessazione: i dati dei commi 1 e 1-bis si pubblicano per i tre anni successivi alla cessazione del mandato o dell'incarico, salve le informazioni sulla situazione patrimoniale e, ove consentite, le dichiarazioni del coniuge non separato e dei parenti entro il secondo grado, pubblicate fino alla cessazione; voci senza sottovoci il cui riferimento, trascritto da anac_1310_2016_all_1, cita l'art. 14"
 		},
 		{
 			"chiave": "dlgs_33_2013_art_15",

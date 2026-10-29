@@ -34,7 +34,10 @@ defined( 'ABSPATH' ) || exit;
  * Lo stesso comma fa salvi i termini diversi degli artt. 14, c. 2, e 15,
  * c. 4: nelle voci che il file dell'albero lega alla cessazione, una terza
  * data, la cessazione del mandato o dell'incarico, da la fine: tanti anni
- * dopo quanti ne dice l'albero, al posto della regola generale.
+ * dopo quanti ne dice l'albero, al posto della regola generale. Una casella
+ * dichiara i contenuti con i dati patrimoniali, che l'art. 14, c. 2, vuole
+ * pubblicati solo fino alla cessazione: per loro vale il termine dei dati
+ * patrimoniali della regola, anch'esso nel file dell'albero.
  *
  * Le regole delle altre schermate della sezione: nonce legato al contenuto e
  * permesso di modificarlo; data controllata; un salvataggio alla volta; i dati
@@ -89,6 +92,21 @@ final class SchedaPubblicazione {
 	 * Campo nascosto con la cessazione mostrata quando il modulo e stato aperto.
 	 */
 	const CAMPO_CESSAZIONE_PARTENZA = 'trasparenza_pa_cessazione_partenza';
+
+	/**
+	 * Metadato che dice che il contenuto porta i dati patrimoniali: `1`, o assente.
+	 */
+	const META_PATRIMONIALE = '_trasparenza_pa_patrimoniale';
+
+	/**
+	 * Casella del modulo per i dati patrimoniali; non spuntata, non arriva.
+	 */
+	const CAMPO_PATRIMONIALE = 'trasparenza_pa_patrimoniale';
+
+	/**
+	 * Campo nascosto con la casella mostrata quando il modulo e stato aperto.
+	 */
+	const CAMPO_PATRIMONIALE_PARTENZA = 'trasparenza_pa_patrimoniale_partenza';
 
 	/**
 	 * Campo del nonce.
@@ -241,6 +259,9 @@ final class SchedaPubblicazione {
 		$cessazioni = is_array( $cessazioni ) ? $cessazioni : array();
 		$c_attuale  = 1 === count( $cessazioni ) && self::data_valida( $cessazioni[0] ) ? $cessazioni[0] : '';
 		$c_partenza = 1 === count( $cessazioni ) && is_string( $cessazioni[0] ) ? $cessazioni[0] : '';
+		$caselle    = get_post_meta( $contenuto->ID, self::META_PATRIMONIALE, false );
+		$p_attuale  = array( '1' ) === $caselle ? '1' : '';
+		$p_termine  = null === $regola ? null : $regola['patrimoniali'];
 
 		$html  = wp_nonce_field( self::azione_nonce( $contenuto->ID ), self::CAMPO_NONCE, false, false );
 		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA ) . '" value="' . esc_attr( $partenza ) . '">';
@@ -291,6 +312,21 @@ final class SchedaPubblicazione {
 			$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_CESSAZIONE ) . '" value="">';
 		}
 
+		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PATRIMONIALE_PARTENZA ) . '" value="' . esc_attr( $p_attuale ) . '">';
+
+		if ( null !== $p_termine || ( is_array( $caselle ) && array() !== $caselle ) ) {
+			$html .= '<p><label><input type="checkbox" id="trasparenza-pa-patrimoniale" name="' . esc_attr( self::CAMPO_PATRIMONIALE ) . '" value="1"' . ( '1' === $p_attuale ? ' checked' : '' ) . '> ' . esc_html__( 'Il contenuto porta la situazione patrimoniale o le dichiarazioni di coniuge e parenti', 'trasparenza-pa' ) . '</label></p>';
+
+			if ( null === $p_termine ) {
+				$html .= '<p>' . esc_html__( 'La voce del contenuto non prevede un termine per i dati patrimoniali: togliere la spunta e salvare.', 'trasparenza-pa' ) . '</p>';
+			} elseif ( 0 === $p_termine ) {
+				$html .= '<p>' . esc_html__( 'Questi dati si pubblicano solo fino alla cessazione: con la casella spuntata la fine è il giorno della cessazione, e la data di cessazione diventa obbligatoria. Vanno in un contenuto loro, separato dal resto dei dati del titolare.', 'trasparenza-pa' ) . '</p>';
+			} else {
+				/* translators: %d: anni dopo la cessazione. */
+				$html .= '<p>' . esc_html( sprintf( __( 'Questi dati si pubblicano per %d anni dopo la cessazione: con la casella spuntata la data di cessazione diventa obbligatoria. Vanno in un contenuto loro, separato dal resto dei dati del titolare.', 'trasparenza-pa' ), $p_termine ) ) . '</p>';
+			}
+		}
+
 		$fine = conformita_core_fine_pubblicazione( $contenuto->ID );
 		$fine = is_string( $fine ) && '' !== $fine ? $fine : '';
 
@@ -305,7 +341,7 @@ final class SchedaPubblicazione {
 		$attesa = null !== $legge ? self::fine( $attuale, $e_attuale, (int) $anni ) : null;
 
 		if ( '' !== $attuale && '' !== $c_attuale && null !== $regola ) {
-			$attesa = self::fine_da_cessazione( $c_attuale, $regola['anni'] );
+			$attesa = self::fine_da_cessazione( $c_attuale, '1' === $p_attuale && null !== $p_termine ? $p_termine : $regola['anni'] );
 			$html  .= '<p>' . esc_html__( 'La fine viene dalla data di cessazione.', 'trasparenza-pa' ) . '</p>';
 		} elseif ( null !== $legge && '' !== $e_attuale ) {
 			$html .= '<p>' . ( $attesa !== $legge
@@ -382,9 +418,17 @@ final class SchedaPubblicazione {
 		$e_partenza = $richiesta[ self::CAMPO_EFFETTI_PARTENZA ] ?? null;
 		$cessazione = $richiesta[ self::CAMPO_CESSAZIONE ] ?? null;
 		$c_partenza = $richiesta[ self::CAMPO_CESSAZIONE_PARTENZA ] ?? null;
+		$p_partenza = $richiesta[ self::CAMPO_PATRIMONIALE_PARTENZA ] ?? null;
 
-		if ( ! is_string( $scelta ) || ! is_string( $partenza ) || ! is_string( $effetti ) || ! is_string( $e_partenza ) || ! is_string( $cessazione ) || ! is_string( $c_partenza ) ) {
+		if ( ! is_string( $scelta ) || ! is_string( $partenza ) || ! is_string( $effetti ) || ! is_string( $e_partenza ) || ! is_string( $cessazione ) || ! is_string( $c_partenza ) || ! is_string( $p_partenza ) ) {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la richiesta non diceva quali date erano scritte e quali erano mostrate. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
+		}
+
+		// Una casella non spuntata non arriva: assente vale vuota, e ogni altro valore si rifiuta.
+		$patrimoniale = $richiesta[ self::CAMPO_PATRIMONIALE ] ?? '';
+
+		if ( '' !== $patrimoniale && '1' !== $patrimoniale ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la casella dei dati patrimoniali ha un valore che il riquadro non manda. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
 		}
 
 		if ( '' === $scelta ) {
@@ -392,7 +436,7 @@ final class SchedaPubblicazione {
 				return self::esito( 'cancellata', __( 'Data della pubblicazione non cancellata: una volta scritta si può cambiare ma non togliere, e la fine della pubblicazione resta quella registrata.', 'trasparenza-pa' ) );
 			}
 
-			return '' === $effetti && '' === $cessazione
+			return '' === $effetti && '' === $cessazione && '' === $patrimoniale
 				? self::esito( 'invariato', '' )
 				: self::esito( 'dati', __( 'Data della pubblicazione non salvata: per la fine degli effetti e per la cessazione serve la data da cui decorre l\'obbligo, senza la quale non c\'è una pubblicazione da far finire.', 'trasparenza-pa' ) );
 		}
@@ -415,6 +459,10 @@ final class SchedaPubblicazione {
 
 		if ( '' !== $cessazione && strcmp( $cessazione, $scelta ) < 0 ) {
 			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: la data di cessazione viene prima della data da cui decorre l\'obbligo.', 'trasparenza-pa' ) );
+		}
+
+		if ( '1' === $patrimoniale && '' === $cessazione ) {
+			return self::esito( 'dati', __( 'Data della pubblicazione non salvata: per i dati patrimoniali serve la data di cessazione, anche prevista, perché la loro pubblicazione finisce con la cessazione e la regola generale li lascerebbe pubblici più a lungo.', 'trasparenza-pa' ) );
 		}
 
 		if ( '' !== $cessazione && '' !== $effetti ) {
@@ -443,12 +491,14 @@ final class SchedaPubblicazione {
 				$id,
 				$albero,
 				array(
-					'scelta'     => $scelta,
-					'partenza'   => $partenza,
-					'effetti'    => $effetti,
-					'e_partenza' => $e_partenza,
-					'cessazione' => $cessazione,
-					'c_partenza' => $c_partenza,
+					'scelta'       => $scelta,
+					'partenza'     => $partenza,
+					'effetti'      => $effetti,
+					'e_partenza'   => $e_partenza,
+					'cessazione'   => $cessazione,
+					'c_partenza'   => $c_partenza,
+					'patrimoniale' => $patrimoniale,
+					'p_partenza'   => $p_partenza,
 				),
 				$fine,
 				$anni
@@ -482,7 +532,7 @@ final class SchedaPubblicazione {
 	 *
 	 * @param int                   $id     Identificativo del contenuto.
 	 * @param Alberatura            $albero Albero in vigore.
-	 * @param array<string, string> $date   Date scritte e mostrate, gia controllate: scelta, partenza, effetti, e_partenza, cessazione, c_partenza.
+	 * @param array<string, string> $date   Date scritte e mostrate, gia controllate: scelta, partenza, effetti, e_partenza, cessazione, c_partenza, patrimoniale, p_partenza.
 	 * @param string|null           $fine   Fine per la regola generale, nullo se oltre il 9999.
 	 * @param int                   $anni   Anni di pubblicazione per legge.
 	 * @return array{codice: string, messaggio: string}
@@ -491,13 +541,15 @@ final class SchedaPubblicazione {
 		$scelta     = $date['scelta'];
 		$effetti    = $date['effetti'];
 		$cessazione = $date['cessazione'];
+		$patrimonio = $date['patrimoniale'];
 		$righe      = Metadato::leggi( $id, self::META_DECORRENZA );
 		$fini       = Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() );
 		$memoria_e  = Metadato::leggi( $id, self::META_EFFETTI );
 		$memoria_c  = Metadato::leggi( $id, self::META_CESSAZIONE );
+		$memoria_p  = Metadato::leggi( $id, self::META_PATRIMONIALE );
 		$collocate  = '' === $cessazione ? array() : Metadato::leggi( $id, SchedaContenuto::META_COLLOCAZIONE );
 
-		if ( is_wp_error( $righe ) || is_wp_error( $fini ) || is_wp_error( $memoria_e ) || is_wp_error( $memoria_c ) || is_wp_error( $collocate ) ) {
+		if ( is_wp_error( $righe ) || is_wp_error( $fini ) || is_wp_error( $memoria_e ) || is_wp_error( $memoria_c ) || is_wp_error( $memoria_p ) || is_wp_error( $collocate ) ) {
 			return self::esito( 'lettura', __( 'Data della pubblicazione non salvata: le date attuali del contenuto non si sono potute leggere dalla banca dati, e senza conoscerle il registro direbbe cambiato quello che non lo è. Riprovare fra qualche minuto.', 'trasparenza-pa' ) );
 		}
 
@@ -510,7 +562,11 @@ final class SchedaPubblicazione {
 				return self::esito( 'voce', __( 'Data della pubblicazione non salvata: la voce del contenuto non prevede la data di cessazione, che vale solo nelle voci dei titolari di incarichi e dei consulenti. Toglierla, oppure scegliere prima la voce giusta e salvare.', 'trasparenza-pa' ) );
 			}
 
-			$fine = self::fine_da_cessazione( $cessazione, $regola['anni'] );
+			if ( '1' === $patrimonio && null === $regola['patrimoniali'] ) {
+				return self::esito( 'voce', __( 'Data della pubblicazione non salvata: la voce del contenuto non prevede un termine per i dati patrimoniali. Togliere la spunta.', 'trasparenza-pa' ) );
+			}
+
+			$fine = self::fine_da_cessazione( $cessazione, '1' === $patrimonio ? (int) $regola['patrimoniali'] : $regola['anni'] );
 		}
 
 		if ( null === $fine ) {
@@ -523,24 +579,28 @@ final class SchedaPubblicazione {
 		$e_attuale = $piu_e ? '' : ( $memoria_e[0] ?? '' );
 		$piu_c     = count( $memoria_c ) > 1;
 		$c_attuale = $piu_c ? '' : ( $memoria_c[0] ?? '' );
+		$p_attuale = array( '1' ) === $memoria_p ? '1' : '';
+		$strana_p  = array() !== $memoria_p && array( '1' ) !== $memoria_p;
 
-		if ( ! $piu && ! $piu_e && ! $piu_c && $attuale === $scelta && $e_attuale === $effetti && $c_attuale === $cessazione && array( $fine ) === $fini ) {
+		if ( ! $piu && ! $piu_e && ! $piu_c && ! $strana_p && $attuale === $scelta && $e_attuale === $effetti && $c_attuale === $cessazione && $p_attuale === $patrimonio && array( $fine ) === $fini ) {
 			return self::esito( 'invariato', '' );
 		}
 
-		if ( $attuale !== $date['partenza'] || $e_attuale !== $date['e_partenza'] || $c_attuale !== $date['c_partenza'] ) {
+		if ( $attuale !== $date['partenza'] || $e_attuale !== $date['e_partenza'] || $c_attuale !== $date['c_partenza'] || $p_attuale !== $date['p_partenza'] ) {
 			return self::esito( 'conflitto', __( 'Data della pubblicazione non salvata: dopo l\'apertura di questa schermata la data del contenuto è cambiata. Ricaricare la schermata, che mostra la data attuale, e riprovare.', 'trasparenza-pa' ) );
 		}
 
 		$dettagli = array(
-			'prima'            => $attuale,
-			'dopo'             => $scelta,
-			'effetti_prima'    => $e_attuale,
-			'effetti_dopo'     => $effetti,
-			'cessazione_prima' => $c_attuale,
-			'cessazione_dopo'  => $cessazione,
-			'fine_prima'       => array_values( $fini ),
-			'fine_dopo'        => $fine,
+			'prima'              => $attuale,
+			'dopo'               => $scelta,
+			'effetti_prima'      => $e_attuale,
+			'effetti_dopo'       => $effetti,
+			'cessazione_prima'   => $c_attuale,
+			'cessazione_dopo'    => $cessazione,
+			'patrimoniale_prima' => $p_attuale,
+			'patrimoniale_dopo'  => $patrimonio,
+			'fine_prima'         => array_values( $fini ),
+			'fine_dopo'          => $fine,
 		);
 
 		if ( $piu ) {
@@ -553,6 +613,10 @@ final class SchedaPubblicazione {
 
 		if ( $piu_c ) {
 			$dettagli['cessazione_trovate'] = array_values( $memoria_c );
+		}
+
+		if ( $strana_p ) {
+			$dettagli['patrimoniale_trovati'] = array_values( $memoria_p );
 		}
 
 		$traccia = conformita_core_registra_voce(
@@ -611,10 +675,27 @@ final class SchedaPubblicazione {
 			return self::esito( 'scrittura', __( 'La data della pubblicazione è salvata, ma la data di cessazione non si è potuta scrivere o togliere, e la fine della pubblicazione non è stata toccata. Il registro delle modifiche contiene un cambio che non è avvenuto del tutto.', 'trasparenza-pa' ) );
 		}
 
+		if ( $strana_p || $p_attuale !== $patrimonio ) {
+			delete_post_meta( $id, self::META_PATRIMONIALE );
+
+			if ( '1' === $patrimonio ) {
+				add_post_meta( $id, self::META_PATRIMONIALE, '1', true );
+			}
+		}
+
+		if ( Metadato::leggi( $id, self::META_PATRIMONIALE ) !== ( '1' === $patrimonio ? array( '1' ) : array() ) ) {
+			return self::esito( 'scrittura', __( 'La data della pubblicazione è salvata, ma la casella dei dati patrimoniali non si è potuta scrivere o togliere, e la fine della pubblicazione non è stata toccata. Il registro delle modifiche contiene un cambio che non è avvenuto del tutto.', 'trasparenza-pa' ) );
+		}
+
 		$scritta = conformita_core_imposta_fine_pubblicazione( $id, $fine );
 
 		if ( is_wp_error( $scritta ) || Metadato::leggi( $id, conformita_core_chiave_fine_pubblicazione() ) !== array( $fine ) ) {
 			return self::esito( 'fine', __( 'La data della pubblicazione è salvata, ma la fine della pubblicazione non si è potuta scrivere: il riquadro mostra la differenza, e salvando di nuovo si riallinea. Finché il contenuto non ha una fine valida, non compare al pubblico.', 'trasparenza-pa' ) );
+		}
+
+		if ( null !== $regola && '1' === $patrimonio ) {
+			/* translators: 1: data di fine della pubblicazione; 2: norma che fissa il termine. */
+			return self::esito( 'salvato', sprintf( __( 'Data della pubblicazione salvata. Fine della pubblicazione: %1$s, il termine dei dati patrimoniali secondo l\'%2$s.', 'trasparenza-pa' ), self::leggibile( $fine ), $regola['nome'] ) );
 		}
 
 		if ( null !== $regola ) {
