@@ -147,11 +147,13 @@ class PubblicazioneTest extends WP_UnitTestCase {
 		$effetti = 1 === count( $effetti ) ? (string) $effetti[0] : '';
 
 		return array(
-			SchedaPubblicazione::CAMPO_NONCE            => wp_create_nonce( SchedaPubblicazione::azione_nonce( $contenuto ) ),
-			SchedaPubblicazione::CAMPO                  => $data,
-			SchedaPubblicazione::CAMPO_PARTENZA         => $partenza ?? ( 1 === count( $valori ) ? (string) $valori[0] : '' ),
-			SchedaPubblicazione::CAMPO_EFFETTI          => $effetti,
-			SchedaPubblicazione::CAMPO_EFFETTI_PARTENZA => $effetti,
+			SchedaPubblicazione::CAMPO_NONCE               => wp_create_nonce( SchedaPubblicazione::azione_nonce( $contenuto ) ),
+			SchedaPubblicazione::CAMPO                     => $data,
+			SchedaPubblicazione::CAMPO_PARTENZA            => $partenza ?? ( 1 === count( $valori ) ? (string) $valori[0] : '' ),
+			SchedaPubblicazione::CAMPO_EFFETTI             => $effetti,
+			SchedaPubblicazione::CAMPO_EFFETTI_PARTENZA    => $effetti,
+			SchedaPubblicazione::CAMPO_CESSAZIONE          => '',
+			SchedaPubblicazione::CAMPO_CESSAZIONE_PARTENZA => '',
 		);
 	}
 
@@ -318,12 +320,14 @@ class PubblicazioneTest extends WP_UnitTestCase {
 		$this->assertCount( 1, $tracce );
 		$this->assertSame(
 			array(
-				'prima'         => '',
-				'dopo'          => '2026-03-10',
-				'effetti_prima' => '',
-				'effetti_dopo'  => '',
-				'fine_prima'    => array(),
-				'fine_dopo'     => '2031-12-31',
+				'prima'            => '',
+				'dopo'             => '2026-03-10',
+				'effetti_prima'    => '',
+				'effetti_dopo'     => '',
+				'cessazione_prima' => '',
+				'cessazione_dopo'  => '',
+				'fine_prima'       => array(),
+				'fine_dopo'        => '2031-12-31',
 			),
 			$tracce[0]['dettagli']
 		);
@@ -341,12 +345,14 @@ class PubblicazioneTest extends WP_UnitTestCase {
 		$dettagli = array_column( $tracce, 'dettagli' );
 		$this->assertContains(
 			array(
-				'prima'         => '2026-03-10',
-				'dopo'          => '2027-01-01',
-				'effetti_prima' => '',
-				'effetti_dopo'  => '',
-				'fine_prima'    => array( '2031-12-31' ),
-				'fine_dopo'     => '2032-12-31',
+				'prima'            => '2026-03-10',
+				'dopo'             => '2027-01-01',
+				'effetti_prima'    => '',
+				'effetti_dopo'     => '',
+				'cessazione_prima' => '',
+				'cessazione_dopo'  => '',
+				'fine_prima'       => array( '2031-12-31' ),
+				'fine_dopo'        => '2032-12-31',
 			),
 			$dettagli
 		);

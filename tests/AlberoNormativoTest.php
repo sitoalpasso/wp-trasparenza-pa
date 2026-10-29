@@ -560,16 +560,15 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Riga T-75: l'elenco e arrivato con la versione 2026-10-29, in vigore, e la 2026-10-28-2 resta com'era.
+	 * Riga T-75: l'elenco e arrivato con la versione 2026-10-29, e la 2026-10-28-2 resta com'era.
 	 */
 	public function test_t75_versione_nuova_accanto_alla_vecchia(): void {
 		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-28-2.json';
 
 		$this->assertSame( '11b6171e28bc0b01cbcc97fc436da45826dbc415723945a0d08ac388202d39c4', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-28-2 non si modifica.' );
-		$this->assertSame( '2026-10-29.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-29.' );
 
 		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
-		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( dirname( FILE_ALBERATURA ) . '/2026-10-29.json' ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
 
 		$this->assertSame( '2026-10-29', $ora['versione'], 'Il nome del file dice la versione.' );
 		$this->assertArrayNotHasKey( 'moduli', $prima );
@@ -636,5 +635,150 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 
 		unset( $dati['moduli'] );
 		$this->assertNull( Alberatura::da_dati( $dati )->modulo( 'articolazione_uffici' ), 'Senza elenco il file si carica, e nessuna voce ha un modulo.' );
+	}
+
+	/**
+	 * Riga T-84: le voci legate alla cessazione stanno nell'albero in vigore, con gli anni e la fonte.
+	 *
+	 * L'elenco atteso e scritto qui e non letto dal file: una voce tolta o
+	 * aggiunta nel file fa diventare rossa la prova.
+	 */
+	public function test_t84_voci_legate_alla_cessazione(): void {
+		$albero   = $this->albero();
+		$attese   = array(
+			'organi_di_indirizzo_politico_amministativo'   => 'art_14_c_2',
+			'incarichi_amministrativi_di_vertice'          => 'art_14_c_2',
+			'titolari_incarichi_dirigenziali_non_generali' => 'art_14_c_2',
+			'dirigenti_cessati'                            => 'art_14_c_2',
+			'posizioni_organizzative'                      => 'art_14_c_2',
+			'titolari_incarichi_collaborazione_consulenza' => 'art_15_c_4',
+		);
+		$articoli = array(
+			'art_14_c_2' => 'Art. 14, ',
+			'art_15_c_4' => 'Art. 15, ',
+		);
+		$trovate  = array();
+
+		foreach ( $albero->identificativi() as $voce ) {
+			$regola = $albero->cessazione( $voce );
+
+			if ( null !== $regola ) {
+				$trovate[ $voce ] = $regola['regola'];
+				$this->assertSame( 3, $regola['anni'], $voce );
+				$this->assertStringContainsString( $articoli[ $regola['regola'] ], (string) $albero->voce( $voce )['riferimento'], 'Il riferimento della voce cita l\'articolo della regola: ' . $voce );
+			}
+		}
+
+		ksort( $attese );
+		ksort( $trovate );
+		$this->assertSame( $attese, $trovate );
+		$this->assertSame( 'art. 14, c. 2, del d.lgs. 33/2013', $albero->cessazione( 'dirigenti_cessati' )['nome'] );
+		$this->assertSame( 'art. 15, c. 4, del d.lgs. 33/2013', $albero->cessazione( 'titolari_incarichi_collaborazione_consulenza' )['nome'] );
+		$this->assertNull( $albero->cessazione( 'bandi_di_concorso' ) );
+
+		$dati  = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$fonti = array_column( $dati['fonti'], null, 'chiave' );
+
+		foreach ( array(
+			'art_14_c_2' => 'dlgs_33_2013_art_14',
+			'art_15_c_4' => 'dlgs_33_2013_art_15',
+		) as $regola => $chiave ) {
+			$this->assertSame( $chiave, $dati['cessazione'][ $regola ]['fonte'] );
+			$this->assertArrayHasKey( $chiave, $fonti, 'La fonte citata deve essere fra le fonti del file.' );
+			$this->assertStringContainsString( 'normattiva.it', $fonti[ $chiave ]['url'] );
+		}
+	}
+
+	/**
+	 * Riga T-84: l'elenco e arrivato con la versione 2026-10-29-2, in vigore, e la 2026-10-29 resta com'era.
+	 */
+	public function test_t84_versione_nuova_accanto_alla_vecchia(): void {
+		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-29.json';
+
+		$this->assertSame( '1aa4606b3fb0e85ffea7bacf3f9d9ecc6763be0ebcebd90f7e88c6fa0dff904d', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-29 non si modifica.' );
+		$this->assertSame( '2026-10-29-2.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-29-2.' );
+
+		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+
+		$this->assertSame( '2026-10-29-2', $ora['versione'], 'Il nome del file dice la versione.' );
+		$this->assertArrayNotHasKey( 'cessazione', $prima );
+		$this->assertNull( Alberatura::carica( $vecchio )->cessazione( 'dirigenti_cessati' ), 'La versione vecchia resta leggibile, senza cessazione.' );
+
+		$ora['fonti'] = array_values( array_filter( $ora['fonti'], static fn( array $fonte ): bool => ! in_array( $fonte['chiave'], array( 'dlgs_33_2013_art_14', 'dlgs_33_2013_art_15' ), true ) ) );
+
+		unset( $ora['versione'], $ora['cessazione'], $prima['versione'] );
+
+		$this->assertSame( $prima, $ora, 'La versione nuova aggiunge l\'elenco e le sue fonti e non cambia altro.' );
+	}
+
+	/**
+	 * Riga T-85: [attacco] elenchi delle voci legate alla cessazione non validi nel file.
+	 */
+	public function test_t85_cessazione_non_valida(): void {
+		$dati  = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$buona = array(
+			'nome'  => 'art. 15, c. 4, del d.lgs. 33/2013',
+			'anni'  => 3,
+			'fonte' => 'dlgs_33_2013_art_15',
+			'voci'  => array( 'titolari_incarichi_collaborazione_consulenza' ),
+		);
+
+		$casi = array(
+			'non un elenco'         => 'art_15_c_4',
+			'elenco senza nomi'     => array( $buona ),
+			'identificativo strano' => array( 'Art 15' => $buona ),
+			'identificativo lungo'  => array( str_repeat( 'a', 81 ) => $buona ),
+			'regola non elenco'     => array( 'art_15_c_4' => 'titolari_incarichi_collaborazione_consulenza' ),
+			'senza anni'            => array( 'art_15_c_4' => array_diff_key( $buona, array( 'anni' => 0 ) ) ),
+			'senza fonte'           => array( 'art_15_c_4' => array_diff_key( $buona, array( 'fonte' => 0 ) ) ),
+			'chiave in piu'         => array( 'art_15_c_4' => $buona + array( 'dal' => '2016-06-23' ) ),
+			'nome vuoto'            => array( 'art_15_c_4' => array( 'nome' => '  ' ) + $buona ),
+			'nome troppo lungo'     => array( 'art_15_c_4' => array( 'nome' => str_repeat( 'a', 201 ) ) + $buona ),
+			'anni zero'             => array( 'art_15_c_4' => array( 'anni' => 0 ) + $buona ),
+			'anni testo'            => array( 'art_15_c_4' => array( 'anni' => '3' ) + $buona ),
+			'anni decimali'         => array( 'art_15_c_4' => array( 'anni' => 3.0 ) + $buona ),
+			'fonte non testo'       => array( 'art_15_c_4' => array( 'fonte' => 15 ) + $buona ),
+			'fonte assente'         => array( 'art_15_c_4' => array( 'fonte' => 'fonte_inesistente' ) + $buona ),
+			'voci vuote'            => array( 'art_15_c_4' => array( 'voci' => array() ) + $buona ),
+			'voci con nomi'         => array( 'art_15_c_4' => array( 'voci' => array( 'x' => 'dirigenti_cessati' ) ) + $buona ),
+			'voce non testo'        => array( 'art_15_c_4' => array( 'voci' => array( 15 ) ) + $buona ),
+			'voce inesistente'      => array( 'art_15_c_4' => array( 'voci' => array( 'voce_inesistente' ) ) + $buona ),
+			'radice'                => array( 'art_15_c_4' => array( 'voci' => array( 'amministrazione_trasparente' ) ) + $buona ),
+			'voce con sottovoci'    => array( 'art_15_c_4' => array( 'voci' => array( 'personale' ) ) + $buona ),
+			'voce ripetuta'         => array( 'art_15_c_4' => array( 'voci' => array( 'dirigenti_cessati', 'dirigenti_cessati' ) ) + $buona ),
+			'voce in due regole'    => array(
+				'art_15_c_4' => $buona,
+				'art_14_c_2' => $buona,
+			),
+		);
+
+		foreach ( $casi as $nome => $cessazione ) {
+			$prova               = $dati;
+			$prova['cessazione'] = $cessazione;
+
+			$esito = Alberatura::da_dati( $prova );
+
+			$this->assertWPError( $esito, $nome );
+			$this->assertSame( 'trasparenza_albero_cessazione', $esito->get_error_code(), $nome );
+		}
+
+		$prova               = $dati;
+		$prova['cessazione'] = array( 'art_15_c_4' => array( 'nome' => "  art. 15\n" ) + $buona );
+		$this->assertSame(
+			array(
+				'regola' => 'art_15_c_4',
+				'nome'   => 'art. 15',
+				'anni'   => 3,
+			),
+			Alberatura::da_dati( $prova )->cessazione( 'titolari_incarichi_collaborazione_consulenza' ),
+			'Il nome si ripulisce dagli spazi ai bordi.'
+		);
+
+		$prova['cessazione'] = array();
+		$this->assertNull( Alberatura::da_dati( $prova )->cessazione( 'dirigenti_cessati' ), 'Un elenco vuoto si accetta.' );
+
+		unset( $dati['cessazione'] );
+		$this->assertNull( Alberatura::da_dati( $dati )->cessazione( 'dirigenti_cessati' ), 'Senza elenco il file si carica, e nessuna voce segue la cessazione.' );
 	}
 }
