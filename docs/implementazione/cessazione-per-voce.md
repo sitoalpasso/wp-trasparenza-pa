@@ -170,3 +170,17 @@ per la fine degli effetti. Il controllo resta, perché dice che cosa si aspetta 
 Una rottura rimasta verde al primo giro, il cambio trattato come nessun cambio, ha portato una
 prova in più: togliere una cessazione che dà la stessa fine della regola generale è un cambio,
 e si registra.
+
+Dati patrimoniali, dopo la rilettura: trenta rotture, tutte rosse dopo tre prove in più.
+Rosse al primo giro: chiave nuova non ammessa nel file, termine non intero, negativo o oltre
+gli anni della regola, termine non restituito, termine tolto dal file, valore della casella
+non controllato, partenza non testuale ammessa, casella senza cessazione ammessa, regola
+senza termine ammessa, fine che ignora la casella, lettura fallita ignorata, valori strani
+ignorati, conflitto tolto, casella di prima e di dopo non registrate, valori trovati non
+registrati, scrittura tolta, prima scrittura tolta, rilettura tolta, casella mai mostrata o
+sempre mostrata, mai spuntata, valore strano mostrato come spuntato, partenza vuota, fine
+attesa che ignora la casella, testo del termine zero tolto. Verdi al primo giro, e coperte
+poi da una prova ciascuna: casella senza decorrenza ignorata in silenzio, casella cambiata
+trattata come nessun cambio quando la fine resta la stessa (con un termine dei dati
+patrimoniali uguale a quello della regola), esito che non dice il termine dei dati
+patrimoniali.

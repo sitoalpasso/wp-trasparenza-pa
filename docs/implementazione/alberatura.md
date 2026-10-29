@@ -73,7 +73,7 @@ Formato del file dell'albero, versione 1:
 | `fonte_durata` | la chiave della fonte della durata. Il motore non la legge; la controllano le prove dell'albero normativo (T-63) |
 | `moduli` | facoltativa: per ogni modulo ANAC (identificativo `[a-z0-9_]{1,80}`) un `nome` (testo non vuoto, al massimo 200 caratteri) e le `voci` che copre, senza sottovoci, ciascuna in un modulo solo; altrimenti il file si rifiuta con `trasparenza_albero_moduli` (T-75, T-76) |
 | `fonte_moduli` | la chiave della fonte dell'elenco dei moduli. Il motore non la legge; la controllano le prove dell'albero normativo (T-75) |
-| `cessazione` | facoltativa: per ogni regola (identificativo `[a-z0-9_]{1,80}`) un `nome` (testo non vuoto, al massimo 200 caratteri), gli `anni` di pubblicazione dopo la cessazione (intero da uno in su), la `fonte` (chiave fra le `fonti` del file) e le `voci` che segue, senza sottovoci, ciascuna in una regola sola; nessun'altra chiave. Altrimenti il file si rifiuta con `trasparenza_albero_cessazione` (T-84, T-85) |
+| `cessazione` | facoltativa: per ogni regola (identificativo `[a-z0-9_]{1,80}`) un `nome` (testo non vuoto, al massimo 200 caratteri), gli `anni` di pubblicazione dopo la cessazione (intero da uno in su), la `fonte` (chiave fra le `fonti` del file) e le `voci` che segue, senza sottovoci, ciascuna in una regola sola; facoltativi gli `anni_patrimoniali`, intero da zero agli anni della regola, termine dei dati patrimoniali; nessun'altra chiave. Altrimenti il file si rifiuta con `trasparenza_albero_cessazione` (T-84, T-85, T-89) |
 
 Gli stati si scrivono nell'opzione `trasparenza_pa_stati_obbligo`. Un valore conservato che
 non e fra i tre vale come non dichiarato.

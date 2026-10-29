@@ -525,6 +525,7 @@ class CessazioneTest extends WP_UnitTestCase {
 		$esito = SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '', null, '', '1' ) );
 		$this->assertSame( 'dati', $esito['codice'], 'Senza cessazione i dati patrimoniali non si salvano.' );
 		$this->assertStringContainsString( 'serve la data di cessazione', $esito['messaggio'] );
+		$this->assertSame( 'dati', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '', '', null, '', '1' ) )['codice'], 'Nemmeno senza decorrenza la casella si ignora.' );
 
 		foreach ( array( '0', 'si', '1 ', array( '1' ) ) as $valore ) {
 			$this->assertSame( 'dati', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', $valore ) )['codice'], (string) wp_json_encode( $valore ) );
@@ -543,7 +544,7 @@ class CessazioneTest extends WP_UnitTestCase {
 		$esito = SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' ) );
 
 		$this->assertSame( 'salvato', $esito['codice'] );
-		$this->assertStringContainsString( 'Fine della pubblicazione: 2026-01-31', $esito['messaggio'] );
+		$this->assertStringContainsString( 'Fine della pubblicazione: 2026-01-31, il termine dei dati patrimoniali', $esito['messaggio'] );
 		$this->assertSame( array( '1' ), get_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, false ) );
 		$this->assertSame( array( '2026-01-31' ), $this->fini( $contenuto ), 'I dati patrimoniali finiscono il giorno della cessazione.' );
 
@@ -585,6 +586,32 @@ class CessazioneTest extends WP_UnitTestCase {
 
 		$generale = $this->contenuto( self::VOCE_GENERALE );
 		$this->assertSame( 'voce', SchedaPubblicazione::applica( $generale, $this->richiesta( $generale, '2025-02-01', '2026-01-31', null, '', '1' ) )['codice'] );
+	}
+
+	/**
+	 * T-89: con un termine dei dati patrimoniali uguale a quello della regola, spuntare la casella non sposta la fine, ma e un cambio e si registra.
+	 */
+	public function test_t89_casella_senza_cambio_di_fine(): void {
+		$dati = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+
+		$dati['cessazione']['art_14_c_2']['anni_patrimoniali'] = 3;
+
+		$file = wp_tempnam( 'albero' );
+		file_put_contents( $file, wp_json_encode( $dati ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- file temporaneo della prova.
+		PaginaPubblica::fissa_file( $file );
+		PaginaPubblica::da_init();
+
+		try {
+			$contenuto = $this->contenuto( 'dirigenti_cessati' );
+
+			$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31' ) )['codice'] );
+			$this->assertSame( 'salvato', SchedaPubblicazione::applica( $contenuto, $this->richiesta( $contenuto, '2025-02-01', '2026-01-31', null, '', '1' ) )['codice'] );
+			$this->assertSame( array( '1' ), get_post_meta( $contenuto, SchedaPubblicazione::META_PATRIMONIALE, false ) );
+			$this->assertSame( array( '2029-01-31' ), $this->fini( $contenuto ) );
+			$this->assertCount( 2, $this->tracce( $contenuto ) );
+		} finally {
+			wp_delete_file( $file );
+		}
 	}
 
 	/**
