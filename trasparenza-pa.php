@@ -156,6 +156,7 @@ require_once __DIR__ . '/src/class-schermata-stati.php';
 require_once __DIR__ . '/src/class-scheda-contenuto.php';
 require_once __DIR__ . '/src/class-scheda-pubblicazione.php';
 require_once __DIR__ . '/src/class-scheda-documenti.php';
+require_once __DIR__ . '/src/class-contenuti-pubblici.php';
 
 add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );

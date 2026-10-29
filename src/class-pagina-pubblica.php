@@ -202,7 +202,7 @@ final class PaginaPubblica {
 	}
 
 	/**
-	 * HTML di una voce: percorso, nome, riferimento, dicitura, figli.
+	 * HTML di una voce: percorso, nome, riferimento, dicitura, contenuti, figli.
 	 *
 	 * @param Alberatura $albero Albero.
 	 * @param string     $voce   Voce esistente.
@@ -244,6 +244,8 @@ final class PaginaPubblica {
 		if ( $albero->collocazione( Responsabile::DATO ) === $voce ) {
 			$html .= Responsabile::html();
 		}
+
+		$html .= ContenutiPubblici::html( $albero, $voce );
 
 		$figli = $albero->figli( $voce );
 

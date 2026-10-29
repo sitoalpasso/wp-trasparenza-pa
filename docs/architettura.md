@@ -72,6 +72,7 @@ viene segnalato.
 | `TipoContenuto` | Registra il tipo del contenuto libero della sezione, testo e documenti, attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-19 |
 | `SchedaContenuto` | Il riquadro "Voce della sezione": scelta fra le voci senza sottovoci, salvataggio con una voce di registro, conflitto se un altro ha cambiato la voce dopo l'apertura | TRASP-19 |
 | `SchedaDocumenti` | Il riquadro "Documenti": deposito attraverso il componente comune, rimozione solo su un contenuto non pubblicato, voce di registro con nome e impronta per ogni aggiunta e rimozione | TRASP-19 |
+| `ContenutiPubblici` | I contenuti che la pagina pubblica mostra in una voce: pubblicati, senza password, con una voce valida e la fine non passata, ricontrollati uno per uno, con l'avviso di indisponibilità se la lettura fallisce; data di ultimo aggiornamento di ogni contenuto e di ogni voce, la più recente fra quelle sotto; testo ripulito, codici brevi non eseguiti | TRASP-09, TRASP-10 |
 | `SchedaPubblicazione` | Il riquadro "Pubblicazione": data da cui decorre l'obbligo, fine calcolata con la durata dell'albero e scritta attraverso il componente comune, voce di registro, conflitto, riallineamento | TRASP-08, TRASP-19 |
 | `Metadato` | Lettura di un metadato dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverlo | trasversale |
 | `Blocco` | Il blocco della banca dati che tiene in fila i salvataggi delle schermate di gestione | TRASP-19 |
