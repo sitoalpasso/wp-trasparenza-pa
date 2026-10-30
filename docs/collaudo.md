@@ -293,6 +293,18 @@ dall'art. 8, c. 3 (TRASP-08). Scheda: `docs/implementazione/cessazione-per-voce.
 | T-88 | fatto | Contenuto pubblicato con decorrenza di dieci anni fa, senza cessazione, con cessazione di tre anni fa oggi, di tre anni e un giorno fa, con fine prevista fra un anno | per il componente comune: scaduto senza cessazione; visibile fino a tre anni dopo la cessazione compresi; scaduto il giorno dopo; visibile con l'incarico in corso |
 | T-89 | fatto | Riquadro in una voce dell'art. 14 e in una dell'art. 15; casella spuntata con e senza cessazione, stessa casella, tolta; [attacco] valori della casella diversi da spuntata, partenza mancante o non testuale, casella cambiata da un altro, casella nella voce dell'art. 15 o in una voce senza regola, valori strani o più righe memorizzati; [guasto] lettura fallita, casella non tolta | casella solo dove la regola ha un termine per i dati patrimoniali; spuntata: la fine è il giorno della cessazione, l'esito lo dice e la cessazione è obbligatoria; tolta: tornano i tre anni; ogni cambio è nel registro con la casella di prima e di dopo; ogni attacco: niente scritto, niente nel registro, con il motivo; valori strani mai mostrati come spuntata e sostituiti da una riga, con quelli trovati nel registro; lettura fallita o casella non tolta: l'esito lo dice e la fine non si tocca |
 
+## Rinvii alle banche dati nazionali (righe da T-92)
+
+Provano l'adempimento per collegamento a una banca dati nazionale: l'elenco nel file
+dell'albero, la dichiarazione dell'ente e la pagina pubblica, secondo l'art. 9-bis e
+l'Allegato B del d.lgs. 33/2013 e il d.l. 19/2026, art. 8, cc. 2 e 3 (TRASP-11, TRASP-25,
+TRASP-29). Scheda: `docs/implementazione/rinvii-banche-dati.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-92 | da fare | Elenco nell'albero in vigore; versione che lo porta; voce dei bandi di concorso; voce senza rinvii | undici banche dati, scritte nella prova con nome, voci, fonte fra quelle del file e, per le dieci dell'Allegato B, il titolare; Soldi pubblici senza titolare; SIQuEL con il limite agli enti locali; una voce può avere più banche dati, nell'ordine del file; la voce dei bandi di concorso nessuna; l'elenco arriva con la versione 2026-10-30, uguale alla 2026-10-29-2 salvo elenco e fonti; la 2026-10-29-2 resta accanto, con l'impronta attesa scritta nella prova |
+| T-93 | da fare | [attacco] elenchi non validi nel file: non un oggetto, senza nomi, identificativo strano o lungo, banca dati non oggetto, chiavi mancanti o in più, nome vuoto, lungo o non testo, fonte non testo o non fra le fonti, voci vuote o con nomi, voce non testo, inesistente, radice, con sottovoci, ripetuta nella stessa banca dati, titolare o limite vuoti, lunghi o non testo | il file si rifiuta; nome, titolare e limite si ripuliscono dagli spazi; un elenco vuoto, o nessun elenco, si accetta e nessuna voce ha rinvii |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
