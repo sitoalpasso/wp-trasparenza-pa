@@ -37,7 +37,7 @@ visione d'insieme e si aggiorna nello stesso commit che introduce un dato nuovo.
 | Stato editoriale (bozza, validato, pubblicabile provvisoriamente, non pubblicabile) | stato della voce, con esito della validazione | il flusso di validazione, mai a mano |
 | Segnalazioni al RPCT | registro proprio: voce, difformità, data, destinatario | solo il sistema, nei due stati di difformità |
 | Voce-rinvio | tipo dedicato: etichetta, URL, data, amministrazione titolare, destinatario dell'accesso civico, esito dell'ultima verifica | redattore la crea; l'esito lo scrive il verificatore di core |
-| Richieste di accesso civico | registro proprio: data, oggetto, stato della risposta | il modulo pubblico la crea; il responsabile la aggiorna |
+| Registro degli accessi | opzione `trasparenza_pa_registro_accessi`: l'ultimo numero dato e le righe, ciascuna con numero, tipo dell'accesso, argomento, data della richiesta, esito e data della decisione, senza dati di chi chiede. Ogni aggiunta, correzione o rimozione lascia una voce `registro_accessi` nel registro di core con operazione, numero e nomi dei campi cambiati, senza valori | chi ha il permesso `trasparenza_pa_amministrazione`, dalla schermata "Registro degli accessi"; nessun modulo pubblico |
 | Decorrenza dell'obbligo e scadenza quinquennale | metadato della voce; la scadenza si calcola dalla decorrenza, non dalla data di caricamento | il sistema, dalla decorrenza indicata dal redattore |
 
 **3. I file generati**: gli export in formato aperto e l'`at_map`, prodotti dal sistema

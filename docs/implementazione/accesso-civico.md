@@ -53,6 +53,9 @@ prova, elencata in fondo a lavoro finito.
 | 1 | `tests/RinviiTest.php` | La riga T-92 guarda la versione 2026-10-30 per nome, non come versione in vigore |
 | 2 | `src/class-accesso-civico.php`, `src/class-pagina-pubblica.php` | Il riquadro nella voce |
 | 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
+| 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
+| 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-107 |
+| 4 | `src/class-registro-accessi.php` | Il registro nella voce, per cinque anni |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
@@ -145,10 +148,66 @@ Le email sono collegamenti `mailto:`; i telefoni testo, come nel riquadro del re
 | Albero senza la collocazione | nessun riquadro in nessuna voce |
 | Valori con codice | escaping di ogni valore; email e indirizzo del modulo passano da `esc_url` |
 
+## 7-quater. Il registro degli accessi (passo 3)
+
+**Cosa chiede la norma.** L'Allegato 1 della delibera ANAC 1310/2016, alla riga "Registro degli
+accessi", chiede l'elenco delle richieste di accesso, agli atti, civico e generalizzato, con
+l'oggetto e la data della richiesta e l'esito con la data della decisione, aggiornato ogni sei
+mesi. Le linee guida ANAC sull'accesso generalizzato (delibera 1309/2016, § 9) raccomandano di
+tenerlo e pubblicarlo senza dati personali.
+
+**La schermata.** "Amministrazione trasparente > Registro degli accessi", aperta a chi
+amministra la sezione. In alto il modulo per aggiungere una richiesta; sotto, l'elenco delle
+richieste, ciascuna con il suo modulo per correggerla o toglierla. La schermata ricorda di non
+scrivere nell'argomento nomi o altri dati di chi chiede.
+
+**Le regole di una riga.**
+
+| Campo | Regola |
+|---|---|
+| Tipo | uno fra accesso agli atti (l. 241/1990), accesso civico semplice, accesso civico generalizzato |
+| Argomento | obbligatorio; una riga, senza codice, al massimo 300 caratteri |
+| Data della richiesta | obbligatoria; AAAA-MM-GG, esistente e non dopo oggi nel fuso del sito |
+| Esito | in corso, accolta, accolta in parte, rifiutata, differita |
+| Data della decisione | vuota se l'esito è in corso, altrimenti obbligatoria; AAAA-MM-GG, esistente, non prima della richiesta e non dopo oggi |
+
+**Il salvataggio.** Le regole delle altre schermate della sezione: permesso e nonce prima di
+tutto; ogni campo controllato prima di scrivere; un salvataggio della sezione alla volta; prima
+la voce di registro, poi il dato, che si rilegge. Ogni riga ha un numero che non si riusa,
+neanche dopo che una riga è stata tolta: il numero dice al registro delle modifiche di quale
+richiesta si parla. Il modulo di una riga porta la riga come la mostrava all'apertura: se nel
+frattempo qualcun altro l'ha cambiata o tolta, è un conflitto e non si salva niente.
+
+**Il registro delle modifiche.** Una voce `registro_accessi` per ogni aggiunta, correzione o
+rimozione, con l'operazione, il numero della riga e i nomi dei campi cambiati, senza valori:
+l'argomento lo scrive una persona, e un nome scritto per sbaglio resterebbe nel registro dopo
+la correzione.
+
+**Il dato conservato.** L'opzione `trasparenza_pa_registro_accessi`: l'ultimo numero dato e le
+righe. Una riga conservata che non supera il controllo non si mostra al pubblico, ma la
+schermata la elenca, con l'avviso, perché si possa correggere o togliere.
+
+**Permesso.** Il permesso della sezione, `trasparenza_pa_amministrazione`. Un permesso
+dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chiederà.
+
+## 7-quinquies. Modi di guasto (passo 3)
+
+| Caso | Esito |
+|---|---|
+| Senza permesso, senza nonce o con nonce scaduto | rifiuto prima di leggere i campi |
+| Operazione sconosciuta, numero di riga non valido | niente scritto, messaggio |
+| Campo non valido o non testo | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
+| Riga cambiata o tolta da altri dopo l'apertura del modulo, partenza mancante | conflitto, niente scritto |
+| Un altro salvataggio della sezione in corso | niente scritto, messaggio |
+| Lettura fallita del registro conservato | niente scritto, niente nel registro delle modifiche, messaggio |
+| Registro delle modifiche che rifiuta la voce | niente scritto, messaggio |
+| Dato non scritto | messaggio che lo dice: il registro delle modifiche contiene un cambio non avvenuto |
+
 ## 8. Cosa deliberatamente NON fa
 
-- Non riceve richieste dal sito: è la scelta del 30 ottobre 2026. Il registro degli accessi è
-  il passo 3.
+- Non riceve richieste dal sito: è la scelta del 30 ottobre 2026.
+- Non tiene i nomi di chi chiede né i documenti della pratica: il registro degli accessi è un
+  elenco pubblico; la pratica resta nel protocollo dell'ente.
 - Non decide quale ufficio risponde: lo scrive l'ente. Un solo ufficio: l'art. 5, c. 3, lett.
   c, ammette che l'ente indichi un ufficio a cui presentare tutte le richieste generalizzate.
 - Non scrive i termini di risposta: li dice la norma, e il riquadro la cita.
