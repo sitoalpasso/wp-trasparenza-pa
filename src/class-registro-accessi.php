@@ -249,7 +249,7 @@ final class RegistroAccessi {
 	 * @return bool
 	 */
 	private static function giorno( string $valore ): bool {
-		return 1 === preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $valore, $parti ) && checkdate( (int) $parti[2], (int) $parti[3], (int) $parti[1] );
+		return 1 === preg_match( '/\A(\d{4})-(\d{2})-(\d{2})\z/', $valore, $parti ) && checkdate( (int) $parti[2], (int) $parti[3], (int) $parti[1] );
 	}
 
 	/**

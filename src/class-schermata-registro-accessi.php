@@ -141,7 +141,7 @@ final class SchermataRegistroAccessi {
 		if ( 'aggiungi' !== $operazione ) {
 			$inviato = $richiesta[ self::CAMPO_NUMERO ] ?? null;
 
-			if ( ! is_string( $inviato ) || 1 !== preg_match( '/^[1-9][0-9]{0,8}$/', $inviato ) ) {
+			if ( ! is_string( $inviato ) || 1 !== preg_match( '/\A[1-9][0-9]{0,8}\z/', $inviato ) ) {
 				return self::esito( 'operazione', __( 'Niente salvato: la richiesta non diceva quale riga correggere o togliere.', 'trasparenza-pa' ), $operazione );
 			}
 
