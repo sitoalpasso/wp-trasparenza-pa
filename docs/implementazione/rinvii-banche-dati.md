@@ -218,13 +218,13 @@ perché il confronto stretto con le chiavi delle fonti, che sono testi, rifiuta 
 
 ### Passo 2: la dichiarazione dell'ente
 
-Cinquantaquattro rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una
+Cinquantacinque rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una
 prova. Nel controllo: voce senza banche dati ammessa, campo mancante o non testo ammesso, campi
 pieni senza banca dati, banca dati libera, schema dell'indirizzo libero, indirizzo lungo,
 indirizzo di 2001 caratteri, pulizia dell'indirizzo tolta, etichetta vuota, pulizia
 dell'etichetta tolta, etichetta lunga, etichetta contata in byte invece che in caratteri,
 formato della data libero, calendario tolto, data futura ammessa, oggi rifiutato, fuso del
-server al posto di quello del sito. Nella lettura: lettura con `get_option` per chi riscrive,
+server o UTC al posto di quello del sito. Nella lettura: lettura con `get_option` per chi riscrive,
 errore di lettura ignorato, valore non elenco, voce numerica ammessa, riga con un campo strano
 conservata. Nel salvataggio: permesso tolto, nonce tolto, voce non controllata, albero assente
 ignorato, controllo ignorato, partenza non richiesta, blocco tolto, lettura fallita ignorata,
@@ -242,3 +242,9 @@ riga per una voce che il rinvio non lo ammette. Senza gli ancoraggi del formato,
 altro intorno passava: ora si provano `2026-01-15T10:00` e `x2026-01-15`. La prova della
 partenza dopo un rifiuto guardava un valore vuoto che c'era anche negli altri moduli: ora
 controlla che la partenza della voce rifiutata non sia il rinvio riletto.
+
+La rottura con UTC al posto del fuso del sito è stata aggiunta dopo la prima rilettura: la
+prova di allora confrontava `oggi()` con un giorno calcolato dallo stesso fuso, e su un sito
+in UTC non distingueva i due. La prova del fuso imposta un fuso lontano da UTC, scelto in modo
+che nell'istante della prova il giorno del sito sia diverso da quello UTC, e calcola i giorni
+attesi dall'ora UTC con lo scarto fisso.

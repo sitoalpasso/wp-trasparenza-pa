@@ -198,10 +198,46 @@ class RinviiDichiaratiTest extends WP_UnitTestCase {
 		$oggi = array_merge( $this->valido(), array( 'data' => Rinvii::oggi() ) );
 		$this->assertSame( $oggi, Rinvii::controlla( $albero, 'zeta_uno', $oggi ), 'Oggi nel fuso del sito si accetta.' );
 
-		$this->assertSame( ( new \DateTimeImmutable( 'now', wp_timezone() ) )->format( 'Y-m-d' ), Rinvii::oggi() );
-
 		$tre = array_merge( $this->valido(), array( 'banca' => 'banca_tre' ) );
 		$this->assertSame( $tre, Rinvii::controlla( $albero, 'alfa', $tre ) );
+	}
+
+	/**
+	 * T-94: oggi e domani si contano nel fuso del sito, non in UTC.
+	 *
+	 * La prova sceglie un fuso senza ora legale in cui, nell'istante della
+	 * prova, il giorno e diverso da quello UTC: dalle 10 UTC in poi a UTC+14 e
+	 * gia domani, prima delle 11 UTC a UTC-11 e ancora ieri. I giorni attesi si
+	 * calcolano dall'ora UTC con lo scarto fisso, senza passare da oggi().
+	 */
+	public function test_t94_fuso_del_sito(): void {
+		$albero = PaginaPubblica::albero();
+		$adesso = time();
+
+		list( $fuso, $scarto ) = (int) gmdate( 'G', $adesso ) >= 10 ? array( 'Pacific/Kiritimati', 14 ) : array( 'Pacific/Pago_Pago', -11 );
+
+		update_option( 'timezone_string', $fuso );
+		update_option( 'gmt_offset', '' );
+
+		$oggi   = gmdate( 'Y-m-d', $adesso + $scarto * HOUR_IN_SECONDS );
+		$domani = gmdate( 'Y-m-d', $adesso + $scarto * HOUR_IN_SECONDS + DAY_IN_SECONDS );
+		$utc    = gmdate( 'Y-m-d', $adesso );
+
+		$this->assertNotSame( $utc, $oggi, 'Precondizione: nel fuso scelto il giorno e diverso da quello UTC.' );
+		$this->assertSame( $oggi, Rinvii::oggi() );
+
+		$con = function ( string $data ): array {
+			return array_merge( $this->valido(), array( 'data' => $data ) );
+		};
+
+		$this->assertSame( $con( $oggi ), Rinvii::controlla( $albero, 'zeta_uno', $con( $oggi ) ), 'Oggi nel fuso del sito si accetta.' );
+		$this->assertWPError( Rinvii::controlla( $albero, 'zeta_uno', $con( $domani ) ), 'Domani nel fuso del sito si rifiuta.' );
+
+		if ( $scarto > 0 ) {
+			$this->assertSame( $con( $utc ), Rinvii::controlla( $albero, 'zeta_uno', $con( $utc ) ), 'Il giorno UTC e ieri per il sito: si accetta.' );
+		} else {
+			$this->assertWPError( Rinvii::controlla( $albero, 'zeta_uno', $con( $utc ) ), 'Il giorno UTC e domani per il sito: si rifiuta.' );
+		}
 	}
 
 	/**
