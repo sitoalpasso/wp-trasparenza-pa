@@ -2,7 +2,7 @@
 /**
  * Il riquadro dei documenti allegati a un contenuto.
  *
- * Righe di collaudo T-67..T-70.
+ * Righe di collaudo T-67..T-70 e T-91.
  *
  * @package TrasparenzaPa
  */
@@ -142,6 +142,7 @@ final class SchedaDocumenti {
 	public static function riquadro( WP_Post $contenuto ): string {
 		$documenti = self::documenti( $contenuto->ID );
 		$togliere  = 'publish' !== $contenuto->post_status;
+		$si_apre   = self::si_aprono( $contenuto );
 
 		$html = wp_nonce_field( self::azione_nonce( $contenuto->ID ), self::CAMPO_NONCE, false, false );
 
@@ -156,7 +157,7 @@ final class SchedaDocumenti {
 				$nome      = wp_basename( (string) get_attached_file( $allegato ) );
 				$indirizzo = conformita_core_indirizzo_consegna_amministrativa( $allegato );
 				$html     .= '<li>';
-				$html     .= is_string( $indirizzo ) ? '<a href="' . esc_url( $indirizzo ) . '">' . esc_html( $nome ) . '</a>' : esc_html( $nome );
+				$html     .= is_string( $indirizzo ) && $si_apre ? '<a href="' . esc_url( $indirizzo ) . '">' . esc_html( $nome ) . '</a>' : esc_html( $nome );
 
 				if ( $togliere ) {
 					$html .= ' <label><input type="checkbox" name="' . esc_attr( self::CAMPO_TOGLI ) . '[]" value="' . esc_attr( (string) $allegato ) . '"> ' . esc_html__( 'Togli', 'trasparenza-pa' ) . '</label>';
@@ -166,6 +167,10 @@ final class SchedaDocumenti {
 			}
 
 			$html .= '</ul>';
+
+			if ( ! $si_apre ) {
+				$html .= '<p>' . esc_html__( 'Il contenuto è scaduto: i file allegati si aprono solo con il permesso di consultare i contenuti scaduti.', 'trasparenza-pa' ) . '</p>';
+			}
 		}
 
 		if ( ! $togliere && is_array( $documenti ) && array() !== $documenti ) {
@@ -177,6 +182,33 @@ final class SchedaDocumenti {
 		$html .= '<p>' . esc_html__( 'L\'allegato si aggiunge salvando il contenuto.', 'trasparenza-pa' ) . '</p>';
 
 		return $html;
+	}
+
+	/**
+	 * Chi guarda il riquadro apre i documenti dal punto amministrativo.
+	 *
+	 * Dalla versione 1.11.0 dell'interfaccia del componente comune il file di
+	 * un contenuto scaduto lo apre solo chi consulta gli scaduti, anche se
+	 * gestisce il tipo: senza quel permesso il riquadro non mostra un
+	 * collegamento che porta a un rifiuto. Un contenuto in preparazione non e
+	 * mai stato esposto e i suoi file si aprono sempre, come per il componente
+	 * comune. Riga T-91.
+	 *
+	 * @param WP_Post $contenuto Contenuto.
+	 * @return bool
+	 */
+	private static function si_aprono( WP_Post $contenuto ): bool {
+		if ( in_array( $contenuto->post_status, array( 'draft', 'auto-draft', 'pending', 'future' ), true ) ) {
+			return true;
+		}
+
+		if ( ! conformita_core_scaduto( (int) $contenuto->ID ) ) {
+			return true;
+		}
+
+		$consultazione = conformita_core_capacita_consultazione_scaduti( TIPO_CONTENUTO );
+
+		return is_string( $consultazione ) && current_user_can( $consultazione );
 	}
 
 	/**

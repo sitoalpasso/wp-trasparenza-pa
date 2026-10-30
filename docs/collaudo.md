@@ -293,6 +293,18 @@ dall'art. 8, c. 3 (TRASP-08). Scheda: `docs/implementazione/cessazione-per-voce.
 | T-88 | fatto | Contenuto pubblicato con decorrenza di dieci anni fa, senza cessazione, con cessazione di tre anni fa oggi, di tre anni e un giorno fa, con fine prevista fra un anno | per il componente comune: scaduto senza cessazione; visibile fino a tre anni dopo la cessazione compresi; scaduto il giorno dopo; visibile con l'incarico in corso |
 | T-89 | fatto | Riquadro in una voce dell'art. 14 e in una dell'art. 15; casella spuntata con e senza cessazione, stessa casella, tolta; [attacco] valori della casella diversi da spuntata, partenza mancante o non testuale, casella cambiata da un altro, casella nella voce dell'art. 15 o in una voce senza regola, valori strani o più righe memorizzati; [guasto] lettura fallita, casella non tolta | casella solo dove la regola ha un termine per i dati patrimoniali; spuntata: la fine è il giorno della cessazione, l'esito lo dice e la cessazione è obbligatoria; tolta: tornano i tre anni; ogni cambio è nel registro con la casella di prima e di dopo; ogni attacco: niente scritto, niente nel registro, con il motivo; valori strani mai mostrati come spuntata e sostituiti da una riga, con quelli trovati nel registro; lettura fallita o casella non tolta: l'esito lo dice e la fine non si tocca |
 
+## Documenti dei contenuti scaduti (righe T-90..T-91)
+
+Provano il permesso di consultare i contenuti scaduti e il riquadro "Documenti" con
+l'interfaccia 1.11.0 del componente comune, che sul punto amministrativo apre il file di un
+contenuto scaduto solo a chi consulta gli scaduti (TRASP-09). Scheda:
+`docs/implementazione/documenti-scaduti.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-90 | fatto | Installazione o cambio di versione con il permesso tolto all'amministratore; aggiornamento di un sito già installato con la versione 0.1.0-alpha, senza cancellarne la versione memorizzata; ruoli Redattore, Autore, Collaboratore; [guasto] permesso non scritto nei ruoli conservati | l'amministratore riceve il permesso di consultare gli scaduti dei contenuti, con il nome chiesto al componente comune; anche sul sito già installato, e alla richiesta dopo non si rifà; gli altri ruoli no; il tipo delle voci non ne riceve; permesso non scritto: errore, versione non memorizzata |
+| T-91 | fatto | Contenuto con documento in bozza, pubblicato e non scaduto, pubblicato e scaduto, chiesto dal punto amministrativo e guardato nel riquadro, dall'amministratore, da un ruolo che gestisce i contenuti senza consultare gli scaduti | l'amministratore apre il file in ogni caso e il riquadro gli mostra il collegamento; l'altro ruolo apre bozza e non scaduto, è rifiutato sullo scaduto, e il riquadro gli mostra lì il nome senza collegamento con la frase che lo spiega |
+
 ## Rinvii alle banche dati nazionali (righe da T-92)
 
 Provano l'adempimento per collegamento a una banca dati nazionale: l'elenco nel file
