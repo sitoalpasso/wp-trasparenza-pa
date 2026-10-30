@@ -692,16 +692,15 @@ class AlberoNormativoTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Riga T-84: l'elenco e arrivato con la versione 2026-10-29-2, in vigore, e la 2026-10-29 resta com'era.
+	 * Riga T-84: l'elenco e arrivato con la versione 2026-10-29-2, e la 2026-10-29 resta com'era.
 	 */
 	public function test_t84_versione_nuova_accanto_alla_vecchia(): void {
 		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-29.json';
 
 		$this->assertSame( '1aa4606b3fb0e85ffea7bacf3f9d9ecc6763be0ebcebd90f7e88c6fa0dff904d', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-29 non si modifica.' );
-		$this->assertSame( '2026-10-29-2.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-29-2.' );
 
 		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
-		$ora   = json_decode( (string) file_get_contents( FILE_ALBERATURA ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
+		$ora   = json_decode( (string) file_get_contents( dirname( FILE_ALBERATURA ) . '/2026-10-29-2.json' ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
 
 		$this->assertSame( '2026-10-29-2', $ora['versione'], 'Il nome del file dice la versione.' );
 		$this->assertArrayNotHasKey( 'cessazione', $prima );

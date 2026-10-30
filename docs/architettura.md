@@ -60,7 +60,7 @@ viene segnalato.
 
 | Classe (in `src/`) | Responsabilità | Requisiti |
 |---|---|---|
-| `Alberatura` | Costruisce l'albero delle sezioni dal file di definizione conforme all'Allegato A; denominazioni esatte, data di aggiornamento per nodo, stato dell'obbligo per nodo; voci coperte da un modulo ANAC e voci legate alla cessazione, come dati del file | TRASP-01, TRASP-04, TRASP-10, TRASP-27 |
+| `Alberatura` | Costruisce l'albero delle sezioni dal file di definizione conforme all'Allegato A; denominazioni esatte, data di aggiornamento per nodo, stato dell'obbligo per nodo; voci coperte da un modulo ANAC, voci legate alla cessazione e banche dati a cui una voce può rinviare, come dati del file | TRASP-01, TRASP-04, TRASP-10, TRASP-25, TRASP-27, TRASP-29 |
 | `CatalogoSchemi` | Legge e controlla il catalogo `schemas/catalogo.json`: versioni per obbligo con date e fonte, file degli schemi e delle definizioni comuni, rimandi risolti in locale | TRASP-06, TRASP-26 |
 | `MotoreSchemi` | Sceglie la versione in vigore, valida contro i JSON Schema ufficiali con la libreria opis/json-schema nella copia prefissata, restituisce i difetti con percorso e regola; i moduli di compilazione arrivano dopo | TRASP-05, TRASP-06, TRASP-26 |
 | `TipoVoce` | Registra il tipo della voce di trasparenza attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-05 |

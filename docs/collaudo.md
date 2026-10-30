@@ -305,6 +305,18 @@ contenuto scaduto solo a chi consulta gli scaduti (TRASP-09). Scheda:
 | T-90 | fatto | Installazione o cambio di versione con il permesso tolto all'amministratore; aggiornamento di un sito già installato con la versione 0.1.0-alpha, senza cancellarne la versione memorizzata; ruoli Redattore, Autore, Collaboratore; [guasto] permesso non scritto nei ruoli conservati | l'amministratore riceve il permesso di consultare gli scaduti dei contenuti, con il nome chiesto al componente comune; anche sul sito già installato, e alla richiesta dopo non si rifà; gli altri ruoli no; il tipo delle voci non ne riceve; permesso non scritto: errore, versione non memorizzata |
 | T-91 | fatto | Contenuto con documento in bozza, pubblicato e non scaduto, pubblicato e scaduto, chiesto dal punto amministrativo e guardato nel riquadro, dall'amministratore, da un ruolo che gestisce i contenuti senza consultare gli scaduti | l'amministratore apre il file in ogni caso e il riquadro gli mostra il collegamento; l'altro ruolo apre bozza e non scaduto, è rifiutato sullo scaduto, e il riquadro gli mostra lì il nome senza collegamento con la frase che lo spiega |
 
+## Rinvii alle banche dati nazionali (righe da T-92)
+
+Provano l'adempimento per collegamento a una banca dati nazionale: l'elenco nel file
+dell'albero, la dichiarazione dell'ente e la pagina pubblica, secondo l'art. 9-bis e
+l'Allegato B del d.lgs. 33/2013 e il d.l. 19/2026, art. 8, cc. 2 e 3 (TRASP-11, TRASP-25,
+TRASP-29). Scheda: `docs/implementazione/rinvii-banche-dati.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-92 | fatto | Elenco nell'albero in vigore; versione che lo porta; voce dei bandi di concorso; voce senza rinvii | undici banche dati, scritte nella prova con nome, voci, fonte fra quelle del file e, per le dieci dell'Allegato B, il titolare; Soldi pubblici senza titolare; SIQuEL con il limite agli enti locali, REMS con quello agli immobili di proprietà statale; una voce può avere più banche dati, nell'ordine del file; la voce dei bandi di concorso nessuna; l'elenco arriva con la versione 2026-10-30, uguale alla 2026-10-29-2 salvo elenco e fonti; la 2026-10-29-2 resta accanto, con l'impronta attesa scritta nella prova |
+| T-93 | fatto | [attacco] elenchi non validi nel file: non un oggetto, senza nomi, identificativo strano o lungo, banca dati non oggetto, chiavi mancanti o in più, nome vuoto, lungo o non testo, fonte non testo o non fra le fonti, voci vuote o con nomi, voce non testo, inesistente, radice, con sottovoci, ripetuta nella stessa banca dati, titolare o limite vuoti, lunghi o non testo; voce numero al posto del testo in un albero con una voce di sole cifre; radice in un albero della sola radice | il file si rifiuta; nome, titolare e limite si ripuliscono dagli spazi; un elenco vuoto, o nessun elenco, si accetta e nessuna voce ha rinvii |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
