@@ -104,7 +104,7 @@ const FILE_PRINCIPALE = __FILE__;
  * Finche manca, la sezione non si mostra e chi amministra il sito vede un
  * avviso.
  */
-const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-30.json';
+const FILE_ALBERATURA = __DIR__ . '/dati/alberatura/2026-10-30-2.json';
 
 /**
  * Identificativo del tipo di contenuto della voce di trasparenza.
@@ -154,6 +154,8 @@ require_once __DIR__ . '/src/class-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-responsabile.php';
 require_once __DIR__ . '/src/class-rinvii.php';
 require_once __DIR__ . '/src/class-schermata-rinvii.php';
+require_once __DIR__ . '/src/class-accesso-civico.php';
+require_once __DIR__ . '/src/class-schermata-accesso-civico.php';
 require_once __DIR__ . '/src/class-schermata-stati.php';
 require_once __DIR__ . '/src/class-scheda-contenuto.php';
 require_once __DIR__ . '/src/class-scheda-pubblicazione.php';
@@ -172,6 +174,7 @@ PaginaPubblica::aggancia();
 SchermataStati::aggancia();
 SchermataResponsabile::aggancia();
 SchermataRinvii::aggancia();
+SchermataAccessoCivico::aggancia();
 SchedaContenuto::aggancia();
 SchedaPubblicazione::aggancia();
 SchedaDocumenti::aggancia();
