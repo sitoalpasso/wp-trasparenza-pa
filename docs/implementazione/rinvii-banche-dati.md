@@ -298,10 +298,10 @@ chi tiene la banca dati sempre o mai, `esc_url` tolto, etichetta o nome della ba
 escaping, formato della data fisso, giorno letto in UTC invece che nel fuso del sito, data
 leggibile dalle macchine tolta, titolo tolto, e le tre guardie del rinvio vuoto tolte insieme.
 
-`esc_url` tolto e giorno letto in UTC erano verdi al primo giro: l'indirizzo delle prove non
-aveva caratteri da codificare, e il sito delle prove era in UTC. Una prova nuova usa un
-indirizzo con la e commerciale e un fuso indietro rispetto a UTC, dove la mezzanotte letta in
-UTC cadrebbe il giorno prima.
+Per `esc_url` tolto e per il giorno letto in UTC le prove della prima stesura non bastavano:
+l'indirizzo non aveva caratteri da codificare e il sito delle prove era in UTC. Prima di far
+girare le rotture si è aggiunta una prova con un indirizzo con la e commerciale e un fuso
+indietro rispetto a UTC, dove la mezzanotte letta in UTC cadrebbe il giorno prima.
 
 Tre restano verdi, ed è voluto. Il rinvio vuoto si ferma su tre guardie: la banca dati vuota,
 la banca dati che il file dell'albero non conosce, il giorno che non si legge. Ciascuna basta da
