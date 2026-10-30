@@ -60,7 +60,7 @@ viene segnalato.
 
 | Classe (in `src/`) | Responsabilità | Requisiti |
 |---|---|---|
-| `Alberatura` | Costruisce l'albero delle sezioni dal file di definizione conforme all'Allegato A; denominazioni esatte, data di aggiornamento per nodo, stato dell'obbligo per nodo; voci coperte da un modulo ANAC, come dato del file | TRASP-01, TRASP-04, TRASP-10, TRASP-27 |
+| `Alberatura` | Costruisce l'albero delle sezioni dal file di definizione conforme all'Allegato A; denominazioni esatte, data di aggiornamento per nodo, stato dell'obbligo per nodo; voci coperte da un modulo ANAC e voci legate alla cessazione, come dati del file | TRASP-01, TRASP-04, TRASP-10, TRASP-27 |
 | `CatalogoSchemi` | Legge e controlla il catalogo `schemas/catalogo.json`: versioni per obbligo con date e fonte, file degli schemi e delle definizioni comuni, rimandi risolti in locale | TRASP-06, TRASP-26 |
 | `MotoreSchemi` | Sceglie la versione in vigore, valida contro i JSON Schema ufficiali con la libreria opis/json-schema nella copia prefissata, restituisce i difetti con percorso e regola; i moduli di compilazione arrivano dopo | TRASP-05, TRASP-06, TRASP-26 |
 | `TipoVoce` | Registra il tipo della voce di trasparenza attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST | TRASP-05 |
@@ -73,7 +73,7 @@ viene segnalato.
 | `SchedaContenuto` | Il riquadro "Voce della sezione": scelta fra le voci senza sottovoci, salvataggio con una voce di registro, conflitto se un altro ha cambiato la voce dopo l'apertura; avviso sul modulo ANAC che copre la voce | TRASP-19 |
 | `SchedaDocumenti` | Il riquadro "Documenti": deposito attraverso il componente comune, rimozione solo su un contenuto non pubblicato, voce di registro con nome e impronta per ogni aggiunta e rimozione | TRASP-19 |
 | `ContenutiPubblici` | I contenuti che la pagina pubblica mostra in una voce: pubblicati, senza password, con una voce valida e la fine non passata, ricontrollati uno per uno, con l'avviso di indisponibilità se la lettura fallisce; data di ultimo aggiornamento di ogni contenuto e di ogni voce, la più recente fra quelle sotto; testo ripulito, codici brevi non eseguiti; i documenti sotto ogni contenuto e la condizione che il componente comune chiama prima di consegnarli: il contenuto deve comparire nella pagina | TRASP-02, TRASP-09, TRASP-10 |
-| `SchedaPubblicazione` | Il riquadro "Pubblicazione": data da cui decorre l'obbligo, ultimo giorno degli effetti facoltativo, fine calcolata con la durata dell'albero e prolungata dagli effetti, scritta attraverso il componente comune, voce di registro, conflitto, riallineamento | TRASP-08, TRASP-19 |
+| `SchedaPubblicazione` | Il riquadro "Pubblicazione": data da cui decorre l'obbligo, ultimo giorno degli effetti facoltativo, cessazione nelle voci che l'albero lega alla cessazione, fine calcolata con la durata dell'albero, prolungata dagli effetti o contata dalla cessazione, scritta attraverso il componente comune, voce di registro, conflitto, riallineamento | TRASP-08, TRASP-19 |
 | `Metadato` | Lettura di un metadato dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverlo | trasversale |
 | `Blocco` | Il blocco della banca dati che tiene in fila i salvataggi delle schermate di gestione | TRASP-19 |
 | `ChiusuraPubblicazione` | Ogni tentativo di pubblicare una voce la lascia in bozza finche non ci sono gli stati editoriali | TRASP-28 |
