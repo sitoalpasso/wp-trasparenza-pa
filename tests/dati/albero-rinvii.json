@@ -1,0 +1,23 @@
+{
+	"formato": 1,
+	"versione": "prova-rinvii",
+	"diciture": {
+		"non_applicabile": "L'obbligo di pubblicazione non è applicabile all'amministrazione",
+		"sospeso": "Obbligo di pubblicazione sospeso"
+	},
+	"rinvii": {
+		"banca_uno": { "nome": "Banca Uno", "titolare": "Titolare Uno", "fonte": "fonte_finta", "voci": [ "zeta_uno", "alfa" ] },
+		"banca_due": { "nome": "Banca Due", "titolare": "Titolare Due", "limite": "solo enti finti", "fonte": "fonte_finta", "voci": [ "zeta_uno" ] },
+		"banca_tre": { "nome": "Banca Tre <b>", "fonte": "fonte_finta", "voci": [ "alfa" ] }
+	},
+	"fonti": [
+		{ "chiave": "fonte_finta", "titolo": "Fonte finta delle prove", "url": "https://example.org/fonte", "consultata": "2026-10-30", "uso": "prove" }
+	],
+	"nodi": [
+		{ "id": "radice", "nome": "Amministrazione trasparente", "padre": null, "riferimento": "" },
+		{ "id": "zeta", "nome": "Voce Zeta", "padre": "radice", "riferimento": "" },
+		{ "id": "alfa", "nome": "Voce Alfa", "padre": "radice", "riferimento": "" },
+		{ "id": "zeta_uno", "nome": "Voce Zeta Uno", "padre": "zeta", "riferimento": "" },
+		{ "id": "zeta_due", "nome": "Voce Zeta Due", "padre": "zeta", "riferimento": "" }
+	]
+}

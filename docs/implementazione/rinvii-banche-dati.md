@@ -113,6 +113,58 @@ stati delle voci e del responsabile: il rinvio è una dichiarazione dell'ente, n
 | Elenco non oggetto, banca dati con identificativo strano, chiavi mancanti o in più, nome vuoto o lungo, fonte non fra le fonti, voci vuote, inesistenti, radice, con sottovoci, ripetute nella stessa banca dati, titolare o limite vuoti o lunghi | il file si rifiuta |
 | Nessun elenco | il file si legge, nessuna voce si assolve per rinvio |
 
+## 7-bis. La dichiarazione dell'ente (passo 2)
+
+**La schermata.** "Amministrazione trasparente > Rinvii alle banche dati" elenca le sole voci
+che il file dell'albero lega ad almeno una banca dati, con il percorso della voce e il rinvio
+dichiarato. Per ogni voce un modulo suo, salvato da solo: banca dati, scelta fra quelle della
+voce, con il titolare e l'eventuale limite accanto al nome; indirizzo; etichetta; data. La
+schermata ricorda che il collegamento assolve l'obbligo solo nei limiti dei dati che si trovano
+davvero nella banca dati (art. 9-bis, c. 2) e che l'indirizzo deve portare al dato dell'ente,
+non alla pagina iniziale della banca dati (art. 9).
+
+**Le regole del dato.**
+
+| Campo | Regola |
+|---|---|
+| Banca dati | fra quelle che il file dell'albero in vigore lega alla voce; vuota vuol dire nessun rinvio, e allora anche gli altri campi devono essere vuoti |
+| Indirizzo | obbligatorio con la banca dati; indirizzo web completo che inizia con `https://` o `http://`, al massimo 2000 caratteri, che la pulizia non cambia |
+| Etichetta | obbligatoria con la banca dati; una riga, senza codice, al massimo 200 caratteri: dice cosa si trova dall'altra parte |
+| Data | obbligatoria con la banca dati; AAAA-MM-GG, esistente nel calendario e non dopo oggi nel fuso del sito: è il giorno da cui l'ente rinvia, non una promessa |
+
+**Il salvataggio.** Le regole della schermata del responsabile: permesso e nonce prima di
+tutto; ogni campo controllato prima di scrivere; un salvataggio della sezione alla volta;
+prima la riga di registro, poi il dato, che si rilegge dopo averlo scritto. Il modulo porta il
+rinvio che mostrava all'apertura: se nel frattempo qualcun altro ha cambiato il rinvio di
+quella voce, è un conflitto e non si salva niente. Il dato si salva così come è stato scritto,
+o si rifiuta: la pulizia non lo cambia mai in silenzio.
+
+**Il registro.** Una riga `rinvio_banca_dati` per ogni rinvio dichiarato, cambiato o tolto, con
+la voce e il rinvio di prima e di dopo, valori compresi, un campo per coppia (`banca_prima`,
+`indirizzo_dopo` e così via, nulli se il rinvio non c'era o non c'è più), perché il registro
+accetta solo valori semplici: indirizzo ed etichetta non sono dati
+personali, e tenerli nel registro è ciò che lega il collegamento a chi lo ha scritto
+(TRASP-11). Un rinvio uguale a quello conservato non si registra.
+
+**Il dato conservato.** L'opzione `trasparenza_pa_rinvii`: per voce, banca dati, indirizzo,
+etichetta e data. Un rinvio conservato che non supera più il controllo, per esempio perché una
+versione nuova dell'albero non lega più quella banca dati alla voce, non vale come rinvio: la
+schermata lo dice accanto alla voce e la pagina pubblica non lo mostra.
+
+## 7-ter. Modi di guasto (passo 2)
+
+| Caso | Esito |
+|---|---|
+| Senza permesso, senza nonce o con nonce scaduto | rifiuto prima di leggere i campi |
+| Voce inesistente, radice, voce senza banche dati, banca dati non della voce, campi non testuali o mancanti, indirizzo, etichetta o data non validi, data nel futuro, campi pieni senza banca dati | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
+| Partenza mancante o non valida | niente scritto, messaggio che chiede di ricaricare |
+| Rinvio della voce cambiato da altri dopo l'apertura del modulo | conflitto, niente scritto |
+| Albero non disponibile | niente scritto, messaggio |
+| Un altro salvataggio della sezione in corso | niente scritto, messaggio |
+| Lettura fallita dei rinvii conservati | niente scritto, niente nel registro, messaggio |
+| Registro che rifiuta la riga | niente scritto, messaggio |
+| Rinvio non scritto | messaggio che lo dice: il registro contiene un cambio non avvenuto |
+
 ## 8. Cosa deliberatamente NON fa
 
 - Non verifica che il collegamento risponda: è la verifica periodica del componente comune,
@@ -163,3 +215,36 @@ fatto della sola radice.
 
 Una resta verde, ed è voluta: togliere il controllo che la fonte sia un testo non cambia niente,
 perché il confronto stretto con le chiavi delle fonti, che sono testi, rifiuta ogni altro valore.
+
+### Passo 2: la dichiarazione dell'ente
+
+Cinquantacinque rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una
+prova. Nel controllo: voce senza banche dati ammessa, campo mancante o non testo ammesso, campi
+pieni senza banca dati, banca dati libera, schema dell'indirizzo libero, indirizzo lungo,
+indirizzo di 2001 caratteri, pulizia dell'indirizzo tolta, etichetta vuota, pulizia
+dell'etichetta tolta, etichetta lunga, etichetta contata in byte invece che in caratteri,
+formato della data libero, calendario tolto, data futura ammessa, oggi rifiutato, fuso del
+server o UTC al posto di quello del sito. Nella lettura: lettura con `get_option` per chi riscrive,
+errore di lettura ignorato, valore non elenco, voce numerica ammessa, riga con un campo strano
+conservata. Nel salvataggio: permesso tolto, nonce tolto, voce non controllata, albero assente
+ignorato, controllo ignorato, partenza non richiesta, blocco tolto, lettura fallita ignorata,
+stesso rinvio registrato, conflitto tolto, prima o dopo non registrati, registro ignorato,
+rimozione non fatta, scrittura tolta, rinvii delle altre voci persi, rilettura tolta, esito
+della rimozione sbagliato. Nella schermata: aperta senza permesso, esito non tolto, voci senza
+banche dati elencate, rifiuto non rimostrato o rimostrato in ogni modulo, partenza riletta
+invece di quella di allora, rinvio non più valido non segnalato, titolare o limite non
+mostrati, nome o valore senza escaping, partenza senza valore, percorso con la sola voce.
+
+Tre erano verdi al primo giro, e tre prove nuove le fanno rosse. Senza il controllo che la voce
+abbia banche dati, un rinvio pieno era rifiutato lo stesso dal controllo della banca dati: ora
+si prova anche il rinvio vuoto su una voce senza banche dati, che altrimenti scriverebbe una
+riga per una voce che il rinvio non lo ammette. Senza gli ancoraggi del formato, una data con
+altro intorno passava: ora si provano `2026-01-15T10:00` e `x2026-01-15`. La prova della
+partenza dopo un rifiuto guardava un valore vuoto che c'era anche negli altri moduli: ora
+controlla che la partenza della voce rifiutata non sia il rinvio riletto.
+
+La rottura con UTC al posto del fuso del sito è stata aggiunta dopo la prima rilettura: la
+prova di allora confrontava `oggi()` con un giorno calcolato dallo stesso fuso, e su un sito
+in UTC non distingueva i due. La prova del fuso imposta un fuso lontano da UTC, scelto in modo
+che nell'istante della prova il giorno del sito sia diverso da quello UTC, e calcola i giorni
+attesi dall'ora UTC con lo scarto fisso.

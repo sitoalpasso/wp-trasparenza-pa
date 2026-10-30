@@ -69,6 +69,8 @@ viene segnalato.
 | `Opzione` | Lettura di un'opzione dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverla | trasversale |
 | `Responsabile` | I dati del responsabile della prevenzione della corruzione e della trasparenza: controllo e riquadro pubblico nella voce che l'albero indica | TRASP-13 |
 | `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
+| `Rinvii` | I rinvii alle banche dati dichiarati dall'ente: controllo di banca dati, indirizzo, etichetta e data contro l'albero in vigore, lettura dalla banca dati che distingue l'assente dalla lettura fallita | TRASP-11, TRASP-25 |
+| `SchermataRinvii` | La schermata "Rinvii alle banche dati": un modulo per voce, salvataggio con voce di registro, conflitto, rinvio conservato che non vale più segnalato | TRASP-25, TRASP-29, TRASP-19 |
 | `TipoContenuto` | Registra il tipo del contenuto libero della sezione, testo e documenti, attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST; dichiara che i suoi file seguono la pagina della sezione, con la condizione di `ContenutiPubblici` | TRASP-19 |
 | `SchedaContenuto` | Il riquadro "Voce della sezione": scelta fra le voci senza sottovoci, salvataggio con una voce di registro, conflitto se un altro ha cambiato la voce dopo l'apertura; avviso sul modulo ANAC che copre la voce | TRASP-19 |
 | `SchedaDocumenti` | Il riquadro "Documenti": deposito attraverso il componente comune, rimozione solo su un contenuto non pubblicato, voce di registro con nome e impronta per ogni aggiunta e rimozione | TRASP-19 |
