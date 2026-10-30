@@ -140,6 +140,13 @@ class AccessoCivicoPubblicoTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Modulo per la richiesta', $html );
 		$this->assertStringContainsString( 'Paolo Verdi, segretario generale', $html );
 
+		update_option( Responsabile::OPZIONE, array_merge( $this->responsabile(), array( 'nome' => '<b>Maria</b>' ) ) );
+
+		$html = $this->pagina();
+
+		$this->assertStringContainsString( 'La richiesta va al responsabile della prevenzione della corruzione e della trasparenza.</p>', $html, 'Un responsabile conservato non valido vale come non indicato.' );
+		$this->assertStringNotContainsString( 'Maria', $html );
+
 		update_option( Responsabile::OPZIONE, array_merge( $this->responsabile(), array( 'telefono' => '' ) ) );
 
 		$html = $this->pagina();
@@ -207,8 +214,9 @@ class AccessoCivicoPubblicoTest extends WP_UnitTestCase {
 			array_merge(
 				$this->validi(),
 				array(
-					'ufficio'   => 'Ufficio "A" & B',
-					'sostituto' => 'Paolo & Verdi',
+					'ufficio'       => 'Ufficio "A" & B',
+					'ufficio_email' => 'urp&info@example.org',
+					'sostituto'     => 'Paolo & Verdi',
 				)
 			)
 		);
@@ -219,5 +227,6 @@ class AccessoCivicoPubblicoTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<li>Ufficio &quot;A&quot; &amp; B</li>', $html );
 		$this->assertStringContainsString( '<li>Paolo &amp; Verdi</li>', $html );
 		$this->assertStringContainsString( '<li>Maria &amp; Rossi</li>', $html );
+		$this->assertStringContainsString( '<a href="mailto:urp&#038;info@example.org">urp&amp;info@example.org</a>', $html );
 	}
 }
