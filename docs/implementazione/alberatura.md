@@ -65,7 +65,7 @@ Formato del file dell'albero, versione 1:
 | `versione` | la versione dell'albero, testo non vuoto |
 | `diciture` | testo per `non_applicabile` e per `sospeso`, entrambi obbligatori |
 | `nodi` | elenco di voci in ordine di visualizzazione: `id` (lettere, cifre e trattino basso, al massimo 80), `nome`, `padre` (nullo solo per la radice), `riferimento` |
-| `fonti` | elenco delle fonti dell'albero: `chiave`, `titolo`, `url` o `estremi`, `consultata` (data), `uso`. Il motore ne legge solo le chiavi, per controllare le fonti della cessazione; il resto lo controllano le prove dell'albero normativo (T-25) |
+| `fonti` | elenco delle fonti dell'albero: `chiave`, `titolo`, `url` o `estremi`, `consultata` (data), `uso`. Il motore ne legge solo le chiavi, per controllare le fonti della cessazione e dei rinvii; il resto lo controllano le prove dell'albero normativo (T-25) |
 | `fonte_diciture` | per ogni dicitura, la chiave della fonte o la dichiarazione che e un testo del componente. Idem |
 | `collocazioni` | facoltativa: per ogni dato della sezione che non e una voce, come il responsabile della trasparenza (`responsabile_trasparenza`), la voce in cui si mostra. Il nome del dato segue `[a-z0-9_]{1,80}`; la voce deve esistere e non essere la radice, altrimenti il file si rifiuta con `trasparenza_albero_collocazione` (T-54) |
 | `fonte_collocazioni` | per ogni collocazione, la chiave della fonte. Il motore non la legge; la controllano le prove dell'albero normativo (T-55) |
@@ -74,6 +74,7 @@ Formato del file dell'albero, versione 1:
 | `moduli` | facoltativa: per ogni modulo ANAC (identificativo `[a-z0-9_]{1,80}`) un `nome` (testo non vuoto, al massimo 200 caratteri) e le `voci` che copre, senza sottovoci, ciascuna in un modulo solo; altrimenti il file si rifiuta con `trasparenza_albero_moduli` (T-75, T-76) |
 | `fonte_moduli` | la chiave della fonte dell'elenco dei moduli. Il motore non la legge; la controllano le prove dell'albero normativo (T-75) |
 | `cessazione` | facoltativa: per ogni regola (identificativo `[a-z0-9_]{1,80}`) un `nome` (testo non vuoto, al massimo 200 caratteri), gli `anni` di pubblicazione dopo la cessazione (intero da uno in su), la `fonte` (chiave fra le `fonti` del file) e le `voci` che segue, senza sottovoci, ciascuna in una regola sola; facoltativi gli `anni_patrimoniali`, intero da zero agli anni della regola, termine dei dati patrimoniali; nessun'altra chiave. Altrimenti il file si rifiuta con `trasparenza_albero_cessazione` (T-84, T-85, T-89) |
+| `rinvii` | facoltativa: per ogni banca dati (identificativo `[a-z0-9_]{1,80}`) un `nome`, la `fonte` (chiave fra le `fonti` del file) e le `voci` che copre, senza sottovoci e senza ripetizioni; una voce può stare in più banche dati. Facoltativi il `titolare`, l'amministrazione a cui va l'accesso civico se il dato comunicato non compare nella banca dati (art. 9-bis, cc. 3 e 4), e il `limite`, frase che restringe chi può rinviare. Nome, titolare e limite sono testi non vuoti, al massimo 200 caratteri; nessun'altra chiave. Altrimenti il file si rifiuta con `trasparenza_albero_rinvii` (T-92, T-93) |
 
 Gli stati si scrivono nell'opzione `trasparenza_pa_stati_obbligo`. Un valore conservato che
 non e fra i tre vale come non dichiarato.

@@ -136,3 +136,25 @@ stati delle voci e del responsabile: il rinvio è una dichiarazione dell'ente, n
 - **Soldi pubblici e il modulo dell'art. 4-bis.** La voce dei pagamenti ha anche il modulo ANAC.
   Il d.l. 19/2026 ammette il collegamento "per i soggetti i cui dati sui pagamenti sono già
   inseriti" nella banca dati: lo dichiara l'ente, e la schermata lo dice.
+
+## Rotture volute, a lavoro finito
+
+### Passo 1: l'elenco nel file dell'albero
+
+Ventisette rotture, una per volta e poi tolte. Ventisei fanno diventare rossa almeno una prova:
+elenco ignorato, elenco non oggetto ammesso, identificativo libero, identificativo fino a 90
+caratteri, banca dati non oggetto ammessa, chiavi obbligatorie non controllate, chiavi in più
+ammesse, testo vuoto ammesso, testo lungo ammesso, testo non stringa ammesso, solo il nome
+controllato fra i testi, fonte fuori dalle fonti, voci vuote, voci con nomi, voce non testo,
+radice ammessa, voci con sottovoci ammesse, voci ripetute ammesse, nome, titolare e limite non
+ripuliti dagli spazi, errore dell'elenco ignorato, rinvii dati a tutte le voci, voci lasciate
+nel rinvio restituito, banca dati inesistente non nulla, versione dell'albero in vigore lasciata
+alla 2026-10-29-2.
+
+Voce non testo e radice ammessa erano verdi al primo giro: un numero passava per una voce che
+non c'era, e la radice dell'albero vero ha sempre sottovoci. Due prove nuove le fanno rosse:
+un albero con una voce di sole cifre, dove il numero 15 passerebbe per la voce `15`, e un albero
+fatto della sola radice.
+
+Una resta verde, ed è voluta: togliere il controllo che la fonte sia un testo non cambia niente,
+perché il confronto stretto con le chiavi delle fonti, che sono testi, rifiuta ogni altro valore.
