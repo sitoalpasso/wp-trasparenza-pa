@@ -400,6 +400,46 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-110: un'entita HTML scritta come testo torna dal modulo identica; la riga si corregge e si toglie.
+	 */
+	public function test_t110_entita_scritte_come_testo(): void {
+		$riga = array_merge( $this->decisa(), array( 'argomento' => 'Spese &amp; forniture &lt;2025&gt;' ) );
+
+		$this->assertSame( $riga, RegistroAccessi::controlla( $riga ), 'Il controllo la ammette.' );
+		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $riga ) )['codice'] );
+
+		$html = $this->schermata();
+
+		$this->assertStringContainsString( 'value="Spese &amp;amp; forniture &amp;lt;2025&amp;gt;"', $html );
+
+		// Quello che il browser rimanda: il valore degli attributi, con le entita sciolte.
+		$rimandato = static function ( string $nome ) use ( $html ): string {
+			preg_match( '/name="' . preg_quote( $nome, '/' ) . '" value="([^"]*)"/', $html, $parti );
+			return html_entity_decode( $parti[1] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		};
+
+		$partenza = array();
+		$valori   = array();
+
+		foreach ( RegistroAccessi::CAMPI as $campo ) {
+			$partenza[ $campo ] = $rimandato( SchermataRegistroAccessi::CAMPO_PARTENZA . '[' . $campo . ']' );
+		}
+
+		foreach ( array( 'argomento', 'richiesta', 'decisione' ) as $campo ) {
+			$valori[ $campo ] = $rimandato( SchermataRegistroAccessi::CAMPO . '[' . $campo . ']' );
+		}
+
+		$this->assertSame( $riga, $partenza, 'La partenza torna identica.' );
+		$this->assertSame( $riga['argomento'], $valori['argomento'], 'Il campo torna identico.' );
+
+		$corretta = array_merge( $riga, $valori, array( 'esito' => 'accolta' ) );
+		$esito    = SchermataRegistroAccessi::salva( $this->richiesta( 'modifica', $corretta, 1, $partenza ) );
+
+		$this->assertSame( 'salvato', $esito['codice'], $esito['messaggio'] );
+		$this->assertSame( $corretta, RegistroAccessi::righe()[1] );
+	}
+
+	/**
 	 * T-108: [attacco] togliere una riga senza la conferma non tocca niente; la correzione non la chiede.
 	 */
 	public function test_t108_conferma_per_togliere(): void {
