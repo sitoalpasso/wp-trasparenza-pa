@@ -186,10 +186,14 @@ class DocumentiScadutiTest extends WP_UnitTestCase {
 	 */
 	public function test_t90_permesso_all_amministratore(): void {
 		$permesso = $this->consultazione();
+		$voce     = conformita_core_capacita_consultazione_scaduti( TIPO_VOCE );
 
+		$this->assertIsString( $voce );
 		$this->assertTrue( get_role( 'administrator' )->has_cap( $permesso ) );
 
+		// Si parte da ruoli senza i due permessi: possono restare da un'installazione precedente.
 		get_role( 'administrator' )->remove_cap( $permesso );
+		get_role( 'administrator' )->remove_cap( $voce );
 		delete_option( OPZIONE_VERSIONE );
 		$this->assertTrue( Installazione::aggiorna_se_serve() );
 
@@ -201,10 +205,25 @@ class DocumentiScadutiTest extends WP_UnitTestCase {
 			$this->assertFalse( get_role( $ruolo )->has_cap( $permesso ), "Il ruolo {$ruolo} non deve consultare gli scaduti." );
 		}
 
-		$voce = conformita_core_capacita_consultazione_scaduti( TIPO_VOCE );
-
-		$this->assertIsString( $voce );
 		$this->assertFalse( get_role( 'administrator' )->has_cap( $voce ), 'Le voci non hanno documenti e non scadono.' );
+	}
+
+	/**
+	 * T-90: su un sito gia installato con la versione precedente l'aggiornamento assegna il permesso.
+	 *
+	 * Si parte dalla versione memorizzata da un'installazione precedente, senza
+	 * cancellarla: e il caso di ogni sito che aggiorna il componente.
+	 */
+	public function test_t90_aggiornamento_da_versione_precedente(): void {
+		$permesso = $this->consultazione();
+
+		get_role( 'administrator' )->remove_cap( $permesso );
+		update_option( OPZIONE_VERSIONE, '0.1.0-alpha', true );
+
+		$this->assertTrue( Installazione::aggiorna_se_serve(), 'La versione del componente deve cambiare con il permesso nuovo.' );
+		$this->assertTrue( ( new \WP_Roles() )->get_role( 'administrator' )->has_cap( $permesso ) );
+		$this->assertSame( \TrasparenzaPa\VERSIONE, get_option( OPZIONE_VERSIONE ) );
+		$this->assertFalse( Installazione::aggiorna_se_serve(), 'Alla richiesta dopo non si rifa.' );
 	}
 
 	/**
