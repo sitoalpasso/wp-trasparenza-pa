@@ -140,7 +140,9 @@ quella voce, è un conflitto e non si salva niente. Il dato si salva così come 
 o si rifiuta: la pulizia non lo cambia mai in silenzio.
 
 **Il registro.** Una riga `rinvio_banca_dati` per ogni rinvio dichiarato, cambiato o tolto, con
-la voce e il rinvio di prima e di dopo, valori compresi: indirizzo ed etichetta non sono dati
+la voce e il rinvio di prima e di dopo, valori compresi, un campo per coppia (`banca_prima`,
+`indirizzo_dopo` e così via, nulli se il rinvio non c'era o non c'è più), perché il registro
+accetta solo valori semplici: indirizzo ed etichetta non sono dati
 personali, e tenerli nel registro è ciò che lega il collegamento a chi lo ha scritto
 (TRASP-11). Un rinvio uguale a quello conservato non si registra.
 
