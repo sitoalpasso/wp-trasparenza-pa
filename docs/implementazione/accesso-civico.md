@@ -55,7 +55,8 @@ prova, elencata in fondo a lavoro finito.
 | 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
 | 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
 | 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-110 |
-| 4 | `src/class-registro-accessi.php` | Il registro nella voce, per cinque anni |
+| 4 | `src/class-registro-accessi.php`, `src/class-pagina-pubblica.php` | Il registro nella voce, per cinque anni |
+| 4 | `tests/RegistroAccessiPubblicoTest.php` | Nuovo. Righe T-111..T-113 |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
@@ -369,3 +370,19 @@ piatte di nome e valore.
 Dopo il rilievo di Codex sulle entità HTML scritte come testo (T-110), quattro rotture, tutte
 rosse: partenza o campo scritti di nuovo con `esc_attr()`, codifica senza la ricodifica delle
 entità già scritte, codifica che lascia le virgolette.
+
+### Passo 4: il registro sulla pagina pubblica
+
+Ventuno rotture, una per volta e poi tolte. Venti fanno diventare rossa almeno una prova:
+registro tolto dalla pagina, mostrato in ogni voce o sopra il riquadro, righe mostrate senza
+controllo, finestra di sei o di quattro anni, orlo dell'ultimo anno escluso, finestra contata
+dalla richiesta invece che dalla decisione, richiesta in corso che scade, nessuna scadenza,
+ordine per numero invece che per data, pari data con il numero più basso prima, argomento con
+`esc_html()` (che lascia com'è un'entità già scritta) o senza escaping, date non girate in
+GG/MM/AAAA, tipo ed esito con il codice invece del nome, frase del registro vuoto tolta,
+intestazioni della tabella tolte.
+
+Una resta verde, ed è voluta: calcolare il giorno di oggi in UTC invece che nel fuso del sito
+cambia la pagina solo nelle ore a cavallo del 1° gennaio, che le prove non possono fissare
+senza controllare l'orologio. Il giorno di oggi nel fuso del sito ha la sua prova in T-105, e
+la pagina lo prende da lì.
