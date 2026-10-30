@@ -128,6 +128,10 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 			$richiesta[ SchermataRegistroAccessi::CAMPO ] = $riga;
 		}
 
+		if ( 'elimina' === $operazione ) {
+			$richiesta[ SchermataRegistroAccessi::CAMPO_CONFERMA ] = '1';
+		}
+
 		if ( null !== $numero ) {
 			$richiesta[ SchermataRegistroAccessi::CAMPO_NUMERO ]   = (string) $numero;
 			$richiesta[ SchermataRegistroAccessi::CAMPO_PARTENZA ] = $partenza ?? ( RegistroAccessi::righe()[ (int) $numero ] ?? array() );
@@ -334,14 +338,108 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 					'campi'      => RegistroAccessi::CAMPI,
 				),
 			),
-			wp_list_pluck( $tracce, 'dettagli' )
+			array_map(
+				static fn( array $dettagli ): array => array_intersect_key( $dettagli, array_flip( array( 'operazione', 'numero', 'campi' ) ) ),
+				wp_list_pluck( $tracce, 'dettagli' )
+			)
+		);
+	}
+
+	/**
+	 * T-109: la rimozione registra tipo, date ed esito della riga tolta; la correzione i valori di prima; mai l'argomento ne i valori nuovi.
+	 */
+	public function test_t109_valori_tolti_e_precedenti(): void {
+		SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->decisa() ) );
+		SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->in_corso() ) );
+
+		$decisa = array_merge(
+			$this->in_corso(),
+			array(
+				'argomento' => 'Curricula dei dirigenti',
+				'esito'     => 'rifiutata',
+				'decisione' => '2026-05-08',
+			)
 		);
 
-		$scritto = (string) wp_json_encode( $tracce );
+		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'modifica', $decisa, 2 ) )['codice'] );
+		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'elimina', null, 1 ) )['codice'] );
 
-		foreach ( array( 'sentieri', 'Curricula', '2026-03-02', '2026-05-08', 'rifiutata' ) as $valore ) {
-			$this->assertStringNotContainsString( $valore, $scritto, 'Il registro delle modifiche non conserva i valori.' );
+		$dettagli = wp_list_pluck( $this->tracce(), 'dettagli' );
+
+		$this->assertArrayNotHasKey( 'prima', $dettagli[0], 'L\'aggiunta non ha valori di prima.' );
+		$this->assertSame(
+			array(
+				'operazione' => 'modifica',
+				'numero'     => 2,
+				'campi'      => array( 'argomento', 'esito', 'decisione' ),
+				'prima'      => array(
+					'esito'     => '',
+					'decisione' => '',
+				),
+			),
+			$dettagli[2]
+		);
+
+		$tolta = $this->decisa();
+		unset( $tolta['argomento'] );
+
+		$this->assertSame(
+			array(
+				'operazione' => 'elimina',
+				'numero'     => 1,
+				'campi'      => RegistroAccessi::CAMPI,
+				'prima'      => $tolta,
+			),
+			$dettagli[3]
+		);
+
+		$scritto = (string) wp_json_encode( $this->tracce() );
+
+		foreach ( array( 'sentieri', 'Curricula', 'dirigenti', '2026-05-08', 'rifiutata' ) as $valore ) {
+			$this->assertStringNotContainsString( $valore, $scritto, 'Mai l\'argomento, mai i valori nuovi: ' . $valore );
 		}
+	}
+
+	/**
+	 * T-108: [attacco] togliere una riga senza la conferma non tocca niente; la correzione non la chiede.
+	 */
+	public function test_t108_conferma_per_togliere(): void {
+		SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->decisa() ) );
+
+		$conservato = get_option( RegistroAccessi::OPZIONE );
+		$tracce     = count( $this->tracce() );
+		$senza      = $this->richiesta( 'elimina', null, 1 );
+		unset( $senza[ SchermataRegistroAccessi::CAMPO_CONFERMA ] );
+
+		$casi = array(
+			'senza conferma'   => $senza,
+			'conferma vuota'   => array_merge( $senza, array( SchermataRegistroAccessi::CAMPO_CONFERMA => '' ) ),
+			'conferma diversa' => array_merge( $senza, array( SchermataRegistroAccessi::CAMPO_CONFERMA => 'si' ) ),
+			'conferma elenco'  => array_merge( $senza, array( SchermataRegistroAccessi::CAMPO_CONFERMA => array( '1' ) ) ),
+		);
+
+		foreach ( $casi as $nome => $richiesta ) {
+			$esito = SchermataRegistroAccessi::salva( $richiesta );
+
+			$this->assertSame( 'conferma', $esito['codice'], $nome );
+			$this->assertStringContainsString( 'casella', $esito['messaggio'], $nome );
+			$this->assertSame( 1, $esito['numero'], $nome );
+		}
+
+		$this->assertSame( $conservato, get_option( RegistroAccessi::OPZIONE ), 'Niente tolto.' );
+		$this->assertCount( $tracce, $this->tracce(), 'Niente nel registro delle modifiche.' );
+
+		$correzione = array_merge( $this->decisa(), array( 'esito' => 'accolta' ) );
+		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'modifica', $correzione, 1 ) )['codice'], 'La correzione non chiede conferma.' );
+		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'elimina', null, 1 ) )['codice'] );
+		$this->assertSame( array(), RegistroAccessi::righe() );
+
+		update_option( RegistroAccessi::OPZIONE, $conservato );
+		$html = $this->schermata();
+
+		$this->assertSame( 1, substr_count( $html, 'type="checkbox" id="trasparenza-pa-registro-1-conferma" name="' . SchermataRegistroAccessi::CAMPO_CONFERMA . '" value="1"' ), 'La casella accanto al pulsante della riga.' );
+		$this->assertStringContainsString( '<label for="trasparenza-pa-registro-1-conferma">', $html );
+		$this->assertLessThan( strpos( $html, 'value="elimina"' ), strpos( $html, 'trasparenza-pa-registro-1-conferma' ), 'La casella prima del pulsante.' );
 	}
 
 	/**
