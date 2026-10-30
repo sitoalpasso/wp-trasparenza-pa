@@ -241,6 +241,7 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 			'richiesta con altro'     => array( 'richiesta' => '2026-03-02T10:00' ),
 			'richiesta inesistente'   => array( 'richiesta' => '2026-02-30' ),
 			'richiesta a capo'        => array( 'richiesta' => "2026-03-02\n" ),
+			'richiesta con prefisso'  => array( 'richiesta' => '02026-03-02' ),
 			'richiesta futura'        => array( 'richiesta' => '2999-01-01' ),
 			'decisione altro formato' => array( 'decisione' => '30/03/2026' ),
 			'decisione inesistente'   => array( 'decisione' => '2026-02-31' ),
@@ -365,6 +366,7 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 
 		$casi = array(
 			'operazione sconosciuta' => array( $this->richiesta( 'cancella_tutto', $this->decisa() ), 'operazione' ),
+			'operazione con riga'    => array( $this->richiesta( 'cancella_tutto', $this->decisa(), 1 ), 'operazione' ),
 			'operazione non testo'   => array( array_merge( $this->richiesta( 'aggiungi', $this->decisa() ), array( SchermataRegistroAccessi::CAMPO_OPERAZIONE => array( 'aggiungi' ) ) ), 'operazione' ),
 			'riga non valida'        => array( $this->richiesta( 'aggiungi', array_merge( $this->decisa(), array( 'tipo' => 'altro' ) ) ), 'dati' ),
 			'riga non elenco'        => array( $this->richiesta( 'aggiungi', 'riga' ), 'dati' ),
@@ -429,11 +431,13 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 			$this->assertSame( '1', (string) $altra->query( "SELECT GET_LOCK('" . $altra->real_escape_string( Blocco::nome() ) . "', 0)" )->fetch_row()[0] );
 
 			$esito = SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->decisa() ) );
+			$monca = SchermataRegistroAccessi::salva( array_diff_key( $this->richiesta( 'elimina', null, 1, $this->decisa() ), array( SchermataRegistroAccessi::CAMPO_PARTENZA => 0 ) ) );
 		} finally {
 			$altra->close();
 		}
 
 		$this->assertSame( 'occupato', $esito['codice'] );
+		$this->assertSame( 'conflitto', $monca['codice'], 'Senza partenza la richiesta si rifiuta prima di chiedere il blocco.' );
 		$this->assertFalse( get_option( RegistroAccessi::OPZIONE ) );
 		$this->assertCount( 0, $this->tracce() );
 	}
@@ -541,6 +545,25 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 
 		$this->assertSame( array( 3 ), array_keys( RegistroAccessi::righe() ), 'Solo righe con numero positivo e campi testuali.' );
 		$this->assertSame( 6, SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->in_corso() ) )['numero'], 'Il numero nuovo supera ogni numero conservato, anche di righe scartate.' );
+
+		foreach ( array(
+			'parola'   => 'molti',
+			'testo'    => '9',
+			'negativo' => -3,
+			'decimale' => 2.5,
+		) as $nome => $ultimo ) {
+			update_option(
+				RegistroAccessi::OPZIONE,
+				array(
+					'ultimo' => $ultimo,
+					'righe'  => array( 1 => $this->decisa() ),
+				)
+			);
+
+			$esito = SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->in_corso() ) );
+			$this->assertSame( 'salvato', $esito['codice'], $nome );
+			$this->assertSame( 2, $esito['numero'], 'Un ultimo numero conservato che non e un intero positivo non conta: ' . $nome );
+		}
 	}
 
 	/**
@@ -575,7 +598,15 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 			array(
 				'ultimo' => 7,
 				'righe'  => array(
-					2 => array_merge( $this->decisa(), array( 'argomento' => 'Spese "sentieri" & rifugi' ) ),
+					2 => array_merge(
+						$this->decisa(),
+						array(
+							'argomento' => 'Spese "sentieri" & rifugi',
+							'richiesta' => '2026-04-20',
+							'decisione' => '2026-04-25',
+						)
+					),
+					4 => array_merge( $this->in_corso(), array( 'argomento' => 'Pari data' ) ),
 					7 => array_merge( $this->in_corso(), array( 'argomento' => '<b>nome</b>' ) ),
 				),
 			)
@@ -583,7 +614,7 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 
 		$html = $this->schermata();
 
-		$this->assertSame( 3, substr_count( $html, 'name="action" value="' . SchermataRegistroAccessi::AZIONE . '"' ), 'Un modulo di aggiunta e uno per riga.' );
+		$this->assertSame( 4, substr_count( $html, 'name="action" value="' . SchermataRegistroAccessi::AZIONE . '"' ), 'Un modulo di aggiunta e uno per riga.' );
 		$this->assertStringContainsString( 'name="' . SchermataRegistroAccessi::CAMPO_OPERAZIONE . '" value="aggiungi"', $html );
 		$this->assertStringContainsString( 'non scrivere nomi', $html );
 		$this->assertStringContainsString( 'name="' . SchermataRegistroAccessi::CAMPO_NUMERO . '" value="2"', $html );
@@ -593,7 +624,9 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<b>nome</b>', $html );
 		$this->assertStringContainsString( '&lt;b&gt;nome&lt;/b&gt;', $html );
 		$this->assertSame( 1, substr_count( $html, 'Questa riga non supera il controllo' ), 'Solo la riga non valida.' );
-		$this->assertLessThan( strpos( $html, 'value="2"' ), strpos( $html, 'value="7"' ), 'Prima le richieste piu recenti.' );
+		$posizione = static fn( int $numero ) => strpos( $html, 'name="' . SchermataRegistroAccessi::CAMPO_NUMERO . '" value="' . $numero . '"' );
+		$this->assertLessThan( $posizione( 7 ), $posizione( 2 ), 'Prima le richieste piu recenti, qualunque sia il numero.' );
+		$this->assertLessThan( $posizione( 4 ), $posizione( 7 ), 'A pari data, prima il numero piu alto.' );
 	}
 
 	/**

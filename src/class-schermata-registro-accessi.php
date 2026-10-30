@@ -245,8 +245,6 @@ final class SchermataRegistroAccessi {
 			);
 		}
 
-		ksort( $righe );
-
 		$nuovo = array(
 			'ultimo' => max( $conservato['ultimo'], $numero ),
 			'righe'  => $righe,
