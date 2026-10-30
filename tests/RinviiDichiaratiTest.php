@@ -211,30 +211,33 @@ class RinviiDichiaratiTest extends WP_UnitTestCase {
 		$albero = PaginaPubblica::albero();
 		$domani = ( new \DateTimeImmutable( 'tomorrow', wp_timezone() ) )->format( 'Y-m-d' );
 		$casi   = array(
-			'voce inesistente'       => array( 'voce_inesistente', $this->valido() ),
-			'radice'                 => array( 'radice', $this->valido() ),
-			'voce senza banche'      => array( 'zeta_due', $this->valido() ),
-			'banca di altra voce'    => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => 'banca_tre' ) ) ),
-			'banca inesistente'      => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => 'banca_zero' ) ) ),
-			'banca non testo'        => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => 1 ) ) ),
-			'indirizzo mancante'     => array( 'zeta_uno', array_diff_key( $this->valido(), array( 'indirizzo' => 0 ) ) ),
-			'data non testo'         => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => array( '2026-01-15' ) ) ) ),
-			'indirizzo vuoto'        => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => '' ) ) ),
-			'indirizzo senza schema' => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'example.org/banca' ) ) ),
-			'indirizzo altro schema' => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'javascript://example.org/%0aalert(1)' ) ) ),
-			'indirizzo ftp'          => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'ftp://example.org/banca' ) ) ),
-			'indirizzo con codice'   => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'https://example.org/"><script>' ) ) ),
-			'indirizzo lungo'        => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'https://example.org/' . str_repeat( 'a', 1981 ) ) ) ),
-			'etichetta vuota'        => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => '' ) ) ),
-			'etichetta su due righe' => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => "Dati\nnella banca" ) ) ),
-			'etichetta con codice'   => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => 'Dati <b>forti</b>' ) ) ),
-			'etichetta lunga'        => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => str_repeat( 'à', 201 ) ) ) ),
-			'data in altro formato'  => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '15/01/2026' ) ) ),
-			'data inesistente'       => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '2026-02-30' ) ) ),
-			'data vuota'             => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '' ) ) ),
-			'data di domani'         => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => $domani ) ) ),
-			'campi senza banca'      => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => '' ) ) ),
-			'solo data senza banca'  => array( 'zeta_uno', array_merge( Rinvii::vuoto(), array( 'data' => '2026-01-15' ) ) ),
+			'voce inesistente'           => array( 'voce_inesistente', $this->valido() ),
+			'radice'                     => array( 'radice', $this->valido() ),
+			'voce senza banche'          => array( 'zeta_due', $this->valido() ),
+			'vuoto su voce senza banche' => array( 'zeta_due', Rinvii::vuoto() ),
+			'banca di altra voce'        => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => 'banca_tre' ) ) ),
+			'banca inesistente'          => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => 'banca_zero' ) ) ),
+			'banca non testo'            => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => 1 ) ) ),
+			'indirizzo mancante'         => array( 'zeta_uno', array_diff_key( $this->valido(), array( 'indirizzo' => 0 ) ) ),
+			'data non testo'             => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => array( '2026-01-15' ) ) ) ),
+			'indirizzo vuoto'            => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => '' ) ) ),
+			'indirizzo senza schema'     => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'example.org/banca' ) ) ),
+			'indirizzo altro schema'     => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'javascript://example.org/%0aalert(1)' ) ) ),
+			'indirizzo ftp'              => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'ftp://example.org/banca' ) ) ),
+			'indirizzo con codice'       => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'https://example.org/"><script>' ) ) ),
+			'indirizzo lungo'            => array( 'zeta_uno', array_merge( $this->valido(), array( 'indirizzo' => 'https://example.org/' . str_repeat( 'a', 1981 ) ) ) ),
+			'etichetta vuota'            => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => '' ) ) ),
+			'etichetta su due righe'     => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => "Dati\nnella banca" ) ) ),
+			'etichetta con codice'       => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => 'Dati <b>forti</b>' ) ) ),
+			'etichetta lunga'            => array( 'zeta_uno', array_merge( $this->valido(), array( 'etichetta' => str_repeat( 'à', 201 ) ) ) ),
+			'data in altro formato'      => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '15/01/2026' ) ) ),
+			'data con altro intorno'     => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '2026-01-15T10:00' ) ) ),
+			'data con altro prima'       => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => 'x2026-01-15' ) ) ),
+			'data inesistente'           => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '2026-02-30' ) ) ),
+			'data vuota'                 => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '' ) ) ),
+			'data di domani'             => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => $domani ) ) ),
+			'campi senza banca'          => array( 'zeta_uno', array_merge( $this->valido(), array( 'banca' => '' ) ) ),
+			'solo data senza banca'      => array( 'zeta_uno', array_merge( Rinvii::vuoto(), array( 'data' => '2026-01-15' ) ) ),
 		);
 
 		foreach ( $casi as $nome => list( $voce, $rinvio ) ) {
@@ -531,7 +534,7 @@ class RinviiDichiaratiTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'qualcun altro ha cambiato il rinvio', $html );
 		$this->assertStringContainsString( 'name="rinvio[etichetta]" value="Il mio &quot;dato&quot;"', $html );
-		$this->assertStringContainsString( 'name="partenza[indirizzo]" value=""', $html, 'La partenza di allora, non quella riletta.' );
+		$this->assertStringNotContainsString( 'name="partenza[indirizzo]" value="' . esc_attr( $this->valido()['indirizzo'] ) . '"', $html, 'La partenza di allora, non quella riletta.' );
 		$this->assertFalse( get_transient( SchermataRinvii::ESITO . $this->responsabile ), 'L\'esito si mostra una volta.' );
 		$this->assertSame( 1, substr_count( $html, 'Il mio &quot;dato&quot;' ), 'Solo nel modulo della voce rifiutata.' );
 	}
