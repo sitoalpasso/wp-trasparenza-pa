@@ -2,7 +2,7 @@
 /**
  * I permessi del componente: sulle voci e sulla sezione.
  *
- * Righe di collaudo T-39, T-46 e T-47.
+ * Righe di collaudo T-39, T-46, T-47 e T-90.
  *
  * @package TrasparenzaPa
  */
@@ -135,10 +135,10 @@ final class Permessi {
 	 * @return true|WP_Error
 	 */
 	private static function applica_tipo( string $tipo ) {
-		$mappa = self::mappa( $tipo );
+		$permessi = self::permessi_del_tipo( $tipo );
 
-		if ( is_wp_error( $mappa ) ) {
-			return $mappa;
+		if ( is_wp_error( $permessi ) ) {
+			return $permessi;
 		}
 
 		foreach ( self::assegnazioni() as $nome => $chiavi ) {
@@ -148,10 +148,8 @@ final class Permessi {
 				continue;
 			}
 
-			foreach ( $chiavi as $chiave ) {
-				if ( isset( $mappa[ $chiave ] ) ) {
-					$ruolo->add_cap( $mappa[ $chiave ] );
-				}
+			foreach ( $permessi[ $nome ] as $permesso ) {
+				$ruolo->add_cap( $permesso );
 			}
 		}
 
@@ -164,8 +162,8 @@ final class Permessi {
 				continue;
 			}
 
-			foreach ( $chiavi as $chiave ) {
-				if ( isset( $mappa[ $chiave ] ) && ! $ruolo->has_cap( $mappa[ $chiave ] ) ) {
+			foreach ( $permessi[ $nome ] as $permesso ) {
+				if ( ! $ruolo->has_cap( $permesso ) ) {
 					/* translators: %s: identificativo del ruolo. */
 					return new WP_Error( 'trasparenza_permessi_non_scritti', sprintf( __( 'I permessi della voce non risultano scritti sul ruolo %s.', 'trasparenza-pa' ), $nome ) );
 				}
@@ -173,6 +171,54 @@ final class Permessi {
 		}
 
 		return true;
+	}
+
+	/**
+	 * I permessi di un tipo che ciascun ruolo riceve.
+	 *
+	 * Per i contenuti, in piu, il permesso di consultare gli scaduti: dalla
+	 * versione 1.11.0 dell'interfaccia del componente comune il file di un
+	 * contenuto scaduto si apre dal punto amministrativo solo con quello, e
+	 * l'ente deve poterlo ritrovare per rispondere all'accesso civico. Le voci
+	 * non hanno documenti e non scadono. Righe T-90 e T-91.
+	 *
+	 * @param string $tipo Tipo.
+	 * @return array<string, array<int, string>>|WP_Error
+	 */
+	private static function permessi_del_tipo( string $tipo ) {
+		$mappa = self::mappa( $tipo );
+
+		if ( is_wp_error( $mappa ) ) {
+			return $mappa;
+		}
+
+		$consultazione = null;
+
+		if ( TIPO_CONTENUTO === $tipo ) {
+			$consultazione = conformita_core_capacita_consultazione_scaduti( $tipo );
+
+			if ( is_wp_error( $consultazione ) ) {
+				return $consultazione;
+			}
+		}
+
+		$permessi = array();
+
+		foreach ( self::assegnazioni() as $nome => $chiavi ) {
+			$permessi[ $nome ] = array();
+
+			foreach ( $chiavi as $chiave ) {
+				if ( isset( $mappa[ $chiave ] ) ) {
+					$permessi[ $nome ][] = $mappa[ $chiave ];
+				}
+			}
+
+			if ( null !== $consultazione ) {
+				$permessi[ $nome ][] = $consultazione;
+			}
+		}
+
+		return $permessi;
 	}
 
 	/**
