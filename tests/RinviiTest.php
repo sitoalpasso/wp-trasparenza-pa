@@ -128,16 +128,17 @@ class RinviiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Riga T-92: l'elenco e arrivato con la versione 2026-10-30, in vigore, e la 2026-10-29-2 resta com'era.
+	 * Riga T-92: l'elenco e arrivato con la versione 2026-10-30, e la 2026-10-29-2 resta com'era.
+	 *
+	 * La versione in vigore e cambiata dopo: la prova guarda la 2026-10-30 per nome.
 	 */
 	public function test_t92_versione_nuova_accanto_alla_vecchia(): void {
 		$vecchio = dirname( FILE_ALBERATURA ) . '/2026-10-29-2.json';
 
 		$this->assertSame( 'f18fdaa75319e612dd9656157115aef7ec96a774cb1fa0af31ef78fbea0e6470', hash_file( 'sha256', $vecchio ), 'La versione 2026-10-29-2 non si modifica.' );
-		$this->assertSame( '2026-10-30.json', basename( FILE_ALBERATURA ), 'La versione in vigore e la 2026-10-30.' );
 
 		$prima = json_decode( (string) file_get_contents( $vecchio ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
-		$ora   = $this->dati();
+		$ora   = json_decode( (string) file_get_contents( dirname( FILE_ALBERATURA ) . '/2026-10-30.json' ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- file locale del componente.
 
 		$this->assertSame( '2026-10-30', $ora['versione'], 'Il nome del file dice la versione.' );
 		$this->assertArrayNotHasKey( 'rinvii', $prima );

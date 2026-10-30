@@ -1,0 +1,44 @@
+{
+	"formato": 1,
+	"versione": "prova-accesso-civico",
+	"diciture": {
+		"non_applicabile": "L'obbligo di pubblicazione non è applicabile all'amministrazione",
+		"sospeso": "Obbligo di pubblicazione sospeso"
+	},
+	"collocazioni": {
+		"responsabile_trasparenza": "zeta_uno",
+		"accesso_civico": "zeta_due"
+	},
+	"nodi": [
+		{
+			"id": "radice",
+			"nome": "Amministrazione trasparente",
+			"padre": null,
+			"riferimento": ""
+		},
+		{
+			"id": "zeta",
+			"nome": "Voce Zeta",
+			"padre": "radice",
+			"riferimento": "Riferimento finto 1"
+		},
+		{
+			"id": "alfa",
+			"nome": "Voce Alfa",
+			"padre": "radice",
+			"riferimento": ""
+		},
+		{
+			"id": "zeta_uno",
+			"nome": "Voce Zeta Uno",
+			"padre": "zeta",
+			"riferimento": "Riferimento finto 2"
+		},
+		{
+			"id": "zeta_due",
+			"nome": "Voce Zeta Due",
+			"padre": "zeta",
+			"riferimento": ""
+		}
+	]
+}
