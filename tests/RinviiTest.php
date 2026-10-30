@@ -91,8 +91,11 @@ class RinviiTest extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( array_keys( $attese ), array_keys( $trovate + array_fill_keys( array_keys( $attese ), array() ) ), 'Nessuna banca dati in piu.' );
-		$this->assertCount( count( $attese ), array_unique( array_merge( array_keys( $trovate ), array_keys( $attese ) ) ) );
+		$banche_trovate = array_keys( $trovate );
+		$banche_attese  = array_keys( $attese );
+		sort( $banche_trovate );
+		sort( $banche_attese );
+		$this->assertSame( $banche_attese, $banche_trovate, 'Nessuna banca dati in piu, nessuna in meno.' );
 
 		foreach ( $per_voce as $voce => $banche ) {
 			$this->assertSame( $banche, array_column( $albero->rinvii( $voce ), 'banca' ), 'Le banche dati di una voce, nell\'ordine del file: ' . $voce );
@@ -197,6 +200,42 @@ class RinviiTest extends WP_UnitTestCase {
 			$this->assertWPError( $esito, $nome );
 			$this->assertSame( 'trasparenza_albero_rinvii', $esito->get_error_code(), $nome );
 		}
+
+		/*
+		 * Una voce con identificativo di sole cifre diventa una chiave numerica:
+		 * il numero al posto del testo non deve passare per quella voce.
+		 */
+		$prova           = $dati;
+		$prova['nodi'][] = array(
+			'id'          => '15',
+			'nome'        => 'Voce numerica',
+			'padre'       => 'altri_contenuti',
+			'riferimento' => '',
+		);
+		$prova['rinvii'] = array( 'perla_pa' => array( 'voci' => array( 15 ) ) + $buona );
+		$esito           = Alberatura::da_dati( $prova );
+		$this->assertWPError( $esito, 'Voce numero al posto del testo.' );
+		$this->assertSame( 'trasparenza_albero_rinvii', $esito->get_error_code() );
+		$prova['rinvii'] = array( 'perla_pa' => array( 'voci' => array( '15' ) ) + $buona );
+		$this->assertSame( 'perla_pa', Alberatura::da_dati( $prova )->rinvii( '15' )[0]['banca'], 'Come testo la voce si accetta.' );
+
+		/*
+		 * Un albero fatto della sola radice: la radice non ha sottovoci, e
+		 * resta esclusa lo stesso.
+		 */
+		$prova = array(
+			'formato'  => $dati['formato'],
+			'versione' => $dati['versione'],
+			'diciture' => $dati['diciture'],
+			'fonti'    => $dati['fonti'],
+			'nodi'     => array( $dati['nodi'][0] ),
+			'rinvii'   => array( 'perla_pa' => array( 'voci' => array( 'amministrazione_trasparente' ) ) + $buona ),
+		);
+		$this->assertSame( 'amministrazione_trasparente', $dati['nodi'][0]['id'] );
+		$this->assertInstanceOf( Alberatura::class, Alberatura::da_dati( array_diff_key( $prova, array( 'rinvii' => 0 ) ) ), 'Precondizione: l\'albero della sola radice si legge.' );
+		$esito = Alberatura::da_dati( $prova );
+		$this->assertWPError( $esito, 'Radice senza sottovoci.' );
+		$this->assertSame( 'trasparenza_albero_rinvii', $esito->get_error_code() );
 
 		$prova           = $dati;
 		$prova['rinvii'] = array(

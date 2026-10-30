@@ -2,7 +2,7 @@
 /**
  * L'albero delle voci della sezione, letto da un file di dati.
  *
- * Righe di collaudo T-11 e T-12.
+ * Righe di collaudo T-11, T-12, T-92 e T-93.
  *
  * @package TrasparenzaPa
  */
@@ -101,6 +101,13 @@ final class Alberatura {
 	private $cessazione;
 
 	/**
+	 * Banche dati a cui si rinvia, nell'ordine del file: identificativo, nome, titolare, limite, fonte e voci.
+	 *
+	 * @var array<string, array{banca: string, nome: string, titolare: string|null, limite: string|null, fonte: string, voci: array<int, string>}>
+	 */
+	private $rinvii;
+
+	/**
 	 * Costruito solo da `carica()`, a controlli superati.
 	 *
 	 * @param array<string, array{id: string, nome: string, padre: string|null, riferimento: string}> $voci     Voci.
@@ -111,8 +118,9 @@ final class Alberatura {
 	 * @param int|null                                                                                $durata_anni  Anni di pubblicazione.
 	 * @param array<string, array{obbligo: string, nome: string}>                                     $moduli       Voci coperte da un modulo.
 	 * @param array<string, array{regola: string, nome: string, anni: int, patrimoniali: int|null}>   $cessazione   Voci legate alla cessazione.
+	 * @param array<string, array<string, mixed>>                                                     $rinvii       Banche dati a cui si rinvia.
 	 */
-	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni, array $moduli, array $cessazione ) {
+	private function __construct( array $voci, string $radice, string $versione, array $diciture, array $collocazioni, ?int $durata_anni, array $moduli, array $cessazione, array $rinvii ) {
 		$this->voci         = $voci;
 		$this->radice       = $radice;
 		$this->versione     = $versione;
@@ -121,6 +129,7 @@ final class Alberatura {
 		$this->durata_anni  = $durata_anni;
 		$this->moduli       = $moduli;
 		$this->cessazione   = $cessazione;
+		$this->rinvii       = $rinvii;
 	}
 
 	/**
@@ -366,7 +375,87 @@ final class Alberatura {
 			}
 		}
 
-		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni, $moduli, $cessazione );
+		$rinvii = self::rinvii_da_dati( $dati, $voci, $radice, $padri, $fonti );
+
+		if ( is_wp_error( $rinvii ) ) {
+			return $rinvii;
+		}
+
+		return new self( $voci, $radice, $versione, array_intersect_key( $diciture, array_flip( self::DICITURE ) ), $collocazioni, $durata_anni, $moduli, $cessazione, $rinvii );
+	}
+
+	/**
+	 * Legge e controlla l'elenco delle banche dati a cui si rinvia.
+	 *
+	 * L'elenco e facoltativo nel formato, come i moduli. Ogni banca dati ha un
+	 * nome, la fonte fra le fonti del file e le voci senza sottovoci che copre;
+	 * una voce puo stare in piu banche dati. Il titolare c'e solo dove la norma
+	 * manda a lui l'accesso civico quando il dato comunicato non compare nella
+	 * banca dati; il limite e una frase che restringe chi puo rinviare. Un
+	 * elenco dubbio rende il file illeggibile: un rinvio a una banca dati che
+	 * non copre la voce lascerebbe un obbligo non assolto con l'aria di esserlo.
+	 * Righe T-92 e T-93.
+	 *
+	 * @param array<string, mixed>                $dati   Dati del file.
+	 * @param array<string, array<string, mixed>> $voci   Voci.
+	 * @param string                              $radice Radice.
+	 * @param array<string, int>                  $padri  Voci con sottovoci.
+	 * @param array<int|string, string>           $fonti  Chiavi delle fonti.
+	 * @return array<string, array<string, mixed>>|WP_Error
+	 */
+	private static function rinvii_da_dati( array $dati, array $voci, string $radice, array $padri, array $fonti ) {
+		$rinvii = array();
+
+		if ( ! array_key_exists( 'rinvii', $dati ) ) {
+			return $rinvii;
+		}
+
+		if ( ! is_array( $dati['rinvii'] ) ) {
+			return self::errore_rinvii();
+		}
+
+		foreach ( $dati['rinvii'] as $banca => $rinvio ) {
+			if ( ! is_string( $banca ) || 1 !== preg_match( '/^[a-z0-9_]{1,80}$/', $banca ) || ! is_array( $rinvio ) ) {
+				return self::errore_rinvii();
+			}
+
+			$chiavi = array_keys( $rinvio );
+
+			if ( array() !== array_diff( array( 'fonte', 'nome', 'voci' ), $chiavi ) || array() !== array_diff( $chiavi, array( 'fonte', 'limite', 'nome', 'titolare', 'voci' ) ) ) {
+				return self::errore_rinvii();
+			}
+
+			foreach ( array( 'nome', 'titolare', 'limite' ) as $testo ) {
+				if ( array_key_exists( $testo, $rinvio ) && ( ! is_string( $rinvio[ $testo ] ) || '' === trim( $rinvio[ $testo ] ) || strlen( $rinvio[ $testo ] ) > 200 ) ) {
+					return self::errore_rinvii();
+				}
+			}
+
+			if ( ! is_string( $rinvio['fonte'] ) || ! in_array( $rinvio['fonte'], $fonti, true ) || ! is_array( $rinvio['voci'] ) || array() === $rinvio['voci'] || ! array_is_list( $rinvio['voci'] ) ) {
+				return self::errore_rinvii();
+			}
+
+			foreach ( $rinvio['voci'] as $voce ) {
+				if ( ! is_string( $voce ) || ! isset( $voci[ $voce ] ) || $voce === $radice || isset( $padri[ $voce ] ) ) {
+					return self::errore_rinvii();
+				}
+			}
+
+			if ( count( array_unique( $rinvio['voci'] ) ) !== count( $rinvio['voci'] ) ) {
+				return self::errore_rinvii();
+			}
+
+			$rinvii[ $banca ] = array(
+				'banca'    => $banca,
+				'nome'     => trim( $rinvio['nome'] ),
+				'titolare' => isset( $rinvio['titolare'] ) ? trim( $rinvio['titolare'] ) : null,
+				'limite'   => isset( $rinvio['limite'] ) ? trim( $rinvio['limite'] ) : null,
+				'fonte'    => $rinvio['fonte'],
+				'voci'     => $rinvio['voci'],
+			);
+		}
+
+		return $rinvii;
 	}
 
 	/**
@@ -499,6 +588,51 @@ final class Alberatura {
 	 */
 	public function cessazione( string $voce ): ?array {
 		return $this->cessazione[ $voce ] ?? null;
+	}
+
+	/**
+	 * Le banche dati a cui una voce puo rinviare, nell'ordine del file; vuoto se nessuna.
+	 *
+	 * @param string $voce Voce.
+	 * @return array<int, array{banca: string, nome: string, titolare: string|null, limite: string|null, fonte: string}>
+	 */
+	public function rinvii( string $voce ): array {
+		$trovati = array();
+
+		foreach ( $this->rinvii as $rinvio ) {
+			if ( in_array( $voce, $rinvio['voci'], true ) ) {
+				unset( $rinvio['voci'] );
+				$trovati[] = $rinvio;
+			}
+		}
+
+		return $trovati;
+	}
+
+	/**
+	 * Una banca dati dell'elenco, senza le voci, o nullo se non c'e.
+	 *
+	 * @param string $banca Identificativo della banca dati.
+	 * @return array{banca: string, nome: string, titolare: string|null, limite: string|null, fonte: string}|null
+	 */
+	public function banca_dati( string $banca ): ?array {
+		if ( ! isset( $this->rinvii[ $banca ] ) ) {
+			return null;
+		}
+
+		$rinvio = $this->rinvii[ $banca ];
+		unset( $rinvio['voci'] );
+
+		return $rinvio;
+	}
+
+	/**
+	 * Errore dell'elenco delle banche dati a cui si rinvia.
+	 *
+	 * @return WP_Error
+	 */
+	private static function errore_rinvii(): WP_Error {
+		return self::errore( 'trasparenza_albero_rinvii', __( 'L\'elenco delle banche dati nel file dell\'albero deve dare a ognuna un nome, una fonte fra le fonti del file e voci senza sottovoci, senza ripetizioni; titolare e limite, se ci sono, sono testi non vuoti fino a 200 caratteri.', 'trasparenza-pa' ) );
 	}
 
 	/**
