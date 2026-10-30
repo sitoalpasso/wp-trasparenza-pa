@@ -88,7 +88,7 @@ e il comma quando l'Allegato B lo indica.
 | Patrimonio della PA | MEF-DT | 22, cc. 1 e 2; 30 | enti pubblici vigilati; società partecipate; enti di diritto privato controllati; patrimonio immobiliare; canoni di locazione o affitto |
 | Rendiconti dei gruppi consiliari regionali | Corte dei conti | 28, c. 1 | rendiconti gruppi consiliari |
 | BDAP | MEF-RGS | 29, c. 1; 37, c. 1, lett. a), b), c); 38 | bilancio preventivo e consuntivo; informazioni sulle singole procedure; atti delle amministrazioni aggiudicatrici; le tre voci delle opere pubbliche dell'art. 38 |
-| REMS | Demanio | 30 | patrimonio immobiliare; canoni di locazione o affitto |
+| REMS | Demanio | 30 | patrimonio immobiliare; canoni di locazione o affitto. Limite: solo immobili di proprietà statale |
 | BDNCP | ANAC | 37, c. 1 | informazioni sulle singole procedure; atti delle amministrazioni aggiudicatrici |
 | Servizio Contratti Pubblici | MIT | 37, c. 1 | informazioni sulle singole procedure; atti delle amministrazioni aggiudicatrici |
 | Soldi pubblici | nessuno | 4-bis (d.l. 19/2026, art. 8, c. 2) | dati sui pagamenti |
@@ -129,6 +129,11 @@ stati delle voci e del responsabile: il rinvio è una dichiarazione dell'ente, n
   2, con Patrimonio della PA, ma "nei limiti dei dati effettivamente contenuti" (art. 9-bis,
   c. 2): la banca dati contiene i dati sulle partecipazioni, non una rappresentazione grafica.
   Si sceglie la lettura più prudente: la voce non è nell'elenco e resta da popolare sul sito.
+- **REMS e gli immobili non statali.** L'Allegato B lega REMS all'art. 30 senza restrizioni,
+  ma il nome della banca dati dice che gestisce gli immobili di proprietà statale: il patrimonio
+  di un ente non statale lì non c'è, e il rinvio lascerebbe l'obbligo non assolto. Lettura
+  prudente, come per SIQuEL: REMS porta il limite "solo immobili di proprietà statale", e per
+  l'art. 30 resta Patrimonio della PA, senza limite.
 - **Art. 37 con il codice dei contratti del 2023.** L'Allegato B cita le norme istitutive del
   codice del 2006. Le voci dell'art. 37 si lasciano nell'elenco perché l'allegato è vigente;
   l'aggiornamento alle banche dati di oggi è un cambio della versione dell'albero, quando la

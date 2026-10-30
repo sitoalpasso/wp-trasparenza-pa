@@ -49,116 +49,117 @@
 			"voci": ["titolari_incarichi_collaborazione_consulenza"]
 		}
 	},
-		"rinvii": {
-			"perla_pa": {
-				"nome": "Perla PA",
-				"titolare": "PCM-DFP",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"titolari_incarichi_collaborazione_consulenza",
-					"personale_non_tempo_indeterminato",
-					"incarichi_conferiti_e_autorizzati_ai_dipendenti"
-				]
-			},
-			"sico": {
-				"nome": "SICO - Sistema Conoscitivo del personale dipendente dalle Amministrazioni pubbliche",
-				"titolare": "MEF-RGS (IGOP)",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"dotazione_organica",
-					"personale_non_tempo_indeterminato",
-					"contrattazione_collettiva",
-					"contrattazione_integrativa"
-				]
-			},
-			"archivio_contratti": {
-				"nome": "Archivio contratti del settore pubblico",
-				"titolare": "ARAN CNEL",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"contrattazione_collettiva",
-					"contrattazione_integrativa"
-				]
-			},
-			"siquel": {
-				"nome": "SIQuEL - Sistema Informativo Questionari Enti Locali",
-				"titolare": "Corte dei conti",
-				"limite": "solo enti locali",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"enti_pubblici_vigilati",
-					"societa_partecipate",
-					"enti_diritto_privato_controllati"
-				]
-			},
-			"patrimonio_pa": {
-				"nome": "Patrimonio della PA",
-				"titolare": "MEF-DT",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"enti_pubblici_vigilati",
-					"societa_partecipate",
-					"enti_diritto_privato_controllati",
-					"patrimonio_immobiliare",
-					"canoni_locazione_o_affitto"
-				]
-			},
-			"rendiconti_gruppi_consiliari": {
-				"nome": "Rendiconti dei gruppi consiliari regionali",
-				"titolare": "Corte dei conti",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"rendiconti_gruppi_consiliari"
-				]
-			},
-			"bdap": {
-				"nome": "BDAP - Banca Dati Amministrazioni Pubbliche",
-				"titolare": "MEF-RGS",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"bilancio_preventivo_e_consuntivo",
-					"informazioni_singole_procedure",
-					"atti_amministrazioni_aggiudicatrici",
-					"nuclei_valutazione_investimenti_pubblici",
-					"atti_programmazione_opere_pubbliche",
-					"tempi_costi_opere_pubbliche"
-				]
-			},
-			"rems": {
-				"nome": "REMS (Real Estate Management System) - Sistema di Gestione degli Immobili di Proprietà Statale",
-				"titolare": "Demanio",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"patrimonio_immobiliare",
-					"canoni_locazione_o_affitto"
-				]
-			},
-			"bdncp": {
-				"nome": "BDNCP - Banca Dati Nazionale Contratti Pubblici",
-				"titolare": "ANAC",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"informazioni_singole_procedure",
-					"atti_amministrazioni_aggiudicatrici"
-				]
-			},
-			"servizio_contratti_pubblici": {
-				"nome": "Servizio Contratti Pubblici",
-				"titolare": "MIT",
-				"fonte": "dlgs_33_2013_allegato_b",
-				"voci": [
-					"informazioni_singole_procedure",
-					"atti_amministrazioni_aggiudicatrici"
-				]
-			},
-			"soldi_pubblici": {
-				"nome": "Soldi pubblici",
-				"fonte": "dl_19_2026_art_8",
-				"voci": [
-					"dati_sui_pagamenti"
-				]
-			}
+	"rinvii": {
+		"perla_pa": {
+			"nome": "Perla PA",
+			"titolare": "PCM-DFP",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"titolari_incarichi_collaborazione_consulenza",
+				"personale_non_tempo_indeterminato",
+				"incarichi_conferiti_e_autorizzati_ai_dipendenti"
+			]
 		},
+		"sico": {
+			"nome": "SICO - Sistema Conoscitivo del personale dipendente dalle Amministrazioni pubbliche",
+			"titolare": "MEF-RGS (IGOP)",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"dotazione_organica",
+				"personale_non_tempo_indeterminato",
+				"contrattazione_collettiva",
+				"contrattazione_integrativa"
+			]
+		},
+		"archivio_contratti": {
+			"nome": "Archivio contratti del settore pubblico",
+			"titolare": "ARAN CNEL",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"contrattazione_collettiva",
+				"contrattazione_integrativa"
+			]
+		},
+		"siquel": {
+			"nome": "SIQuEL - Sistema Informativo Questionari Enti Locali",
+			"titolare": "Corte dei conti",
+			"limite": "solo enti locali",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"enti_pubblici_vigilati",
+				"societa_partecipate",
+				"enti_diritto_privato_controllati"
+			]
+		},
+		"patrimonio_pa": {
+			"nome": "Patrimonio della PA",
+			"titolare": "MEF-DT",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"enti_pubblici_vigilati",
+				"societa_partecipate",
+				"enti_diritto_privato_controllati",
+				"patrimonio_immobiliare",
+				"canoni_locazione_o_affitto"
+			]
+		},
+		"rendiconti_gruppi_consiliari": {
+			"nome": "Rendiconti dei gruppi consiliari regionali",
+			"titolare": "Corte dei conti",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"rendiconti_gruppi_consiliari"
+			]
+		},
+		"bdap": {
+			"nome": "BDAP - Banca Dati Amministrazioni Pubbliche",
+			"titolare": "MEF-RGS",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"bilancio_preventivo_e_consuntivo",
+				"informazioni_singole_procedure",
+				"atti_amministrazioni_aggiudicatrici",
+				"nuclei_valutazione_investimenti_pubblici",
+				"atti_programmazione_opere_pubbliche",
+				"tempi_costi_opere_pubbliche"
+			]
+		},
+		"rems": {
+			"nome": "REMS (Real Estate Management System) - Sistema di Gestione degli Immobili di Proprietà Statale",
+			"titolare": "Demanio",
+			"limite": "solo immobili di proprietà statale",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"patrimonio_immobiliare",
+				"canoni_locazione_o_affitto"
+			]
+		},
+		"bdncp": {
+			"nome": "BDNCP - Banca Dati Nazionale Contratti Pubblici",
+			"titolare": "ANAC",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"informazioni_singole_procedure",
+				"atti_amministrazioni_aggiudicatrici"
+			]
+		},
+		"servizio_contratti_pubblici": {
+			"nome": "Servizio Contratti Pubblici",
+			"titolare": "MIT",
+			"fonte": "dlgs_33_2013_allegato_b",
+			"voci": [
+				"informazioni_singole_procedure",
+				"atti_amministrazioni_aggiudicatrici"
+			]
+		},
+		"soldi_pubblici": {
+			"nome": "Soldi pubblici",
+			"fonte": "dl_19_2026_art_8",
+			"voci": [
+				"dati_sui_pagamenti"
+			]
+		}
+	},
 	"fonti": [
 		{
 			"chiave": "allegato_a",

@@ -102,6 +102,7 @@ class RinviiTest extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( 'solo enti locali', $albero->banca_dati( 'siquel' )['limite'] );
+		$this->assertSame( 'solo immobili di proprietà statale', $albero->banca_dati( 'rems' )['limite'], 'Il dato di un ente non statale in REMS non c\'è.' );
 		$this->assertNull( $albero->banca_dati( 'patrimonio_pa' )['limite'] );
 		$this->assertSame( array(), $albero->rinvii( 'bandi_di_concorso' ), 'Art. 19: nessuna banca dati dell\'Allegato B, la voce si popola sul sito.' );
 		$this->assertSame( array(), $albero->rinvii( 'rappresentazione_grafica' ), 'Lettura prudente: la banca dati non contiene una rappresentazione grafica.' );
