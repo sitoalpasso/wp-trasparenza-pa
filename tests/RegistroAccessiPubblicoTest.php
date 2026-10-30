@@ -232,13 +232,13 @@ class RegistroAccessiPubblicoTest extends WP_UnitTestCase {
 				1 => $decisa,
 				2 => $in_corso,
 			),
-			RegistroAccessi::pubblicabili( '2025-12-31' ),
+			RegistroAccessi::pubblicabili( '2026-01-01' ),
 			'La riga decisa nel 2020 esce il 1/1/2026.'
 		);
 		$this->assertSame( array( 1, 2 ), array_keys( RegistroAccessi::pubblicabili( '2030-12-31' ) ), 'Decisa nel 2025: visibile fino al 31/12/2030, anche se la richiesta e del 2020.' );
 		$this->assertSame( array( 2 ), array_keys( RegistroAccessi::pubblicabili( '2031-01-01' ) ), 'Dal 1/1/2031 no; la richiesta in corso resta.' );
 		$this->assertSame( array( 2 ), array_keys( RegistroAccessi::pubblicabili( '2099-06-30' ) ) );
-		$this->assertSame( array( 1, 2, 3 ), array_keys( RegistroAccessi::pubblicabili( '2024-12-31' ) ), 'Decisa nel 2020: visibile fino al 31/12/2025.' );
+		$this->assertSame( array( 3, 1, 2 ), array_keys( RegistroAccessi::pubblicabili( '2025-12-31' ) ), 'Decisa nel 2020: visibile fino al 31/12/2025; a pari data della richiesta prima il numero piu alto.' );
 	}
 
 	/**

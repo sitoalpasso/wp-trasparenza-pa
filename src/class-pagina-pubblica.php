@@ -247,6 +247,7 @@ final class PaginaPubblica {
 
 		if ( $albero->collocazione( AccessoCivico::DATO ) === $voce ) {
 			$html .= AccessoCivico::html();
+			$html .= RegistroAccessi::html();
 		}
 
 		$html .= Rinvii::html( $albero, $voce );
