@@ -266,3 +266,37 @@ Il responsabile conservato mostrato senza controllo era verde al primo giro: una
 conserva un responsabile con un nome che non supera il controllo e guarda che la frase resti
 senza nome. Per l'email senza `esc_url` la prova usa un indirizzo con la e commerciale, che
 `is_email()` ammette prima della chiocciola.
+
+### Passo 3: il registro degli accessi
+
+Quarantanove rotture, una per volta e poi tolte. Quarantotto fanno diventare rossa almeno una
+prova. Nel controllo della riga: campo non testo ammesso, tipo o esito liberi, argomento vuoto
+ammesso, pulizia dell'argomento tolta, argomento lungo ammesso, argomento contato in byte, data
+della richiesta futura ammessa, calendario non controllato, data con un carattere davanti o con
+un a capo in fondo, richiesta in corso con la data della decisione, decisione prima della
+richiesta o futura, oggi in UTC al posto del fuso del sito. Nel dato conservato: lettura fallita
+taciuta, ultimo numero ignorato o accettato anche se non è un intero positivo, righe scartate
+non contate nel numero nuovo, numeri non positivi ammessi, campi non testo ammessi, righe per lo
+schermo vuote. Nel salvataggio: permesso tolto, nonce tolto, operazione libera, numero libero o
+con un a capo in fondo, controllo della riga tolto, partenza mancante ammessa, blocco tolto o
+non rilasciato, lettura fallita ignorata, numero nuovo dal conteggio delle righe, partenza non
+confrontata, correzione senza cambi registrata, campi cambiati invertiti, registro delle
+modifiche ignorato, ultimo numero che scende dopo una rimozione, rilettura ignorata. Nella
+schermata: aperta senza permesso, ordine per numero invece che per data, pari data senza ordine
+per numero, avviso della riga non valida tolto, rifiuto non rimostrato, partenza nuova dopo un
+rifiuto, valori e partenze senza escaping, esito del salvataggio non cancellato dopo averlo
+mostrato.
+
+Sette erano verdi al primo giro, e sono coperte da prove nuove: la data con un carattere davanti
+(la prova usa uno zero, perché una lettera la scartava per caso il controllo sulle date
+future), l'ultimo numero conservato che non è un intero positivo, l'operazione sconosciuta con
+numero e partenza validi, la partenza mancante (ora si guarda che venga rifiutata prima di
+chiedere il blocco), l'ordine per data e l'ordine per numero a pari data. Le rotture hanno anche
+trovato che il simbolo `$` delle espressioni regolari accetta un a capo in fondo: date e numero
+della riga ora si controllano con `\A` e `\z`. L'ordinamento delle righe prima di scriverle è
+stato tolto: era verde perché i numeri nuovi arrivano già in ordine e la schermata ordina da sé.
+
+Una resta verde, ed è voluta: togliere lo svuotamento della cache delle opzioni dopo la scrittura
+non cambia niente nelle prove, che girano senza una cache persistente. Con una cache persistente
+serve perché le letture successive vedano il dato nuovo, come nelle altre
+schermate della sezione.

@@ -80,7 +80,7 @@ autenticazione perché è un requisito di legge.
 |---|---|---|
 | Compilare bozze delle voci | gestione trasparenza | |
 | Validare e pubblicare | pubblicazione trasparenza | passa dal controllo dati personali |
-| Dichiarare lo stato di un obbligo, indicare il responsabile della trasparenza e a chi si chiede l'accesso civico, dichiarare i rinvii alle banche dati | `trasparenza_pa_amministrazione` | del componente, non derivato da un tipo; va all'amministratore una volta sola, alla prima installazione (opzione `trasparenza_pa_permessi_assegnati`), e se l'ente lo toglie non torna con gli aggiornamenti. Il non applicabile stampa la dicitura obbligata |
+| Dichiarare lo stato di un obbligo, indicare il responsabile della trasparenza e a chi si chiede l'accesso civico, tenere il registro degli accessi, dichiarare i rinvii alle banche dati | `trasparenza_pa_amministrazione` | del componente, non derivato da un tipo; va all'amministratore una volta sola, alla prima installazione (opzione `trasparenza_pa_permessi_assegnati`), e se l'ente lo toglie non torna con gli aggiornamenti. Il non applicabile stampa la dicitura obbligata |
 | Creare e modificare voci-rinvio | gestione trasparenza | il caso senza banca dati (art. 19) non è configurabile come rinvio |
 | Consultare l'archivio delle voci scadute | archivio trasparenza | il pubblico accede solo per accesso civico |
 | Gestire le richieste di accesso civico | accesso civico | |
