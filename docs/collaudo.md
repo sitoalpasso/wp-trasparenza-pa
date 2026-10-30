@@ -302,8 +302,8 @@ contenuto scaduto solo a chi consulta gli scaduti (TRASP-09). Scheda:
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-90 | da fare | Installazione o cambio di versione con il permesso tolto all'amministratore; ruoli Redattore, Autore, Collaboratore; [guasto] permesso non scritto nei ruoli conservati | l'amministratore riceve il permesso di consultare gli scaduti dei contenuti, con il nome chiesto al componente comune; gli altri ruoli no; il tipo delle voci non ne riceve; permesso non scritto: errore, versione non memorizzata |
-| T-91 | da fare | Contenuto con documento in bozza, pubblicato e non scaduto, pubblicato e scaduto, chiesto dal punto amministrativo e guardato nel riquadro, dall'amministratore, da un ruolo che gestisce i contenuti senza consultare gli scaduti | l'amministratore apre il file in ogni caso e il riquadro gli mostra il collegamento; l'altro ruolo apre bozza e non scaduto, è rifiutato sullo scaduto, e il riquadro gli mostra lì il nome senza collegamento con la frase che lo spiega |
+| T-90 | fatto | Installazione o cambio di versione con il permesso tolto all'amministratore; ruoli Redattore, Autore, Collaboratore; [guasto] permesso non scritto nei ruoli conservati | l'amministratore riceve il permesso di consultare gli scaduti dei contenuti, con il nome chiesto al componente comune; gli altri ruoli no; il tipo delle voci non ne riceve; permesso non scritto: errore, versione non memorizzata |
+| T-91 | fatto | Contenuto con documento in bozza, pubblicato e non scaduto, pubblicato e scaduto, chiesto dal punto amministrativo e guardato nel riquadro, dall'amministratore, da un ruolo che gestisce i contenuti senza consultare gli scaduti | l'amministratore apre il file in ogni caso e il riquadro gli mostra il collegamento; l'altro ruolo apre bozza e non scaduto, è rifiutato sullo scaduto, e il riquadro gli mostra lì il nome senza collegamento con la frase che lo spiega |
 
 ## Collaudo congiunto con l'albo pretorio
 

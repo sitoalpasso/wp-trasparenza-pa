@@ -95,3 +95,16 @@ della compatibilità guarda ora le versioni attorno alla 1.11.0.
 3. Tolgo il permesso di consultare gli scaduti all'amministratore con un gestore dei ruoli:
    il riquadro mostra il nome senza collegamento, con la frase.
 4. Ripristino: si ridà il permesso e si cestina il contenuto di prova.
+
+## Rotture volute, a lavoro finito
+
+Dodici rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova:
+permesso di consultazione non assegnato, assegnato anche alle voci, errore del componente
+comune sul nome del permesso ignorato, rilettura dei ruoli tolta, rilettura fatta sui ruoli in
+memoria invece che su quelli conservati, collegamento mostrato sempre, frase tolta, contenuto in
+bozza trattato come esposto, scadenza ignorata nel riquadro, permesso di consultazione ignorato,
+permesso di consultazione non controllato sull'utente, versione richiesta riportata alla 1.10.0.
+
+L'errore del componente comune sul nome del permesso fa diventare rossa la prova perché senza
+nome l'amministratore resta senza permesso: non c'è una prova che faccia rispondere con un
+errore il componente comune vero, che per un tipo registrato il nome lo dà sempre.
