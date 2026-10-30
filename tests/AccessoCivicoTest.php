@@ -618,6 +618,26 @@ class AccessoCivicoTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-102: [attacco] dopo un rifiuto si rimostrano solo i campi inviati come testo.
+	 */
+	public function test_t102_rifiuto_con_campi_non_testo(): void {
+		wp_set_current_user( $this->responsabile );
+
+		$inviati              = $this->validi();
+		$inviati['sostituto'] = array( 'Paolo Verdi' );
+		$esito                = SchermataAccessoCivico::salva( $this->richiesta( $inviati ) );
+
+		$this->assertSame( 'dati', $esito['codice'] );
+
+		set_transient( SchermataAccessoCivico::ESITO . $this->responsabile, $esito, MINUTE_IN_SECONDS );
+		$html = $this->schermata();
+
+		$this->assertStringContainsString( 'name="' . SchermataAccessoCivico::CAMPO . '[sostituto]" value=""', $html );
+		$this->assertStringContainsString( 'name="' . SchermataAccessoCivico::CAMPO . '[ufficio]" value="Ufficio relazioni con il pubblico"', $html );
+		$this->assertStringNotContainsString( 'Array', $html );
+	}
+
+	/**
 	 * T-102: la schermata dice in quale voce compaiono i dati, o che l'albero non lo dice.
 	 */
 	public function test_t102_collocazione_nella_schermata(): void {
