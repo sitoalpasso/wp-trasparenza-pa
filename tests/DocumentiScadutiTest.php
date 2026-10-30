@@ -278,7 +278,7 @@ class DocumentiScadutiTest extends WP_UnitTestCase {
 				$this->assertNotSame( 200, $this->apri( $documento ), 'Il componente comune rifiuta il file scaduto.' );
 				$this->assertStringNotContainsString( '<a href=', $riquadro, 'Nessun collegamento che porta a un rifiuto.' );
 				$this->assertStringContainsString( '<li>' . $nome, $riquadro );
-				$this->assertStringContainsString( 'Il contenuto è scaduto: il documento si apre solo con il permesso di consultare i contenuti scaduti.', $riquadro );
+				$this->assertStringContainsString( 'Il contenuto è scaduto: i file allegati si aprono solo con il permesso di consultare i contenuti scaduti.', $riquadro );
 				continue;
 			}
 
