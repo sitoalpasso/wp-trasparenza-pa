@@ -103,6 +103,20 @@ class RinviiPubbliciTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-97: l'indirizzo esce con escaping, e la data resta il giorno dichiarato anche in un fuso indietro rispetto a UTC.
+	 */
+	public function test_t97_indirizzo_e_giorno(): void {
+		update_option( 'timezone_string', 'Pacific/Pago_Pago' );
+		update_option( 'gmt_offset', '' );
+		update_option( Rinvii::OPZIONE, array( 'zeta_uno' => array_merge( $this->valido(), array( 'indirizzo' => 'https://example.org/banca?ente=1&anno=2026' ) ) ) );
+
+		$html = $this->pagina( 'zeta_uno' );
+
+		$this->assertStringContainsString( '<a href="https://example.org/banca?ente=1&#038;anno=2026">', $html );
+		$this->assertStringContainsString( '<time datetime="2026-01-15">15/01/2026</time>', $html );
+	}
+
+	/**
 	 * T-97: una banca dati senza chi la tiene: niente titolare e niente frase sull'accesso civico; il nome con escaping.
 	 */
 	public function test_t97_rinvio_senza_titolare(): void {
