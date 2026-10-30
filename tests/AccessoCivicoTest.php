@@ -599,7 +599,7 @@ class AccessoCivicoTest extends WP_UnitTestCase {
 	 * T-102: senza responsabile, avviso a chi ha il permesso, sulla bacheca e non altrove.
 	 */
 	public function test_t102_avviso_se_non_indicato(): void {
-		$avviso = 'non dice a chi si chiede l\'accesso civico';
+		$avviso = 'non dice a chi si chiede l&#039;accesso civico';
 
 		set_current_screen( 'dashboard' );
 		wp_set_current_user( $this->responsabile );
@@ -623,22 +623,22 @@ class AccessoCivicoTest extends WP_UnitTestCase {
 	public function test_t102_collocazione_nella_schermata(): void {
 		wp_set_current_user( $this->responsabile );
 
-		$this->assertStringContainsString( 'nella voce "Voce Zeta Due"', $this->schermata() );
+		$this->assertStringContainsString( 'nella voce &quot;Voce Zeta Due&quot;', $this->schermata() );
 
 		PaginaPubblica::fissa_file( __DIR__ . '/dati/albero-finto.json' );
 		PaginaPubblica::da_init();
 
 		$html = $this->schermata();
 
-		$this->assertStringContainsString( 'L\'albero delle voci non indica dove mostrare i dati dell\'accesso civico', $html );
-		$this->assertStringNotContainsString( 'nella voce "', $html );
+		$this->assertStringContainsString( 'L&#039;albero delle voci non indica dove mostrare i dati dell&#039;accesso civico', $html );
+		$this->assertStringNotContainsString( 'nella voce &quot;', $html );
 	}
 
 	/**
 	 * T-102: l'avviso compare anche sulla schermata della sezione, e sparisce con i dati.
 	 */
 	public function test_t102_avviso_sulla_schermata_della_sezione(): void {
-		$avviso = 'non dice a chi si chiede l\'accesso civico';
+		$avviso = 'non dice a chi si chiede l&#039;accesso civico';
 
 		wp_set_current_user( $this->responsabile );
 		set_current_screen( 'amministrazione-trasparente_page_' . SchermataAccessoCivico::PAGINA );
