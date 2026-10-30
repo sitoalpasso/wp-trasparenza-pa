@@ -212,6 +212,41 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
 | Registro delle modifiche che rifiuta la voce | niente scritto, messaggio |
 | Dato non scritto | messaggio che lo dice: il registro delle modifiche contiene un cambio non avvenuto |
 
+## 7-sexies. Il registro sulla pagina pubblica (passo 4)
+
+**Dove.** Nella voce che il file dell'albero indica per i dati dell'accesso civico, sotto il
+riquadro "Come si chiede l'accesso civico": l'Allegato 1 mette il registro nella stessa
+sottosezione. Il registro si mostra anche se i dati dell'accesso civico non sono stati ancora
+indicati. Nessuna versione nuova dell'albero.
+
+**Cosa.** Un titolo "Registro degli accessi" e una tabella con una riga per richiesta: tipo,
+argomento, data della richiesta, esito e data della decisione, con le date nella forma
+GG/MM/AAAA. Prima le richieste più recenti, a pari data il numero più alto, come nella
+schermata. Una riga conservata che non supera il controllo non si mostra. Se non resta nessuna
+riga, una frase lo dice: "Il registro non contiene richieste negli ultimi cinque anni."
+
+**Per quanto tempo.** Cinque anni, contati dal 1° gennaio dell'anno successivo a quello
+dell'ultima data della riga (art. 8, c. 3, del d.lgs. 33/2013): la data della decisione, o
+quella della richiesta finché la richiesta è in corso. Una riga decisa nel 2026 si vede fino al
+31 dicembre 2031 e non più dal 1° gennaio 2032, nel fuso del sito. Una richiesta in corso resta
+visibile finché non è decisa, qualunque sia la sua data: la sua pubblicazione non è ancora
+cominciata a scadere. Contare dalla decisione invece che dalla richiesta è la lettura più
+prudente: la riga cambia l'ultima volta con l'esito, e da lì decorre l'obbligo del dato
+aggiornato.
+
+**Scadenza in lettura.** La finestra si calcola a ogni lettura dal giorno di oggi nel fuso del
+sito. Nessun compito pianificato: una riga scaduta esce dalla pagina e resta nella schermata
+degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TRASP-09).
+
+## 7-septies. Modi di guasto (passo 4)
+
+| Caso | Esito |
+|---|---|
+| Registro conservato illeggibile o di forma strana | nessuna riga, la frase del registro vuoto |
+| Riga che non supera il controllo | non si mostra |
+| Argomento con codice o entità | scritto con escaping, mai interpretato |
+| Data sull'orlo dei cinque anni | decide il giorno di oggi nel fuso del sito |
+
 ## 8. Cosa deliberatamente NON fa
 
 - Non riceve richieste dal sito: è la scelta del 30 ottobre 2026.
@@ -239,6 +274,10 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
   riga tolta, che si ricostruisce dal protocollo dell'ente. È voluto: un nome scritto per
   sbaglio nell'argomento non deve restare nel registro, che non si cancella. Se l'ente preferisce
   poter ricostruire anche l'argomento, si aggiunge.
+
+- **Data di ultimo aggiornamento del registro (TRASP-10).** Il passo 4 non la mostra: il dato
+  conservato non la tiene. Si può ricavare dall'ultima voce del registro delle modifiche, in
+  un'unità a parte.
 
 ## Rotture volute, a lavoro finito
 
