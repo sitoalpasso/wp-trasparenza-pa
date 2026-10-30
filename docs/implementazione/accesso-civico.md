@@ -53,6 +53,9 @@ prova, elencata in fondo a lavoro finito.
 | 1 | `tests/RinviiTest.php` | La riga T-92 guarda la versione 2026-10-30 per nome, non come versione in vigore |
 | 2 | `src/class-accesso-civico.php`, `src/class-pagina-pubblica.php` | Il riquadro nella voce |
 | 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
+| 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
+| 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-110 |
+| 4 | `src/class-registro-accessi.php` | Il registro nella voce, per cinque anni |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
@@ -145,10 +148,75 @@ Le email sono collegamenti `mailto:`; i telefoni testo, come nel riquadro del re
 | Albero senza la collocazione | nessun riquadro in nessuna voce |
 | Valori con codice | escaping di ogni valore; email e indirizzo del modulo passano da `esc_url` |
 
+## 7-quater. Il registro degli accessi (passo 3)
+
+**Cosa chiede la norma.** L'Allegato 1 della delibera ANAC 1310/2016, alla riga "Registro degli
+accessi", chiede l'elenco delle richieste di accesso, agli atti, civico e generalizzato, con
+l'oggetto e la data della richiesta e l'esito con la data della decisione, aggiornato ogni sei
+mesi. Le linee guida ANAC sull'accesso generalizzato (delibera 1309/2016, § 9) raccomandano di
+tenerlo e pubblicarlo senza dati personali.
+
+**La schermata.** "Amministrazione trasparente > Registro degli accessi", aperta a chi
+amministra la sezione. In alto il modulo per aggiungere una richiesta; sotto, l'elenco delle
+richieste, ciascuna con il suo modulo per correggerla o toglierla. La schermata ricorda di non
+scrivere nell'argomento nomi o altri dati di chi chiede.
+
+**Le regole di una riga.**
+
+| Campo | Regola |
+|---|---|
+| Tipo | uno fra accesso agli atti (l. 241/1990), accesso civico semplice, accesso civico generalizzato |
+| Argomento | obbligatorio; una riga, senza codice, al massimo 300 caratteri |
+| Data della richiesta | obbligatoria; AAAA-MM-GG, esistente e non dopo oggi nel fuso del sito |
+| Esito | in corso, accolta, accolta in parte, rifiutata, differita |
+| Data della decisione | vuota se l'esito è in corso, altrimenti obbligatoria; AAAA-MM-GG, esistente, non prima della richiesta e non dopo oggi |
+
+**Il salvataggio.** Le regole delle altre schermate della sezione: permesso e nonce prima di
+tutto; ogni campo controllato prima di scrivere; un salvataggio della sezione alla volta; prima
+la voce di registro, poi il dato, che si rilegge. Ogni riga ha un numero che non si riusa,
+neanche dopo che una riga è stata tolta: il numero dice al registro delle modifiche di quale
+richiesta si parla. Il modulo di una riga porta la riga come la mostrava all'apertura: se nel
+frattempo qualcun altro l'ha cambiata o tolta, è un conflitto e non si salva niente.
+
+**Il registro delle modifiche.** Una voce `registro_accessi` per ogni aggiunta, correzione o
+rimozione, con l'operazione, il numero della riga e i nomi dei campi cambiati. Perché a una
+verifica si possa dire che cosa è stato tolto o cambiato, e da chi, la rimozione registra anche
+tipo, data della richiesta, esito e data della decisione della riga tolta, e la correzione i
+valori di prima dei campi cambiati fra questi (T-109). L'argomento invece non entra mai nel
+registro: lo scrive una persona, e un nome scritto per sbaglio resterebbe nel registro dopo la
+correzione, che non si può cancellare.
+
+**Togliere una riga.** Accanto al pulsante "Togli dal registro" c'è una casella da spuntare;
+senza la spunta il salvataggio si rifiuta e non tocca niente (T-108). Funziona senza JavaScript:
+il controllo è nel salvataggio.
+
+**Il dato conservato.** L'opzione `trasparenza_pa_registro_accessi`: l'ultimo numero dato e le
+righe. Una riga conservata che non supera il controllo non si mostra al pubblico, ma la
+schermata la elenca, con l'avviso, perché si possa correggere o togliere.
+
+**Permesso.** Il permesso della sezione, `trasparenza_pa_amministrazione`. Un permesso
+dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chiederà.
+
+## 7-quinquies. Modi di guasto (passo 3)
+
+| Caso | Esito |
+|---|---|
+| Senza permesso, senza nonce o con nonce scaduto | rifiuto prima di leggere i campi |
+| Operazione sconosciuta, numero di riga non valido | niente scritto, messaggio |
+| Rimozione senza la casella di conferma spuntata | niente tolto, niente nel registro, messaggio |
+| Argomento con un'entità HTML scritta come testo | il modulo la riporta com'è (escaping che ricodifica anche le entità già scritte), e la partenza torna identica (T-110) |
+| Campo non valido o non testo | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
+| Riga cambiata o tolta da altri dopo l'apertura del modulo, partenza mancante | conflitto, niente scritto |
+| Un altro salvataggio della sezione in corso | niente scritto, messaggio |
+| Lettura fallita del registro conservato | niente scritto, niente nel registro delle modifiche, messaggio |
+| Registro delle modifiche che rifiuta la voce | niente scritto, messaggio |
+| Dato non scritto | messaggio che lo dice: il registro delle modifiche contiene un cambio non avvenuto |
+
 ## 8. Cosa deliberatamente NON fa
 
-- Non riceve richieste dal sito: è la scelta del 30 ottobre 2026. Il registro degli accessi è
-  il passo 3.
+- Non riceve richieste dal sito: è la scelta del 30 ottobre 2026.
+- Non tiene i nomi di chi chiede né i documenti della pratica: il registro degli accessi è un
+  elenco pubblico; la pratica resta nel protocollo dell'ente.
 - Non decide quale ufficio risponde: lo scrive l'ente. Un solo ufficio: l'art. 5, c. 3, lett.
   c, ammette che l'ente indichi un ufficio a cui presentare tutte le richieste generalizzate.
 - Non scrive i termini di risposta: li dice la norma, e il riquadro la cita.
@@ -162,6 +230,15 @@ Le email sono collegamenti `mailto:`; i telefoni testo, come nel riquadro del re
 - **Più uffici.** Un ente che vuole indicare un ufficio per ciascun tipo di dato non lo può fare
   in questo passo. La lettura scelta è quella dell'art. 5, c. 3, lett. c: un ufficio indicato
   nella sezione basta.
+
+- **Molte richieste.** Il registro sta in una sola opzione, non caricata a ogni pagina, e la
+  schermata mostra tutte le righe con il loro modulo. Con qualche centinaio di richieste l'anno
+  va bene per alcuni anni; oltre le mille righe la schermata passerà a pagine o le righe a un
+  tipo di contenuto, in un'unità a parte.
+- **Argomento nel registro delle modifiche.** Una rimozione per sbaglio perde l'argomento della
+  riga tolta, che si ricostruisce dal protocollo dell'ente. È voluto: un nome scritto per
+  sbaglio nell'argomento non deve restare nel registro, che non si cancella. Se l'ente preferisce
+  poter ricostruire anche l'argomento, si aggiunge.
 
 ## Rotture volute, a lavoro finito
 
@@ -207,3 +284,49 @@ Il responsabile conservato mostrato senza controllo era verde al primo giro: una
 conserva un responsabile con un nome che non supera il controllo e guarda che la frase resti
 senza nome. Per l'email senza `esc_url` la prova usa un indirizzo con la e commerciale, che
 `is_email()` ammette prima della chiocciola.
+
+### Passo 3: il registro degli accessi
+
+Quarantanove rotture, una per volta e poi tolte. Quarantotto fanno diventare rossa almeno una
+prova. Nel controllo della riga: campo non testo ammesso, tipo o esito liberi, argomento vuoto
+ammesso, pulizia dell'argomento tolta, argomento lungo ammesso, argomento contato in byte, data
+della richiesta futura ammessa, calendario non controllato, data con un carattere davanti o con
+un a capo in fondo, richiesta in corso con la data della decisione, decisione prima della
+richiesta o futura, oggi in UTC al posto del fuso del sito. Nel dato conservato: lettura fallita
+taciuta, ultimo numero ignorato o accettato anche se non è un intero positivo, righe scartate
+non contate nel numero nuovo, numeri non positivi ammessi, campi non testo ammessi, righe per lo
+schermo vuote. Nel salvataggio: permesso tolto, nonce tolto, operazione libera, numero libero o
+con un a capo in fondo, controllo della riga tolto, partenza mancante ammessa, blocco tolto o
+non rilasciato, lettura fallita ignorata, numero nuovo dal conteggio delle righe, partenza non
+confrontata, correzione senza cambi registrata, campi cambiati invertiti, registro delle
+modifiche ignorato, ultimo numero che scende dopo una rimozione, rilettura ignorata. Nella
+schermata: aperta senza permesso, ordine per numero invece che per data, pari data senza ordine
+per numero, avviso della riga non valida tolto, rifiuto non rimostrato, partenza nuova dopo un
+rifiuto, valori e partenze senza escaping, esito del salvataggio non cancellato dopo averlo
+mostrato.
+
+Sette erano verdi al primo giro, e sono coperte da prove nuove: la data con un carattere davanti
+(la prova usa uno zero, perché una lettera la scartava per caso il controllo sulle date
+future), l'ultimo numero conservato che non è un intero positivo, l'operazione sconosciuta con
+numero e partenza validi, la partenza mancante (ora si guarda che venga rifiutata prima di
+chiedere il blocco), l'ordine per data e l'ordine per numero a pari data. Le rotture hanno anche
+trovato che il simbolo `$` delle espressioni regolari accetta un a capo in fondo: date e numero
+della riga ora si controllano con `\A` e `\z`. L'ordinamento delle righe prima di scriverle è
+stato tolto: era verde perché i numeri nuovi arrivano già in ordine e la schermata ordina da sé.
+
+Una resta verde, ed è voluta: togliere lo svuotamento della cache delle opzioni dopo la scrittura
+non cambia niente nelle prove, che girano senza una cache persistente. Con una cache persistente
+serve perché le letture successive vedano il dato nuovo, come nelle altre
+schermate della sezione.
+
+Dopo la rilettura, per la conferma e i valori di prima (T-108, T-109), nove rotture, tutte
+rosse: conferma tolta, conferma con un valore qualunque, conferma chiesta anche per correggere,
+valori di prima tolti, argomento fra i valori registrati, valori di prima anche dei campi non
+cambiati, valori nuovi al posto di quelli di prima, casella tolta dalla schermata, registro
+caricato a ogni pagina. I valori di prima vanno nel registro come `prima_tipo`,
+`prima_richiesta`, `prima_esito`, `prima_decisione`: il registro di core accetta solo coppie
+piatte di nome e valore.
+
+Dopo il rilievo di Codex sulle entità HTML scritte come testo (T-110), quattro rotture, tutte
+rosse: partenza o campo scritti di nuovo con `esc_attr()`, codifica senza la ricodifica delle
+entità già scritte, codifica che lascia le virgolette.
