@@ -317,3 +317,11 @@ Una resta verde, ed è voluta: togliere lo svuotamento della cache delle opzioni
 non cambia niente nelle prove, che girano senza una cache persistente. Con una cache persistente
 serve perché le letture successive vedano il dato nuovo, come nelle altre
 schermate della sezione.
+
+Dopo la rilettura, per la conferma e i valori di prima (T-108, T-109), nove rotture, tutte
+rosse: conferma tolta, conferma con un valore qualunque, conferma chiesta anche per correggere,
+valori di prima tolti, argomento fra i valori registrati, valori di prima anche dei campi non
+cambiati, valori nuovi al posto di quelli di prima, casella tolta dalla schermata, registro
+caricato a ogni pagina. I valori di prima vanno nel registro come `prima_tipo`,
+`prima_richiesta`, `prima_esito`, `prima_decisione`: il registro di core accetta solo coppie
+piatte di nome e valore.
