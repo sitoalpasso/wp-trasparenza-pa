@@ -326,3 +326,7 @@ cambiati, valori nuovi al posto di quelli di prima, casella tolta dalla schermat
 caricato a ogni pagina. I valori di prima vanno nel registro come `prima_tipo`,
 `prima_richiesta`, `prima_esito`, `prima_decisione`: il registro di core accetta solo coppie
 piatte di nome e valore.
+
+Dopo il rilievo di Codex sulle entità HTML scritte come testo (T-110), quattro rotture, tutte
+rosse: partenza o campo scritti di nuovo con `esc_attr()`, codifica senza la ricodifica delle
+entità già scritte, codifica che lascia le virgolette.
