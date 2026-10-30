@@ -322,6 +322,19 @@ TRASP-29). Scheda: `docs/implementazione/rinvii-banche-dati.md`.
 | T-97 | fatto | Pagina pubblica della voce con un rinvio valido: banca dati con chi la tiene, banca dati senza; voce senza rinvio; voce superiore e inferiore; voce non applicabile o sospesa | riquadro con collegamento all'indirizzo e con l'etichetta, nome della banca dati, chi la tiene se il file lo indica, data nel formato del sito con la data leggibile dalle macchine; frase sull'accesso civico con chi tiene la banca dati solo se il file lo indica; nessun riquadro senza rinvio né nelle altre voci; con lo stato il riquadro resta |
 | T-98 | fatto | [attacco] rinvio conservato non valido: banca dati che l'albero non lega alla voce, indirizzo con un altro schema o con codice, etichetta con codice, data futura, campi mancanti, opzione non elenco; valori con codice nel nome della banca dati | nessun riquadro e la voce si disegna come senza rinvio; ogni valore con escaping |
 
+## Accesso civico (righe da T-99)
+
+Provano dove la sezione dice a chi chiedere un dato e a chi rivolgersi se la risposta non
+arriva, secondo l'art. 5 del d.lgs. 33/2013, l'art. 2, c. 9-bis, della l. 241/1990 e la
+delibera ANAC 1310/2016, Allegato 1 (TRASP-12). Scheda: `docs/implementazione/accesso-civico.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-99 | da fare | Versione dell'albero in vigore e collocazione dei dati dell'accesso civico | la versione 2026-10-30-2 è in vigore, uguale alla 2026-10-30 salvo la collocazione e la sua fonte; la collocazione porta alla voce "Accesso civico"; la 2026-10-30 resta accanto, con l'impronta attesa scritta nella prova |
+| T-100 | da fare | Controllo dei dati: validi, con e senza modulo; [attacco] campo obbligatorio vuoto, campo non testo, ufficio o titolare con codice, su più righe o lunghi, email non valide, telefoni con lettere, indirizzo del modulo senza schema, con schema diverso, con codice o lungo | i dati validi tornano uguali; ogni attacco: errore con il motivo |
+| T-101 | da fare | Salvataggio: prima indicazione, nessun cambio, cambio di un campo, due moduli aperti insieme su campi diversi; [attacco] senza permesso, senza nonce, partenza mancante o non valida, stesso campo cambiato da altri dopo l'apertura, salvataggio in corso; [guasto] lettura fallita, registro che rifiuta, dato non scritto | ogni salvataggio che cambia qualcosa: una voce di registro con i soli nomi dei campi cambiati, scritta prima del dato; nessun cambio, nessuna voce; il dato si rilegge; due moduli su campi diversi non si cancellano; ogni attacco e guasto: niente scritto, niente nel registro salvo il dato non scritto, con il motivo |
+| T-102 | da fare | Schermata e avviso: chi la apre, valori conservati, modulo rimostrato dopo un rifiuto con le partenze di allora, albero senza la collocazione; avviso finché i dati mancano, solo sulla bacheca e sulle schermate della sezione; [attacco] valori con codice | solo con il permesso della sezione; dopo un rifiuto i valori inviati; senza collocazione la schermata lo dice; ogni valore con escaping |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
