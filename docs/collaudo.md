@@ -345,7 +345,7 @@ delibera ANAC 1310/2016, Allegato 1 (TRASP-12). Scheda: `docs/implementazione/ac
 | T-111 | fatto | Il registro nella voce dell'accesso civico: righe valide, tipo ed esito con il loro nome, date GG/MM/AAAA, ordine; [attacco] argomento con codice o entità, riga non valida conservata, registro di forma strana | una riga per richiesta, prima le più recenti e a pari data il numero più alto; ogni valore con escaping; la riga non valida e il registro strano non si mostrano; senza righe, la frase del registro vuoto |
 | T-112 | fatto | Cinque anni dall'ultima data della riga: riga decisa, riga in corso, orli dell'anno | la riga decisa nell'anno A si vede fino al 31/12 di A+5 e non dal 1/1 di A+6; conta la decisione, non la richiesta; la riga in corso si vede sempre; il giorno di oggi è quello del fuso del sito, anche per dire se una data è futura: con un fuso lontano da UTC la riga di oggi si vede e quella di domani no |
 | T-113 | fatto | Dove si mostra: voce dell'accesso civico con e senza i dati dell'accesso civico, altre voci | il registro solo nella voce indicata dall'albero, sotto il riquadro, anche senza i dati; nelle altre voci no |
-| T-114 | da fare | [guasto] Lettura del registro fallita sulla pagina pubblica | nessuna tabella e nessuna frase di registro vuoto: "Il registro non è disponibile in questo momento." |
+| T-114 | fatto | [guasto] Lettura del registro fallita sulla pagina pubblica | nessuna tabella e nessuna frase di registro vuoto: "Il registro non è disponibile in questo momento." |
 
 ## Collaudo congiunto con l'albo pretorio
 

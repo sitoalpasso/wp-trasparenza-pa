@@ -385,7 +385,13 @@ ordine per numero invece che per data, pari data con il numero più basso prima,
 GG/MM/AAAA, tipo ed esito con il codice invece del nome, frase del registro vuoto tolta,
 intestazioni della tabella tolte.
 
-Una resta verde, ed è voluta: calcolare il giorno di oggi in UTC invece che nel fuso del sito
-cambia la pagina solo nelle ore a cavallo del 1° gennaio, che le prove non possono fissare
-senza controllare l'orologio. Il giorno di oggi nel fuso del sito ha la sua prova in T-105, e
-la pagina lo prende da lì.
+Il giorno di oggi in UTC invece che nel fuso del sito era verde al primo giro, perché la
+finestra dipende solo dall'anno. Dopo la rilettura il controllo delle date future usa lo stesso
+giorno della finestra, e una prova con un fuso lontano da UTC (Pacific/Kiritimati o
+Pacific/Pago_Pago, l'attesa calcolata a parte) guarda che la riga di oggi si veda e quella di
+domani no: ora è rossa.
+
+Dopo la rilettura, sette rotture in più, tutte rosse: oggi in UTC, controllo delle righe con il
+giorno reale invece di quello dato, data della richiesta o della decisione confrontata con il
+giorno reale, lettura fallita taciuta come registro vuoto, lettura con `get_option`, frase della
+lettura fallita tolta. Le ventuno rotture di prima rigirate sul codice nuovo: tutte rosse.
