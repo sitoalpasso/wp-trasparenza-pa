@@ -414,8 +414,9 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 
 		// Quello che il browser rimanda: il valore degli attributi, con le entita sciolte.
 		$rimandato = static function ( string $nome ) use ( $html ): string {
-			preg_match( '/name="' . preg_quote( $nome, '/' ) . '" value="([^"]*)"/', $html, $parti );
-			return html_entity_decode( $parti[1] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			// L'ultimo campo con quel nome: il primo e del modulo di aggiunta.
+			preg_match_all( '/name="' . preg_quote( $nome, '/' ) . '" value="([^"]*)"/', $html, $parti );
+			return html_entity_decode( (string) end( $parti[1] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		};
 
 		$partenza = array();
