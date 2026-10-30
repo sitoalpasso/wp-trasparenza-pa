@@ -68,9 +68,11 @@ final class RegistroAccessi {
 	 * Un campo che la pulizia cambierebbe si rifiuta invece di salvarlo cambiato.
 	 *
 	 * @param array<string, mixed> $inviati Campi inviati.
+	 * @param string|null          $oggi    Giorno rispetto a cui una data e futura, AAAA-MM-GG; nullo per oggi nel fuso del sito.
 	 * @return array<string, string>|WP_Error
 	 */
-	public static function controlla( array $inviati ) {
+	public static function controlla( array $inviati, ?string $oggi = null ) {
+		$oggi   = $oggi ?? self::oggi();
 		$valori = array();
 
 		foreach ( self::CAMPI as $campo ) {
@@ -89,7 +91,7 @@ final class RegistroAccessi {
 			return self::errore( __( 'L\'argomento della richiesta è obbligatorio: su una riga, senza codice, senza spazi ai bordi e al massimo di 300 caratteri.', 'trasparenza-pa' ) );
 		}
 
-		if ( ! self::giorno( $valori['richiesta'] ) || strcmp( $valori['richiesta'], self::oggi() ) > 0 ) {
+		if ( ! self::giorno( $valori['richiesta'] ) || strcmp( $valori['richiesta'], $oggi ) > 0 ) {
 			return self::errore( __( 'La data della richiesta è obbligatoria, nella forma AAAA-MM-GG, esistente e non dopo oggi.', 'trasparenza-pa' ) );
 		}
 
@@ -105,7 +107,7 @@ final class RegistroAccessi {
 			return $valori;
 		}
 
-		if ( ! self::giorno( $valori['decisione'] ) || strcmp( $valori['decisione'], $valori['richiesta'] ) < 0 || strcmp( $valori['decisione'], self::oggi() ) > 0 ) {
+		if ( ! self::giorno( $valori['decisione'] ) || strcmp( $valori['decisione'], $valori['richiesta'] ) < 0 || strcmp( $valori['decisione'], $oggi ) > 0 ) {
 			return self::errore( __( 'Con l\'esito serve la data della decisione, nella forma AAAA-MM-GG, esistente, non prima della richiesta e non dopo oggi.', 'trasparenza-pa' ) );
 		}
 
@@ -161,15 +163,23 @@ final class RegistroAccessi {
 	 * c. 3, del d.lgs. 33/2013); una richiesta in corso finche non e decisa.
 	 * Si calcola a ogni lettura: nessun compito pianificato toglie le righe scadute.
 	 *
+	 * Errore se la lettura e fallita: il pubblico non deve leggere un registro vuoto che non lo e.
+	 *
 	 * @param string $oggi Giorno, AAAA-MM-GG.
-	 * @return array<int, array<string, string>>
+	 * @return array<int, array<string, string>>|WP_Error
 	 */
-	public static function pubblicabili( string $oggi ): array {
+	public static function pubblicabili( string $oggi ) {
+		$conservato = self::conservato();
+
+		if ( is_wp_error( $conservato ) ) {
+			return $conservato;
+		}
+
 		$ultimo_anno = (int) substr( $oggi, 0, 4 ) - 5;
 		$righe       = array();
 
-		foreach ( self::righe() as $numero => $riga ) {
-			if ( is_wp_error( self::controlla( $riga ) ) ) {
+		foreach ( $conservato['righe'] as $numero => $riga ) {
+			if ( is_wp_error( self::controlla( $riga, $oggi ) ) ) {
 				continue;
 			}
 
@@ -199,6 +209,10 @@ final class RegistroAccessi {
 	public static function html(): string {
 		$righe = self::pubblicabili( self::oggi() );
 		$html  = '<div class="trasparenza-pa-registro-accessi"><h3>' . esc_html__( 'Registro degli accessi', 'trasparenza-pa' ) . '</h3>';
+
+		if ( is_wp_error( $righe ) ) {
+			return $html . '<p>' . esc_html__( 'Il registro non è disponibile in questo momento.', 'trasparenza-pa' ) . '</p></div>';
+		}
 
 		if ( array() === $righe ) {
 			return $html . '<p>' . esc_html__( 'Il registro non contiene richieste negli ultimi cinque anni.', 'trasparenza-pa' ) . '</p></div>';

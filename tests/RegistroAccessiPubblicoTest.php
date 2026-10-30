@@ -238,6 +238,8 @@ class RegistroAccessiPubblicoTest extends WP_UnitTestCase {
 		$this->assertSame( array( 1, 2 ), array_keys( RegistroAccessi::pubblicabili( '2030-12-31' ) ), 'Decisa nel 2025: visibile fino al 31/12/2030, anche se la richiesta e del 2020.' );
 		$this->assertSame( array( 2 ), array_keys( RegistroAccessi::pubblicabili( '2031-01-01' ) ), 'Dal 1/1/2031 no; la richiesta in corso resta.' );
 		$this->assertSame( array( 2 ), array_keys( RegistroAccessi::pubblicabili( '2099-06-30' ) ) );
+		$this->assertSame( array( 3, 2 ), array_keys( RegistroAccessi::pubblicabili( '2025-05-31' ) ), 'Il giorno dato vale anche per le date future: la decisione del 1/6/2025 non c\'e ancora.' );
+		$this->assertSame( array(), RegistroAccessi::pubblicabili( '2019-05-04' ), 'Neanche la richiesta del 5/5/2019.' );
 		$this->assertSame( array( 3, 1, 2 ), array_keys( RegistroAccessi::pubblicabili( '2025-12-31' ) ), 'Decisa nel 2020: visibile fino al 31/12/2025; a pari data della richiesta prima il numero piu alto.' );
 	}
 
