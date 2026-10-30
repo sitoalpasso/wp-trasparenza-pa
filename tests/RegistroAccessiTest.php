@@ -283,6 +283,7 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 		$this->assertSame( 'salvato', $esito['codice'], $esito['messaggio'] );
 		$this->assertSame( 1, $esito['numero'] );
 		$this->assertSame( array( 1 => $this->decisa() ), RegistroAccessi::righe() );
+		$this->assertArrayNotHasKey( RegistroAccessi::OPZIONE, wp_load_alloptions(), 'Il registro non si carica a ogni pagina.' );
 
 		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->in_corso() ) )['codice'] );
 
@@ -366,29 +367,27 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 
 		$dettagli = wp_list_pluck( $this->tracce(), 'dettagli' );
 
-		$this->assertArrayNotHasKey( 'prima', $dettagli[0], 'L\'aggiunta non ha valori di prima.' );
+		$this->assertSame( array( 'operazione', 'numero', 'campi' ), array_keys( $dettagli[0] ), 'L\'aggiunta non ha valori di prima.' );
 		$this->assertSame(
 			array(
-				'operazione' => 'modifica',
-				'numero'     => 2,
-				'campi'      => array( 'argomento', 'esito', 'decisione' ),
-				'prima'      => array(
-					'esito'     => '',
-					'decisione' => '',
-				),
+				'operazione'      => 'modifica',
+				'numero'          => 2,
+				'campi'           => array( 'argomento', 'esito', 'decisione' ),
+				'prima_esito'     => '',
+				'prima_decisione' => '',
 			),
 			$dettagli[2]
 		);
 
-		$tolta = $this->decisa();
-		unset( $tolta['argomento'] );
-
 		$this->assertSame(
 			array(
-				'operazione' => 'elimina',
-				'numero'     => 1,
-				'campi'      => RegistroAccessi::CAMPI,
-				'prima'      => $tolta,
+				'operazione'      => 'elimina',
+				'numero'          => 1,
+				'campi'           => RegistroAccessi::CAMPI,
+				'prima_tipo'      => 'generalizzato',
+				'prima_richiesta' => '2026-03-02',
+				'prima_esito'     => 'accolta_in_parte',
+				'prima_decisione' => '2026-03-30',
 			),
 			$dettagli[3]
 		);

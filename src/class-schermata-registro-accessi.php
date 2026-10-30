@@ -55,6 +55,17 @@ final class SchermataRegistroAccessi {
 	const CAMPO_PARTENZA = 'partenza';
 
 	/**
+	 * Campo della casella che conferma la rimozione di una riga.
+	 */
+	const CAMPO_CONFERMA = 'conferma';
+
+	/**
+	 * I campi i cui valori di prima vanno nel registro delle modifiche: tutti tranne l'argomento,
+	 * che scrive una persona e puo contenere per sbaglio un nome.
+	 */
+	const CAMPI_TRACCIATI = array( 'tipo', 'richiesta', 'esito', 'decisione' );
+
+	/**
 	 * Le operazioni.
 	 */
 	const OPERAZIONI = array( 'aggiungi', 'modifica', 'elimina' );
@@ -148,6 +159,10 @@ final class SchermataRegistroAccessi {
 			$numero = (int) $inviato;
 		}
 
+		if ( 'elimina' === $operazione && '1' !== ( $richiesta[ self::CAMPO_CONFERMA ] ?? null ) ) {
+			return self::esito( 'conferma', __( 'Niente tolto: per togliere una richiesta dal registro spuntare la casella di conferma accanto al pulsante.', 'trasparenza-pa' ), $operazione, $numero );
+		}
+
 		$partenza   = 'aggiungi' === $operazione ? null : self::riga_testuale( $richiesta[ self::CAMPO_PARTENZA ] ?? null );
 		$inviati    = $richiesta[ self::CAMPO ] ?? null;
 		$rimostrare = is_array( $inviati ) ? ( self::riga_testuale( $inviati, true ) ?? array() ) : array();
@@ -199,6 +214,7 @@ final class SchermataRegistroAccessi {
 
 		$righe = $conservato['righe'];
 		$campi = RegistroAccessi::CAMPI;
+		$prima = null;
 
 		if ( 'aggiungi' === $operazione ) {
 			$numero           = $conservato['ultimo'] + 1;
@@ -207,6 +223,8 @@ final class SchermataRegistroAccessi {
 			if ( ! isset( $righe[ $numero ] ) || $righe[ $numero ] !== $partenza ) {
 				return self::esito( 'conflitto', __( 'Niente salvato: dopo l\'apertura di questa schermata qualcun altro ha cambiato o tolto questa riga. Ricaricare la schermata, che mostra il registro attuale, e riprovare.', 'trasparenza-pa' ), $operazione, $numero, $rimostrare, $partenza );
 			}
+
+			$prima = $righe[ $numero ];
 
 			if ( 'elimina' === $operazione ) {
 				unset( $righe[ $numero ] );
@@ -221,15 +239,22 @@ final class SchermataRegistroAccessi {
 			}
 		}
 
+		$dettagli = array(
+			'operazione' => $operazione,
+			'numero'     => $numero,
+			'campi'      => $campi,
+		);
+
+		// Il registro di core vuole coppie piatte: un valore di prima per campo, con il prefisso.
+		foreach ( null === $prima ? array() : array_intersect( self::CAMPI_TRACCIATI, $campi ) as $campo ) {
+			$dettagli[ 'prima_' . $campo ] = $prima[ $campo ];
+		}
+
 		$traccia = conformita_core_registra_voce(
 			array(
 				'sezione'  => SEZIONE,
 				'azione'   => self::AZIONE_REGISTRO,
-				'dettagli' => array(
-					'operazione' => $operazione,
-					'numero'     => $numero,
-					'campi'      => $campi,
-				),
+				'dettagli' => $dettagli,
 			)
 		);
 
@@ -399,6 +424,7 @@ final class SchermataRegistroAccessi {
 		}
 
 		$html .= '<p><button type="submit" class="button button-primary" name="' . esc_attr( self::CAMPO_OPERAZIONE ) . '" value="modifica">' . esc_html__( 'Salva la correzione', 'trasparenza-pa' ) . '</button> ';
+		$html .= '<input type="checkbox" id="' . esc_attr( $prefisso . 'conferma' ) . '" name="' . esc_attr( self::CAMPO_CONFERMA ) . '" value="1"> <label for="' . esc_attr( $prefisso . 'conferma' ) . '">' . esc_html__( 'Confermo: questa richiesta va tolta dal registro', 'trasparenza-pa' ) . '</label> ';
 		$html .= '<button type="submit" class="button" name="' . esc_attr( self::CAMPO_OPERAZIONE ) . '" value="elimina">' . esc_html__( 'Togli dal registro', 'trasparenza-pa' ) . '</button></p>';
 
 		return $html . '</form>';
