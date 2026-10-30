@@ -20,8 +20,10 @@ responsabile e del titolare del potere sostitutivo, e per quello generalizzato g
 si presenta la richiesta, in tutti e due i casi con telefono ed email istituzionale e con le
 modalità per presentarla.
 
-**Cosa costruiamo.** Due pezzi, uno per pull request; un terzo, il registro degli accessi,
-dipende da una scelta ancora aperta.
+**Cosa costruiamo.** Tre pezzi, uno per pull request. La scelta sul modo di presentare le
+richieste è presa (30 ottobre 2026): la sezione dà istruzioni e recapiti, e le richieste
+arrivano all'ente per i canali che già usa, posta elettronica, posta certificata o protocollo.
+Nessun modulo da compilare sul sito: non c'è un dato personale in più da custodire.
 
 1. **I dati dell'ente.** Una schermata "Accesso civico", aperta a chi amministra la sezione:
    l'ufficio a cui si presenta la richiesta generalizzata, con email e telefono; il titolare del
@@ -32,6 +34,9 @@ dipende da una scelta ancora aperta.
    tipi di accesso, a chi si scrive e come, a chi rivolgersi se la risposta non arriva, e che
    contro un rifiuto si chiede il riesame al responsabile. Il responsabile non si scrive due
    volte: il riquadro prende nome e recapiti dalla schermata "Responsabile".
+3. **Il registro degli accessi.** Gli addetti annotano ogni richiesta con l'argomento, la data,
+   l'esito e la data della decisione, senza i nomi di chi chiede, e la voce lo mostra, come
+   chiede l'Allegato 1 alla riga "Registro degli accessi".
 
 **Come si prova, e come si prova che la prova è vera.** Righe di collaudo da T-99 in avanti,
 assegnate passo per passo. Ogni regola ha una rottura voluta che fa diventare rossa almeno una
@@ -47,6 +52,7 @@ prova, elencata in fondo a lavoro finito.
 | 1 | `tests/AccessoCivicoTest.php` | Nuovo |
 | 1 | `tests/RinviiTest.php` | La riga T-92 guarda la versione 2026-10-30 per nome, non come versione in vigore |
 | 2 | `src/class-accesso-civico.php`, `src/class-pagina-pubblica.php` | Il riquadro nella voce |
+| 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
@@ -110,10 +116,39 @@ conflitto. Un campo che la pulizia cambierebbe si rifiuta.
 | Dato non scritto | messaggio che lo dice: il registro contiene un cambio non avvenuto |
 | Albero senza la collocazione | i dati si salvano; la schermata dice che la pagina pubblica non li mostra |
 
+## 7-bis. La pagina pubblica (passo 2)
+
+**Dove compare.** Nella voce che il file dell'albero indica per i dati dell'accesso civico,
+dopo la dicitura dello stato e prima dei contenuti della voce, un riquadro con il titolo "Come
+si chiede l'accesso civico". Compare solo se i dati della schermata "Accesso civico" sono
+indicati e validi: senza, il riquadro direbbe a metà a chi scrivere, e chi amministra la
+sezione vede già l'avviso.
+
+**Cosa dice.**
+
+| Parte | Contenuto |
+|---|---|
+| Accesso civico semplice | chiunque può chiedere i dati che la sezione dovrebbe pubblicare e non pubblica (art. 5, c. 1); la richiesta va al responsabile della prevenzione della corruzione e della trasparenza, con nome, email e, se indicato, telefono, presi dalla schermata "Responsabile"; se il responsabile non è indicato, la frase resta senza nome e recapiti |
+| Accesso civico generalizzato | chiunque può chiedere dati e documenti ulteriori che l'ente detiene, nei limiti dell'art. 5-bis (art. 5, c. 2); la richiesta va all'ufficio indicato, con email e telefono |
+| Per tutte e due | la richiesta non va motivata ed è gratuita, salvo il rimborso del costo di riproduzione su supporti materiali (art. 5, cc. 3 e 4); il collegamento al modulo dell'ente, se indicato |
+| Se la risposta non arriva | il titolare del potere sostitutivo, con email e telefono (art. 2, c. 9-bis, l. 241/1990) |
+| Contro il rifiuto | il riesame al responsabile della prevenzione della corruzione e della trasparenza (art. 5, c. 7) |
+
+Le email sono collegamenti `mailto:`; i telefoni testo, come nel riquadro del responsabile.
+
+## 7-ter. Modi di guasto (passo 2)
+
+| Caso | Esito |
+|---|---|
+| Dati dell'accesso civico non indicati, o conservati non validi | nessun riquadro |
+| Responsabile non indicato | il riquadro c'è; la frase dell'accesso semplice e del riesame resta senza nome e recapiti |
+| Albero senza la collocazione | nessun riquadro in nessuna voce |
+| Valori con codice | escaping di ogni valore; email e indirizzo del modulo passano da `esc_url` |
+
 ## 8. Cosa deliberatamente NON fa
 
-- Non riceve richieste dal sito e non tiene il registro degli accessi: dipende dalla scelta
-  aperta, e sarà un passo a parte.
+- Non riceve richieste dal sito: è la scelta del 30 ottobre 2026. Il registro degli accessi è
+  il passo 3.
 - Non decide quale ufficio risponde: lo scrive l'ente. Un solo ufficio: l'art. 5, c. 3, lett.
   c, ammette che l'ente indichi un ufficio a cui presentare tutte le richieste generalizzate.
 - Non scrive i termini di risposta: li dice la norma, e il riquadro la cita.
