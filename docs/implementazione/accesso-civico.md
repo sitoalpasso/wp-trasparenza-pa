@@ -191,3 +191,19 @@ Una resta verde, ed è voluta: togliere il confronto dell'email con la sua versi
 cambia niente, perché `is_email()` e `sanitize_email()` di WordPress ammettono gli stessi
 caratteri, e un indirizzo che la prima accetta la seconda lo lascia com'è. Il confronto resta,
 come nella schermata del responsabile, per non dipendere da questa coincidenza.
+
+### Passo 2: la pagina pubblica
+
+Diciotto rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova:
+riquadro tolto, riquadro in ogni voce, collocazione del responsabile al posto di quella
+dell'accesso civico, dati conservati mostrati senza controllo, responsabile ignorato,
+responsabile conservato mostrato senza controllo, frase senza responsabile che promette
+recapiti, modulo sempre, indirizzo del modulo senza `esc_url`, riga del telefono sempre, nome
+senza escaping, email senza `esc_url` o senza escaping, titolare del potere sostitutivo con i
+recapiti dell'ufficio, ufficio senza telefono, riesame tolto, gratuità tolta, titolare del
+potere sostitutivo tolto.
+
+Il responsabile conservato mostrato senza controllo era verde al primo giro: una prova nuova
+conserva un responsabile con un nome che non supera il controllo e guarda che la frase resti
+senza nome. Per l'email senza `esc_url` la prova usa un indirizzo con la e commerciale, che
+`is_email()` ammette prima della chiocciola.
