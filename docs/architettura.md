@@ -69,6 +69,8 @@ viene segnalato.
 | `Opzione` | Lettura di un'opzione dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverla | trasversale |
 | `Responsabile` | I dati del responsabile della prevenzione della corruzione e della trasparenza: controllo e riquadro pubblico nella voce che l'albero indica | TRASP-13 |
 | `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
+| `AccessoCivico` | A chi si chiede l'accesso civico: ufficio e titolare del potere sostitutivo con i loro recapiti, indirizzo del modulo; controllo e lettura che distingue l'assente dalla lettura fallita | TRASP-12 |
+| `SchermataAccessoCivico` | La schermata "Accesso civico": le regole della schermata del responsabile, voce di registro senza dati personali, avviso finché i dati mancano | TRASP-12, TRASP-19 |
 | `Rinvii` | I rinvii alle banche dati dichiarati dall'ente: controllo di banca dati, indirizzo, etichetta e data contro l'albero in vigore, lettura dalla banca dati che distingue l'assente dalla lettura fallita; riquadro pubblico nella voce, con chi tiene la banca dati e chi risponde all'accesso civico | TRASP-11, TRASP-25, TRASP-29 |
 | `SchermataRinvii` | La schermata "Rinvii alle banche dati": un modulo per voce, salvataggio con voce di registro, conflitto, rinvio conservato che non vale più segnalato | TRASP-25, TRASP-29, TRASP-19 |
 | `TipoContenuto` | Registra il tipo del contenuto libero della sezione, testo e documenti, attraverso il componente comune, chiuso al pubblico e fuori dall'interfaccia REST; dichiara che i suoi file seguono la pagina della sezione, con la condizione di `ContenutiPubblici` | TRASP-19 |

@@ -127,3 +127,32 @@ conflitto. Un campo che la pulizia cambierebbe si rifiuta.
 - **Più uffici.** Un ente che vuole indicare un ufficio per ciascun tipo di dato non lo può fare
   in questo passo. La lettura scelta è quella dell'art. 5, c. 3, lett. c: un ufficio indicato
   nella sezione basta.
+
+## Rotture volute, a lavoro finito
+
+### Passo 1: i dati dell'ente
+
+Quarantaquattro rotture, una per volta e poi tolte. Quarantatré fanno diventare rossa almeno una
+prova. Nel controllo: campo non testo ammesso, spazi ai bordi non tolti, ufficio o titolare
+vuoti ammessi, pulizia dei nomi tolta, nomi lunghi ammessi, nomi contati in byte, solo l'ufficio
+o solo il titolare controllati, email non controllata, telefono libero, telefono facoltativo,
+schema del modulo libero, modulo lungo ammesso, modulo di 2000 caratteri rifiutato, pulizia del
+modulo tolta, modulo obbligatorio, lettura con `get_option` per chi riscrive, dati conservati
+mostrati senza controllo, codice d'errore di un altro dato. Nel salvataggio: permesso tolto,
+nonce tolto, nome del titolare nel registro, dato scritto prima del registro, rilettura tolta,
+blocco tolto, conflitto tolto, campi applicati anche se non cambiati da chi salva, partenza
+mancante accettata, partenze rilette dopo un rifiuto, dati uguali registrati. Nella schermata e
+nell'avviso: avviso su ogni schermata del pannello, avviso a chi non ha il permesso, avviso con
+i dati indicati, menu con un permesso generico, schermata aperta senza permesso, valore senza
+escaping, collocazione del responsabile al posto di quella dell'accesso civico, rifiuto non
+rimostrato, campo non testo rimostrato. Nel file dell'albero: versione in vigore riportata alla
+2026-10-30, versione 2026-10-30 ritoccata, collocazione su un'altra voce, fonte della
+collocazione tolta.
+
+Il campo non testo rimostrato era verde al primo giro: una prova nuova manda il titolare come
+elenco e guarda che la schermata lo rimostri vuoto, senza la parola "Array".
+
+Una resta verde, ed è voluta: togliere il confronto dell'email con la sua versione ripulita non
+cambia niente, perché `is_email()` e `sanitize_email()` di WordPress ammettono gli stessi
+caratteri, e un indirizzo che la prima accetta la seconda lo lascia com'è. Il confronto resta,
+come nella schermata del responsabile, per non dipendere da questa coincidenza.
