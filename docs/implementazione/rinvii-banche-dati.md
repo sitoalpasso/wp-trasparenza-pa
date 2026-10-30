@@ -215,3 +215,30 @@ fatto della sola radice.
 
 Una resta verde, ed è voluta: togliere il controllo che la fonte sia un testo non cambia niente,
 perché il confronto stretto con le chiavi delle fonti, che sono testi, rifiuta ogni altro valore.
+
+### Passo 2: la dichiarazione dell'ente
+
+Cinquantaquattro rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una
+prova. Nel controllo: voce senza banche dati ammessa, campo mancante o non testo ammesso, campi
+pieni senza banca dati, banca dati libera, schema dell'indirizzo libero, indirizzo lungo,
+indirizzo di 2001 caratteri, pulizia dell'indirizzo tolta, etichetta vuota, pulizia
+dell'etichetta tolta, etichetta lunga, etichetta contata in byte invece che in caratteri,
+formato della data libero, calendario tolto, data futura ammessa, oggi rifiutato, fuso del
+server al posto di quello del sito. Nella lettura: lettura con `get_option` per chi riscrive,
+errore di lettura ignorato, valore non elenco, voce numerica ammessa, riga con un campo strano
+conservata. Nel salvataggio: permesso tolto, nonce tolto, voce non controllata, albero assente
+ignorato, controllo ignorato, partenza non richiesta, blocco tolto, lettura fallita ignorata,
+stesso rinvio registrato, conflitto tolto, prima o dopo non registrati, registro ignorato,
+rimozione non fatta, scrittura tolta, rinvii delle altre voci persi, rilettura tolta, esito
+della rimozione sbagliato. Nella schermata: aperta senza permesso, esito non tolto, voci senza
+banche dati elencate, rifiuto non rimostrato o rimostrato in ogni modulo, partenza riletta
+invece di quella di allora, rinvio non più valido non segnalato, titolare o limite non
+mostrati, nome o valore senza escaping, partenza senza valore, percorso con la sola voce.
+
+Tre erano verdi al primo giro, e tre prove nuove le fanno rosse. Senza il controllo che la voce
+abbia banche dati, un rinvio pieno era rifiutato lo stesso dal controllo della banca dati: ora
+si prova anche il rinvio vuoto su una voce senza banche dati, che altrimenti scriverebbe una
+riga per una voce che il rinvio non lo ammette. Senza gli ancoraggi del formato, una data con
+altro intorno passava: ora si provano `2026-01-15T10:00` e `x2026-01-15`. La prova della
+partenza dopo un rifiuto guardava un valore vuoto che c'era anche negli altri moduli: ora
+controlla che la partenza della voce rifiutata non sia il rinvio riletto.
