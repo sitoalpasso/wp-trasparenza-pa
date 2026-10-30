@@ -2,7 +2,7 @@
 /**
  * I rinvii alle banche dati nazionali dichiarati dall'ente.
  *
- * Righe di collaudo T-94 e T-95.
+ * Righe di collaudo T-94, T-95, T-97 e T-98.
  *
  * @package TrasparenzaPa
  */
@@ -155,6 +155,75 @@ final class Rinvii {
 	 */
 	public static function dati(): array {
 		return self::in_forma( get_option( self::OPZIONE, array() ) );
+	}
+
+	/**
+	 * Il riquadro pubblico del rinvio di una voce, o niente.
+	 *
+	 * Il rinvio conservato ripassa dal controllo con l'albero in vigore: uno
+	 * che non lo supera non si mostra, come se non ci fosse. La frase
+	 * sull'accesso civico c'e solo se il file dell'albero dice chi tiene la
+	 * banca dati (art. 9-bis, cc. 3 e 4, del d.lgs. 33/2013).
+	 *
+	 * @param Alberatura $albero Albero in vigore.
+	 * @param string     $voce   Voce.
+	 * @return string
+	 */
+	public static function html( Alberatura $albero, string $voce ): string {
+		$conservato = self::dati()[ $voce ] ?? null;
+
+		if ( null === $conservato ) {
+			return '';
+		}
+
+		$rinvio = self::controlla( $albero, $voce, $conservato );
+
+		if ( is_wp_error( $rinvio ) || '' === $rinvio['banca'] ) {
+			return '';
+		}
+
+		$banca = $albero->banca_dati( $rinvio['banca'] );
+
+		if ( null === $banca ) {
+			return '';
+		}
+
+		$titolare = $banca['titolare'] ?? null;
+		$giorno   = DateTimeImmutable::createFromFormat( '!Y-m-d', $rinvio['data'], wp_timezone() );
+
+		if ( false === $giorno ) {
+			return '';
+		}
+
+		$html  = '<div class="trasparenza-pa-rinvio">';
+		$html .= '<h3>' . esc_html__( 'Dati nella banca dati nazionale', 'trasparenza-pa' ) . '</h3>';
+		$html .= '<p><a href="' . esc_url( $rinvio['indirizzo'] ) . '">' . esc_html( $rinvio['etichetta'] ) . '</a></p>';
+
+		$html .= '<p>' . esc_html(
+			null === $titolare
+				/* translators: %s: nome della banca dati. */
+				? sprintf( __( 'Banca dati: %s.', 'trasparenza-pa' ), $banca['nome'] )
+				/* translators: 1: nome della banca dati, 2: chi la tiene. */
+				: sprintf( __( 'Banca dati: %1$s, tenuta da %2$s.', 'trasparenza-pa' ), $banca['nome'], $titolare )
+		) . '</p>';
+
+		$html .= '<p>' . sprintf(
+			/* translators: %s: giorno da cui l'ente rinvia. */
+			esc_html__( 'Collegamento presente in questa voce dal %s (art. 9-bis del d.lgs. 33/2013).', 'trasparenza-pa' ),
+			'<time datetime="' . esc_attr( $rinvio['data'] ) . '">' . esc_html( (string) wp_date( (string) get_option( 'date_format' ), $giorno->getTimestamp() ) ) . '</time>'
+		) . '</p>';
+
+		if ( null !== $titolare ) {
+			$html .= '<p>' . esc_html(
+				sprintf(
+					/* translators: %s: chi tiene la banca dati. */
+					__( 'Se un dato comunicato alla banca dati non vi si trova, la richiesta di accesso civico va al responsabile della prevenzione della corruzione e della trasparenza di chi tiene la banca dati, %s; se la mancanza dipende da questo ente, va al responsabile di questo ente (art. 9-bis, commi 3 e 4, del d.lgs. 33/2013).', 'trasparenza-pa' ),
+					$titolare
+				)
+			) . '</p>';
+		}
+
+		return $html . '</div>';
 	}
 
 	/**

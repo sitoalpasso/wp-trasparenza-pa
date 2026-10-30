@@ -245,6 +245,7 @@ final class PaginaPubblica {
 			$html .= Responsabile::html();
 		}
 
+		$html .= Rinvii::html( $albero, $voce );
 		$html .= ContenutiPubblici::html( $albero, $voce );
 
 		$figli = $albero->figli( $voce );
