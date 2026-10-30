@@ -264,6 +264,71 @@ class RegistroAccessiPubblicoTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-112: con un fuso lontano da UTC la riga di oggi si vede e quella di domani no; l'attesa si calcola a parte.
+	 */
+	public function test_t112_giorno_del_sito_per_le_date_future(): void {
+		$adesso = time();
+
+		list( $fuso, $scarto ) = (int) gmdate( 'G', $adesso ) >= 10 ? array( 'Pacific/Kiritimati', 14 ) : array( 'Pacific/Pago_Pago', -11 );
+
+		update_option( 'timezone_string', $fuso );
+		update_option( 'gmt_offset', '' );
+
+		$oggi   = gmdate( 'Y-m-d', $adesso + $scarto * HOUR_IN_SECONDS );
+		$domani = gmdate( 'Y-m-d', $adesso + $scarto * HOUR_IN_SECONDS + DAY_IN_SECONDS );
+
+		$this->assertNotSame( gmdate( 'Y-m-d', $adesso ), $oggi, 'Precondizione: nel fuso scelto il giorno e diverso da quello UTC.' );
+
+		$this->conserva(
+			array(
+				1 => $this->decisa( $oggi, $oggi, array( 'argomento' => 'Decisa oggi' ) ),
+				2 => $this->decisa( $domani, $domani, array( 'argomento' => 'Decisa domani' ) ),
+			)
+		);
+
+		$html = $this->pagina();
+
+		$this->assertStringContainsString( 'Decisa oggi', $html );
+		$this->assertStringNotContainsString( 'Decisa domani', $html );
+	}
+
+	/**
+	 * T-114: [guasto] con la lettura fallita la pagina non dice che il registro e vuoto.
+	 */
+	public function test_t114_lettura_fallita(): void {
+		global $wpdb;
+
+		$anno = $this->anno( 1 );
+
+		$this->conserva( array( 1 => $this->decisa( "{$anno}-01-10", "{$anno}-01-20" ) ) );
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( RegistroAccessi::OPZIONE, 'options' );
+
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				$sql = (string) $sql;
+
+				return 0 === strpos( $sql, "SELECT option_value FROM {$wpdb->options} WHERE option_name = '" . RegistroAccessi::OPZIONE . "'" )
+					? 'SELECT option_value FROM ' . $wpdb->options . '_inesistente'
+					: $sql;
+			}
+		);
+
+		try {
+			$html = $this->pagina();
+		} finally {
+			remove_all_filters( 'query' );
+			$wpdb->suppress_errors( false );
+		}
+
+		$this->assertStringContainsString( '<h3>Registro degli accessi</h3><p>Il registro non è disponibile in questo momento.</p>', $html );
+		$this->assertStringNotContainsString( 'Il registro non contiene', $html );
+		$this->assertStringNotContainsString( '<table', $html );
+	}
+
+	/**
 	 * T-113: il registro solo nella voce indicata dall'albero, sotto il riquadro, anche senza i dati dell'accesso civico.
 	 */
 	public function test_t113_dove(): void {
