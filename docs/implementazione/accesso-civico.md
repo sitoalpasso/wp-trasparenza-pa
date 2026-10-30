@@ -54,7 +54,7 @@ prova, elencata in fondo a lavoro finito.
 | 2 | `src/class-accesso-civico.php`, `src/class-pagina-pubblica.php` | Il riquadro nella voce |
 | 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
 | 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
-| 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-109 |
+| 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-110 |
 | 4 | `src/class-registro-accessi.php` | Il registro nella voce, per cinque anni |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
@@ -204,6 +204,7 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
 | Senza permesso, senza nonce o con nonce scaduto | rifiuto prima di leggere i campi |
 | Operazione sconosciuta, numero di riga non valido | niente scritto, messaggio |
 | Rimozione senza la casella di conferma spuntata | niente tolto, niente nel registro, messaggio |
+| Argomento con un'entità HTML scritta come testo | il modulo la riporta com'è (escaping che ricodifica anche le entità già scritte), e la partenza torna identica (T-110) |
 | Campo non valido o non testo | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
 | Riga cambiata o tolta da altri dopo l'apertura del modulo, partenza mancante | conflitto, niente scritto |
 | Un altro salvataggio della sezione in corso | niente scritto, messaggio |
