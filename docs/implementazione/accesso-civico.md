@@ -54,7 +54,7 @@ prova, elencata in fondo a lavoro finito.
 | 2 | `src/class-accesso-civico.php`, `src/class-pagina-pubblica.php` | Il riquadro nella voce |
 | 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
 | 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
-| 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-107 |
+| 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-109 |
 | 4 | `src/class-registro-accessi.php` | Il registro nella voce, per cinque anni |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
@@ -179,9 +179,16 @@ richiesta si parla. Il modulo di una riga porta la riga come la mostrava all'ape
 frattempo qualcun altro l'ha cambiata o tolta, è un conflitto e non si salva niente.
 
 **Il registro delle modifiche.** Una voce `registro_accessi` per ogni aggiunta, correzione o
-rimozione, con l'operazione, il numero della riga e i nomi dei campi cambiati, senza valori:
-l'argomento lo scrive una persona, e un nome scritto per sbaglio resterebbe nel registro dopo
-la correzione.
+rimozione, con l'operazione, il numero della riga e i nomi dei campi cambiati. Perché a una
+verifica si possa dire che cosa è stato tolto o cambiato, e da chi, la rimozione registra anche
+tipo, data della richiesta, esito e data della decisione della riga tolta, e la correzione i
+valori di prima dei campi cambiati fra questi (T-109). L'argomento invece non entra mai nel
+registro: lo scrive una persona, e un nome scritto per sbaglio resterebbe nel registro dopo la
+correzione, che non si può cancellare.
+
+**Togliere una riga.** Accanto al pulsante "Togli dal registro" c'è una casella da spuntare;
+senza la spunta il salvataggio si rifiuta e non tocca niente (T-108). Funziona senza JavaScript:
+il controllo è nel salvataggio.
 
 **Il dato conservato.** L'opzione `trasparenza_pa_registro_accessi`: l'ultimo numero dato e le
 righe. Una riga conservata che non supera il controllo non si mostra al pubblico, ma la
@@ -196,6 +203,7 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
 |---|---|
 | Senza permesso, senza nonce o con nonce scaduto | rifiuto prima di leggere i campi |
 | Operazione sconosciuta, numero di riga non valido | niente scritto, messaggio |
+| Rimozione senza la casella di conferma spuntata | niente tolto, niente nel registro, messaggio |
 | Campo non valido o non testo | niente scritto, niente nel registro, messaggio; il modulo rimostra quanto inviato |
 | Riga cambiata o tolta da altri dopo l'apertura del modulo, partenza mancante | conflitto, niente scritto |
 | Un altro salvataggio della sezione in corso | niente scritto, messaggio |
@@ -221,6 +229,15 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
 - **Più uffici.** Un ente che vuole indicare un ufficio per ciascun tipo di dato non lo può fare
   in questo passo. La lettura scelta è quella dell'art. 5, c. 3, lett. c: un ufficio indicato
   nella sezione basta.
+
+- **Molte richieste.** Il registro sta in una sola opzione, non caricata a ogni pagina, e la
+  schermata mostra tutte le righe con il loro modulo. Con qualche centinaio di richieste l'anno
+  va bene per alcuni anni; oltre le mille righe la schermata passerà a pagine o le righe a un
+  tipo di contenuto, in un'unità a parte.
+- **Argomento nel registro delle modifiche.** Una rimozione per sbaglio perde l'argomento della
+  riga tolta, che si ricostruisce dal protocollo dell'ente. È voluto: un nome scritto per
+  sbaglio nell'argomento non deve restare nel registro, che non si cancella. Se l'ente preferisce
+  poter ricostruire anche l'argomento, si aggiunge.
 
 ## Rotture volute, a lavoro finito
 
