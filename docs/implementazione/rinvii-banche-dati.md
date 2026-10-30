@@ -41,7 +41,8 @@ prova, elencata in fondo a lavoro finito.
 | 1 | `trasparenza-pa.php` | Il file dell'albero in vigore |
 | 1 | `tests/RinviiTest.php` | Nuovo |
 | 2 | `src/class-rinvii.php`, `src/class-schermata-rinvii.php` | Nuovi. Dichiarazioni dell'ente e schermata |
-| 3 | `src/class-pagina-pubblica.php` | Il riquadro del rinvio sotto la voce |
+| 3 | `src/class-pagina-pubblica.php`, `src/class-rinvii.php` | Il riquadro del rinvio nella voce |
+| 3 | `tests/RinviiPubbliciTest.php` | Nuovo. Righe T-97 e T-98 |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura, formato dell'albero |
 
 ## 2. Requisiti serviti
@@ -164,6 +165,45 @@ schermata lo dice accanto alla voce e la pagina pubblica non lo mostra.
 | Lettura fallita dei rinvii conservati | niente scritto, niente nel registro, messaggio |
 | Registro che rifiuta la riga | niente scritto, messaggio |
 | Rinvio non scritto | messaggio che lo dice: il registro contiene un cambio non avvenuto |
+
+## 7-quater. La pagina pubblica (passo 3)
+
+**Dove compare.** Nella voce che ha un rinvio dichiarato e valido, dopo la dicitura dello stato
+e prima dei contenuti della voce, un riquadro con il titolo "Dati nella banca dati nazionale".
+Non compare nelle voci superiori né in quelle inferiori: solo nella voce del rinvio.
+
+**Cosa dice.**
+
+| Riga | Contenuto |
+|---|---|
+| Collegamento | l'etichetta scritta dall'ente, che porta all'indirizzo scritto dall'ente |
+| Banca dati | il nome della banca dati, dal file dell'albero; accanto, se il file lo indica, chi la tiene |
+| Data | il giorno da cui l'ente rinvia, scritto nel formato delle date del sito, con la data AAAA-MM-GG leggibile dalle macchine |
+| Accesso civico | solo per le banche dati con chi la tiene: se un dato comunicato non si trova nella banca dati, la richiesta va al responsabile della prevenzione della corruzione e della trasparenza di chi tiene la banca dati; se la mancanza dipende dall'ente, al responsabile dell'ente (art. 9-bis, cc. 3 e 4) |
+
+Per "Soldi pubblici", che non è nell'Allegato B e per cui il file non indica chi la tiene, il
+riquadro non ha la riga dell'accesso civico: i commi 3 e 4 parlano delle banche dati
+dell'Allegato B, e attribuire la risposta a qualcuno senza una fonte sarebbe un'invenzione.
+
+**Quale rinvio si mostra.** Il rinvio conservato passa di nuovo per il controllo del passo 2,
+con l'albero in vigore, prima di essere mostrato. Un rinvio che non lo supera non si mostra: una
+banca dati che la versione dell'albero non lega più alla voce, un indirizzo che la pulizia
+cambierebbe, una riga scritta nella banca dati senza passare dalla schermata. La schermata dei
+rinvii lo segnala già a chi amministra la sezione.
+
+**Lo stato della voce non lo nasconde.** Il riquadro compare anche in una voce dichiarata non
+applicabile o sospesa: è una dichiarazione dell'ente, e mostrare un collegamento in più non
+toglie niente a chi consulta. L'incoerenza fra le due dichiarazioni la risolve l'ente.
+
+## 7-quinquies. Modi di guasto (passo 3)
+
+| Caso | Esito |
+|---|---|
+| Nessun rinvio per la voce | nessun riquadro |
+| Rinvio conservato non valido con l'albero in vigore | nessun riquadro |
+| Opzione dei rinvii illeggibile o di forma strana | nessun riquadro; la voce si disegna come senza rinvio |
+| Albero non disponibile | la pagina non si disegna, come per ogni voce |
+| Valori con codice | escaping di ogni valore; l'indirizzo passa da `esc_url` |
 
 ## 8. Cosa deliberatamente NON fa
 
