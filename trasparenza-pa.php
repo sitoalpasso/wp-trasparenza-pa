@@ -3,7 +3,7 @@
  * Plugin Name:       Trasparenza PA
  * Plugin URI:        https://github.com/sitoalpasso/wp-trasparenza-pa
  * Description:       Obblighi di pubblicazione della sezione Amministrazione trasparente come dati strutturati conformi agli schemi standard.
- * Version:           0.1.0-alpha
+ * Version:           0.2.0-alpha
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Requires Plugins:  conformita-core
@@ -26,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Versione del componente.
  */
-const VERSIONE = '0.1.0-alpha';
+const VERSIONE = '0.2.0-alpha';
 
 /**
  * Versione minima di WordPress dichiarata.

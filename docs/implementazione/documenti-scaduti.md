@@ -29,7 +29,7 @@ lavoro finito.
 
 | File | Perché |
 |---|---|
-| `trasparenza-pa.php` | Versione dell'interfaccia richiesta: 1.11.0 |
+| `trasparenza-pa.php` | Versione dell'interfaccia richiesta: 1.11.0; versione del componente 0.2.0-alpha, perché i siti già installati ricevano il permesso nuovo |
 | `bin/installa-core.sh` | Revisione del componente comune usata dalle prove: quella con l'interfaccia 1.11.0 |
 | `src/class-permessi.php` | Il permesso di consultare gli scaduti dei contenuti all'amministratore |
 | `src/class-scheda-documenti.php` | Il collegamento solo a chi apre il file |
@@ -63,7 +63,10 @@ Il permesso di consultare gli scaduti segue la regola degli altri permessi dei c
 assegna a ogni cambio della versione installata, così una versione nuova porta con sé i
 permessi nuovi. Non segue la regola del permesso di amministrare la sezione, che si assegna una
 volta sola: quello è una dichiarazione dell'ente, questo è un permesso di lavoro sui contenuti.
-Un ente che lo toglie all'amministratore lo ritrova al prossimo aggiornamento del componente,
+**Per questo la versione del componente sale da 0.1.0-alpha a 0.2.0-alpha**: con la stessa
+versione un sito già installato non rifarebbe l'assegnazione, e l'amministratore resterebbe
+senza il permesso proprio dove serve. `publiccode.yml` resta alla 0.1.0-alpha, perché descrive
+l'ultimo rilascio pubblicato e non il codice in lavorazione. Un ente che lo toglie all'amministratore lo ritrova al prossimo aggiornamento del componente,
 come gli altri permessi dei contenuti. Il tipo delle voci non riceve il permesso: le voci non hanno documenti e non scadono.
 
 ## 6. Modi di guasto
@@ -98,12 +101,12 @@ della compatibilità guarda ora le versioni attorno alla 1.11.0.
 
 ## Rotture volute, a lavoro finito
 
-Dodici rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova:
+Tredici rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova:
 permesso di consultazione non assegnato, assegnato anche alle voci, errore del componente
 comune sul nome del permesso ignorato, rilettura dei ruoli tolta, rilettura fatta sui ruoli in
 memoria invece che su quelli conservati, collegamento mostrato sempre, frase tolta, contenuto in
 bozza trattato come esposto, scadenza ignorata nel riquadro, permesso di consultazione ignorato,
-permesso di consultazione non controllato sull'utente, versione richiesta riportata alla 1.10.0.
+permesso di consultazione non controllato sull'utente, versione richiesta riportata alla 1.10.0, versione del componente lasciata alla 0.1.0-alpha.
 
 L'errore del componente comune sul nome del permesso fa diventare rossa la prova perché senza
 nome l'amministratore resta senza permesso: non c'è una prova che faccia rispondere con un
