@@ -62,8 +62,10 @@ prova, elencata in fondo a lavoro finito.
 ## 2. Requisito servito
 
 TRASP-12 (art. 5, d.lgs. 33/2013; art. 2, c. 9-bis, l. 241/1990; delibera ANAC 1310/2016,
-Allegato 1, voce "Accesso civico"). La parte del registro delle richieste resta aperta finché
-la scelta sul modo di presentarle non è presa: fino ad allora TRASP-12 resta "in corso".
+Allegato 1, voce "Accesso civico"). Scelta presa il 30 ottobre 2026: la sezione dà istruzioni e
+recapiti, con il collegamento al modulo dell'ente se indicato, e le richieste si annotano in un
+registro tenuto dagli addetti e pubblicato; nessun modulo da compilare sul sito. Con il passo 4
+TRASP-12 è fatto.
 
 ## 3. Flusso per chi usa il sito
 
@@ -236,14 +238,15 @@ prudente: la riga cambia l'ultima volta con l'esito, e da lì decorre l'obbligo 
 aggiornato.
 
 **Scadenza in lettura.** La finestra si calcola a ogni lettura dal giorno di oggi nel fuso del
-sito. Nessun compito pianificato: una riga scaduta esce dalla pagina e resta nella schermata
+sito, e con lo stesso giorno si controlla che nessuna data della riga sia futura. Nessun compito pianificato: una riga scaduta esce dalla pagina e resta nella schermata
 degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TRASP-09).
 
 ## 7-septies. Modi di guasto (passo 4)
 
 | Caso | Esito |
 |---|---|
-| Registro conservato illeggibile o di forma strana | nessuna riga, la frase del registro vuoto |
+| Lettura del registro fallita | nessuna tabella: "Il registro non è disponibile in questo momento." (T-114) |
+| Registro conservato di forma strana | nessuna riga, la frase del registro vuoto |
 | Riga che non supera il controllo | non si mostra |
 | Argomento con codice o entità | scritto con escaping, mai interpretato |
 | Data sull'orlo dei cinque anni | decide il giorno di oggi nel fuso del sito |

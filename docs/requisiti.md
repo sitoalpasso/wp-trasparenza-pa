@@ -97,8 +97,9 @@ identificazione (TRASP-02). Nessun noindex, nessun blocco nel robots, pagine in 
 
 ### Persone e responsabilità (TRASP-12, TRASP-13, TRASP-14, TRASP-16, TRASP-19)
 
-- Dalla sezione si raggiunge il modulo di **accesso civico**, con destinatario e
-  titolare del potere sostitutivo, e ogni richiesta finisce in un registro (TRASP-12).
+- Dalla sezione si raggiungono le istruzioni per l'**accesso civico**: destinatario,
+  titolare del potere sostitutivo e collegamento al modulo dell'ente se indicato; le
+  richieste sono annotate in un registro pubblicato (TRASP-12).
 - Il **RPCT** è indicato con nome e recapiti dove previsto (TRASP-13); la sottosezione
   del piano anticorruzione ospita il PIAO (TRASP-14).
 - Prima di pubblicare, un controllo sui **dati personali** analogo a quello dell'albo:
@@ -147,7 +148,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-09 | da fare | Scaduto: fuori dalla sezione, mai cancellato | art. 8 |
 | TRASP-10 | in corso | Data di ultimo aggiornamento visibile | art. 6 |
 | TRASP-11 | da fare | Collegamento ammesso se porta al dato vero | art. 9 |
-| TRASP-12 | in corso | Accesso civico con registro | art. 5 |
+| TRASP-12 | fatto | Accesso civico con registro | art. 5 |
 | TRASP-13 | fatto | RPCT indicato | art. 43 |
 | TRASP-14 | da fare | PIAO al posto del vecchio piano autonomo | d.l. 80/2021 art. 6 |
 | TRASP-15 | da fare | Documenti accessibili | l. 4/2004 |
