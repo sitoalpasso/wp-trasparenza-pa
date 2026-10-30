@@ -288,3 +288,23 @@ prova di allora confrontava `oggi()` con un giorno calcolato dallo stesso fuso, 
 in UTC non distingueva i due. La prova del fuso imposta un fuso lontano da UTC, scelto in modo
 che nell'istante della prova il giorno del sito sia diverso da quello UTC, e calcola i giorni
 attesi dall'ora UTC con lo scarto fisso.
+
+### Passo 3: la pagina pubblica
+
+Venti rotture, una per volta e poi tolte. Diciassette fanno diventare rossa almeno una prova:
+riquadro tolto, riquadro prima della dicitura, controllo del rinvio conservato tolto, errore del
+controllo ignorato, rinvio di un'altra voce mostrato, frase sull'accesso civico sempre o mai,
+chi tiene la banca dati sempre o mai, `esc_url` tolto, etichetta o nome della banca dati senza
+escaping, formato della data fisso, giorno letto in UTC invece che nel fuso del sito, data
+leggibile dalle macchine tolta, titolo tolto, e le tre guardie del rinvio vuoto tolte insieme.
+
+`esc_url` tolto e giorno letto in UTC erano verdi al primo giro: l'indirizzo delle prove non
+aveva caratteri da codificare, e il sito delle prove era in UTC. Una prova nuova usa un
+indirizzo con la e commerciale e un fuso indietro rispetto a UTC, dove la mezzanotte letta in
+UTC cadrebbe il giorno prima.
+
+Tre restano verdi, ed è voluto. Il rinvio vuoto si ferma su tre guardie: la banca dati vuota,
+la banca dati che il file dell'albero non conosce, il giorno che non si legge. Ciascuna basta da
+sola, quindi togliendone una le altre lo fermano; togliendole tutte e tre insieme la prova
+diventa rossa. Per un rinvio pieno le ultime due non scattano mai, perché il controllo del passo
+2 ha già verificato banca dati e data: restano come difesa, senza costo.
