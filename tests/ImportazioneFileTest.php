@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove dei file copiati dalle pagine nei contenuti in bozza: righe T-135..T-139.
+ * Prove dei file copiati dalle pagine nei contenuti in bozza: righe T-135..T-141.
  *
  * @package TrasparenzaPa
  */
@@ -743,5 +743,95 @@ class ImportazioneFileTest extends WP_UnitTestCase {
 		wp_set_current_user( $solo_sezione );
 		$get['_wpnonce'] = wp_create_nonce( SchermataImportazione::AZIONE );
 		$this->assertStringNotContainsString( SchermataImportazione::AZIONE_FILE, SchermataImportazione::html( $get ) );
+	}
+
+	/**
+	 * T-140. File nella cartella protetta: percorsi equivalenti e file senza allegato.
+	 */
+	public function test_t140_cartella_protetta() {
+		$contenuti = $this->porta( array( 'Varie' => 'atti_altri' ) );
+		$altro     = (int) self::factory()->post->create(
+			array(
+				'post_type'   => TIPO_CONTENUTO,
+				'post_status' => 'draft',
+				'post_title'  => 'Altro contenuto',
+			)
+		);
+		$this->assertSame( 'salvato', SchedaDocumenti::deposita( $altro, $this->file_temporaneo( 'protetto.pdf' ), 'percorso_locale' )['codice'] );
+		$relativo = (string) get_post_meta( $this->documenti( $altro )[0], '_wp_attached_file', true );
+		$cartella = dirname( $relativo );
+		$nome     = basename( $relativo );
+
+		$orfano = \Conformita_Core_Allegati::cartella() . '/orfano.pdf';
+		file_put_contents( $orfano, $this->pdf( 'orfano' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		$this->creati[] = $orfano;
+		$senza          = substr( $orfano, strlen( wp_upload_dir( null, false )['basedir'] ) + 1 );
+
+		$varianti = array( $cartella . '/./' . $nome, $cartella . '//' . $nome, $senza );
+		$base     = wp_upload_dir( null, false )['baseurl'];
+		$testo    = '';
+
+		foreach ( $varianti as $variante ) {
+			$testo .= '<a href="' . $base . '/' . $variante . '">x</a>';
+		}
+
+		wp_update_post(
+			array(
+				'ID'           => $this->pagine['Varie'],
+				'post_content' => $testo,
+			)
+		);
+
+		$rapporto = ImportazionePagine::rapporto( $this->radice, PaginaPubblica::albero(), RegistroAccessi::oggi() );
+		$this->assertIsArray( $rapporto );
+		$file = array_column( array_column( $rapporto['pagine'], 'file', 'id' )[ $this->pagine['Varie'] ], null, 'percorso' );
+
+		foreach ( $varianti as $variante ) {
+			$this->assertSame( 'presente', $file[ $variante ]['stato'], $variante );
+			$this->assertTrue( $file[ $variante ]['protetto'], $variante );
+		}
+
+		$esito = SchermataImportazione::salva_file( $this->richiesta( array(), array( $this->pagine['Varie'] => $varianti ) ) );
+		$esiti = $this->esiti( $esito );
+
+		foreach ( $varianti as $variante ) {
+			$this->assertSame( 'scartato', $esiti[ $this->pagine['Varie'] . ' ' . $variante ], $variante );
+		}
+
+		$this->assertSame( array(), $this->documenti( $contenuti['Varie'] ) );
+		$this->assertCount( 1, $this->documenti( $altro ) );
+	}
+
+	/**
+	 * T-141. Il valore della casella torna dal browser identico al percorso.
+	 */
+	public function test_t141_valore_esatto() {
+		$percorso = substr( RegistroAccessi::oggi(), 0, 4 ) . '/01/a&amp;b.pdf';
+		$this->file( $percorso, $this->pdf( 'entita' ) );
+		wp_update_post(
+			array(
+				'ID'           => $this->pagine['Bandi di concorso'],
+				'post_content' => '<a href="' . wp_upload_dir( null, false )['baseurl'] . '/' . str_replace( '&', '&amp;', $percorso ) . '">x</a>',
+			)
+		);
+		$contenuti = $this->porta( array( 'Bandi di concorso' => 'bandi' ) );
+		$bandi     = $this->pagine['Bandi di concorso'];
+
+		$html = SchermataImportazione::html(
+			array(
+				'page'                              => SchermataImportazione::PAGINA,
+				SchermataImportazione::CAMPO_RADICE => (string) $this->radice,
+				'_wpnonce'                          => wp_create_nonce( SchermataImportazione::AZIONE ),
+			)
+		);
+		$this->assertSame( 1, preg_match( '/name="' . SchermataImportazione::CAMPO_COPIA . '\[' . $bandi . '\]\[\]" value="([^"]*)"/', $html, $trovato ) );
+
+		// Il browser decodifica le entità dell'attributo una volta.
+		$rimandato = html_entity_decode( $trovato[1], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$this->assertSame( $percorso, $rimandato );
+
+		$esito = SchermataImportazione::salva_file( $this->richiesta( array( $bandi => array( $rimandato ) ) ) );
+		$this->assertSame( 'copiato', $this->esiti( $esito )[ $bandi . ' ' . $percorso ] );
+		$this->assertCount( 1, $this->documenti( $contenuti['Bandi di concorso'] ) );
 	}
 }
