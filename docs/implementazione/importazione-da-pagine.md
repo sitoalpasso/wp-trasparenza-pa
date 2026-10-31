@@ -47,6 +47,9 @@ elencata in fondo a lavoro finito.
 | 1 | `src/class-schermata-importazione.php` | Nuovo. La schermata che chiede la pagina d'ingresso e mostra il rapporto |
 | 1 | `trasparenza-pa.php` | Caricamento e agganci |
 | 1 | `tests/ImportazionePagineTest.php` | Nuovo. Righe T-121..T-128 |
+| 2a | `src/class-importazione-pagine.php` | Le pagine già portate nel rapporto; `porta()`, che crea i contenuti in bozza |
+| 2a | `src/class-schermata-importazione.php` | Il modulo "pagina vecchia, voce nuova" sotto il rapporto, la risposta e l'esito |
+| 2a | `tests/ImportazioneBozzeTest.php` | Nuovo. Righe T-129..T-133 |
 | tutti | `docs/` | Collaudo, architettura, dati |
 
 ## 2. Requisiti serviti
@@ -165,6 +168,124 @@ nonce della schermata. Senza l'uno o l'altro nessuna pagina si legge.
 - Non interpreta i codici brevi dei costruttori di pagine: cerca solo gli indirizzi. Un
   indirizzo scritto in forma codificata (per esempio in base64) non si trova, e un file collegato
   così non compare: per questo c'è anche l'elenco degli allegati della pagina.
+
+## 7-bis. Il passaggio in bozza (passo 2a)
+
+Il passo 2 si divide in due pull request: 2a porta le pagine come contenuti in bozza, 2b ci
+copia i file.
+
+**Il modulo.** Sotto il rapporto compare la tabella "pagina vecchia, voce nuova": per ogni pagina
+del rapporto un elenco con le voci senza sottovoci, già posizionato sulla voce proposta quando
+c'è, e la scelta "non portare", che è quella di partenza per le altre. Una pagina già portata non
+ha elenco: mostra il contenuto che l'ha portata, con il collegamento alla sua schermata. Il
+pulsante "Porta in bozza le pagine scelte" manda il modulo per POST, con il suo nonce. Il rientro
+delle pagine figlie, qui e nel rapporto, è fatto di spazi non separabili e di un trattino
+corto (T-134).
+
+**Cosa succede.** Per ogni pagina con una voce scelta nasce un contenuto della sezione:
+
+- in **bozza**, mai pubblicato da questo passo;
+- con il **titolo** della pagina e nessun testo: il testo dei costruttori di pagine è mescolato
+  alla grafica e va riscritto a mano, come dice il rapporto;
+  il titolo passa a `wp_insert_post()` con `wp_slash()`, perché quella funzione toglie le barre
+  inverse a quello che riceve e il titolo letto dalla banca dati non ne ha di aggiunte: senza,
+  "Documenti A\B" diventerebbe "Documenti AB" (T-134). I due metadati non ne hanno bisogno: la
+  pagina d'origine è un numero e la voce è un identificativo dell'albero, che accetta solo
+  lettere, cifre e trattino basso;
+- con la **voce** scelta e il ricordo della **pagina d'origine** (metadato
+  `_trasparenza_pa_pagina_origine`);
+- **senza decorrenza**: la data da cui decorre l'obbligo la scrive un addetto nel riquadro
+  "Pubblicazione". Senza, il contenuto non compare al pubblico nemmeno se qualcuno lo pubblica;
+- con chi ha mandato il modulo come autore.
+
+**Le regole di controllo.** La richiesta non si prende per buona. Il rapporto si rifà al momento,
+con le stesse regole del passo 1, e si portano solo pagine che ci sono, con voci fra quelle senza
+sottovoci dell'albero in vigore. Una pagina fuori dal rapporto (bozza, protetta da password, fuori
+dalla pagina d'ingresso, inesistente) o una voce non ammessa scartano quella riga e lo dicono;
+le altre righe proseguono. Una pagina già portata non si porta una seconda volta: conta ogni
+contenuto che la ricorda come origine, cestino compreso, perché un doppione nella sezione è
+peggio di un passaggio da rifare a mano.
+
+**Registro e ordine delle scritture.** Prima il contenuto in bozza, che non si vede; poi la voce
+di registro `importazione_pagina` con la pagina d'origine e la voce; poi i due metadati, riletti.
+Se il registro rifiuta, il contenuto appena creato si cancella e la riga dice perché: un
+contenuto portato senza traccia nel registro non resta. Tutto il passaggio tiene il blocco della
+sezione, così due passaggi insieme non portano due volte la stessa pagina.
+
+**Permessi.** Il permesso della sezione, più quello di creare contenuti della sezione: chi può
+amministrare la sezione ma non scrivere contenuti vede il rapporto e non il modulo, e la risposta
+lo rifiuta.
+
+**Modi di guasto (passo 2a).**
+
+| Guasto | Comportamento |
+|---|---|
+| Lettura delle pagine già portate fallita | niente portato: "non si sa quali pagine sono già state portate" |
+| Lettura delle pagine fallita | niente portato, lo stesso messaggio del rapporto |
+| Blocco della sezione occupato | niente portato, riprovare fra qualche secondo |
+| Creazione del contenuto fallita | quella riga non portata, le altre proseguono |
+| Registro che rifiuta | contenuto appena creato cancellato, quella riga non portata |
+| Metadati non scritti | contenuto cancellato, quella riga non portata |
+
+**Norme e fonti (passo 2a).**
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Ogni contenuto portato ha la sua riga di registro | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
+| Nessuna decorrenza scritta dal passaggio: senza, il contenuto non si vede | d.lgs. 33/2013, art. 8, c. 3 (TRASP-08) | Scheda `fine-pubblicazione.md` di questo repository. Il testo della norma non è stato riletto per questo passo |
+| Contenuti in bozza, scelta di pubblicare lasciata all'addetto | nessuna norma: scelta di costruzione, prudente verso TRASP-09 e TRASP-16 | `docs/requisiti.md` |
+
+## Com'è andata (passo 2a)
+
+Costruito come scritto sopra. Il nome vero del metadato è `_trasparenza_pa_pagina_origine`, con il
+trattino basso davanti come gli altri metadati della sezione, così WordPress non lo mostra fra i
+campi personalizzati. Una chiave del modulo con uno zero davanti (`0123`) non vale come la pagina
+123: è scartata, perché due chiavi diverse per la stessa pagina porterebbero due contenuti.
+
+Dopo la rilettura si è aggiunto T-134: il titolo con le barre inverse arrivava senza, e il
+rientro delle pagine figlie usava il trattino lungo.
+
+Suite completa in locale: 347 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute (passo 2a)**, una per volta, con le prove di `ImportazioneBozzeTest`. Tutte
+rosse, salvo un'equivalenza dichiarata sotto.
+
+| Rottura | Prova rossa |
+|---|---|
+| Passaggio senza il permesso della sezione | T-129 |
+| Passaggio senza il permesso di creare contenuti | T-129 |
+| Nonce del rapporto accettato per il passaggio | T-129 |
+| Nonce non controllato | T-129 |
+| Pagina d'ingresso non controllata nella forma | T-129 |
+| Voci non controllate come elenco | T-129 |
+| Chiave della pagina presa con `(int)` | T-129 |
+| Pagina fuori dal rapporto accettata | T-129 |
+| Voce non ammessa accettata | T-129 |
+| Blocco della sezione non preso | T-132 |
+| Pagina già portata riportata | T-132 |
+| Contenuti nel cestino non contati come portati | T-132 |
+| Lettura delle pagine già portate fallita non fermata | T-132 |
+| Contenuto pubblicato invece che in bozza | T-130 |
+| Testo nel contenuto | T-130 |
+| Autore fisso | T-130 |
+| Registro che rifiuta: contenuto lasciato | T-131 |
+| Registro che rifiuta ignorato | T-131 |
+| Pagina d'origine non scritta | T-130, T-132 |
+| Voce non scritta | T-130 |
+| Metadati non riletti | T-131 |
+| Modulo mostrato a chi non può creare contenuti | T-133 |
+| Voce proposta non preselezionata | T-133 |
+| Titolo senza escaping nel modulo | T-133 |
+| Esito mostrato più di una volta | T-133 |
+| Pagina già portata con la sua scelta | T-133 |
+| Titolo passato senza `wp_slash()` | T-134 |
+| Rientro con il trattino lungo | T-134 |
+
+Equivalenza: togliere il controllo "la voce è un testo" e confrontare le voci in modo non stretto
+non fa diventare rossa nessuna prova. Un valore che arriva da un modulo è un testo o un elenco, e
+un elenco non è mai uguale a una voce nemmeno nel confronto non stretto. Il controllo resta come
+difesa esplicita.
 
 ## Dubbi annotati
 
