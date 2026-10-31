@@ -516,6 +516,22 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 		remove_all_filters( 'query' );
 		$wpdb->suppress_errors( false );
 
+		// Voce del contenuto non leggibile: nessun rinvio, non la pagina della sezione.
+		wp_cache_flush();
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				$sql = (string) $sql;
+
+				return false !== strpos( $sql, $wpdb->postmeta ) && false === strpos( $sql, VecchiIndirizzi::META_INDIRIZZO ) ? 'SELECT ID FROM ' . $wpdb->posts . '_inesistente' : $sql;
+			}
+		);
+		$this->assertNull( VecchiIndirizzi::destinazione( 'amministrazione-trasparente/bandi-di-concorso' ) );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+		$this->assertSame( $this->voce( 'bandi' ), VecchiIndirizzi::destinazione( 'amministrazione-trasparente/bandi-di-concorso' ) );
+
 		// Contenuto nel cestino: nessun rinvio.
 		wp_trash_post( $this->contenuti['Bandi di concorso'] );
 		$this->assertNull( $this->rinvio( '/amministrazione-trasparente/bandi-di-concorso/' ) );
