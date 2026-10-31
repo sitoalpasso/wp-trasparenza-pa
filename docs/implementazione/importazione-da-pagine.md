@@ -362,12 +362,19 @@ con il codice breve; altrimenti nessun rinvio, e la schermata lo dice.
 - gli indirizzi già registrati, anche di pagine non più pubblicate, ciascuno con la casella
   "togli".
 
+Il modulo compare anche nella schermata iniziale e quando la pagina d'ingresso vecchia è stata
+ritirata, senza pagine da registrare: togliere un indirizzo e cambiare la pagina della sezione
+servono proprio dopo il passaggio, quando la sezione vecchia non c'è più.
+
 Il pulsante "Registra i vecchi indirizzi" manda il modulo per POST, con il suo nonce.
 
 **Le regole di controllo.** Con il blocco della sezione preso:
 
-1. la pagina della sezione scelta deve essere una pagina pubblicata con il codice breve;
-2. ogni indirizzo da registrare si ricava dal rapporto rifatto al momento, non dal modulo: il
+1. la pagina della sezione scelta deve essere una pagina pubblicata con il codice breve; dopo il
+   salvataggio si rilegge dalla banca dati e, se non coincide, non si registra e non si toglie
+   niente;
+2. ogni indirizzo da registrare si ricava dal rapporto rifatto al momento (che si chiede solo se ci
+   sono pagine da registrare), non dal modulo: il
    modulo dice solo quale pagina. La pagina deve essere nel rapporto, già portata, con il contenuto
    fuori dal cestino, e diversa dalla pagina della sezione;
 3. l'indirizzo è il percorso della pagina rispetto all'indirizzo del sito, senza barre all'inizio e
@@ -407,6 +414,8 @@ pubblico: la voce di un contenuto è visibile nella pagina della sezione.
 | Guasto | Comportamento |
 |---|---|
 | Lettura delle pagine o degli indirizzi registrati fallita, nel passaggio | niente registrato, il motivo |
+| Pagina della sezione che non resta scritta | niente registrato e niente tolto, il motivo |
+| Lettura delle pagine con il codice breve fallita, nella schermata | avviso d'errore, nessun modulo, nessun invito a creare la pagina |
 | Blocco della sezione occupato | niente registrato, riprovare fra qualche secondo |
 | Registro che rifiuta | quell'indirizzo non registrato, o non tolto |
 | Lettura degli indirizzi fallita, nel rinvio | nessun rinvio: resta "pagina non trovata" |
@@ -449,15 +458,21 @@ Costruito come scritto sopra. Tre cose venute dal lavoro:
   sequenze `%xx`: un vecchio indirizzo con caratteri codificati non sarebbe mai stato rinviato.
   Ora il percorso si legge com'è arrivato (serve solo al confronto con gli indirizzi registrati),
   con una prova in T-145 su uno slug codificato; la ricerca esce prima se manca la pagina della
-  sezione.
+  sezione;
+- la seconda rilettura ha trovato tre cose: la pagina della sezione si salvava senza rileggerla;
+  una lettura fallita delle pagine con il codice breve diventava "nessuna pagina, crearla"; e,
+  soprattutto, togliere un indirizzo o cambiare la pagina della sezione chiedeva il rapporto, che
+  non si fa più quando l'ente ritira la pagina d'ingresso vecchia, cioè proprio quando i rinvii
+  lavorano. Ora il rapporto serve solo per registrare, e il modulo resta senza pagina d'ingresso.
 
-Suite completa in locale: 362 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+Suite completa in locale: 366 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
 
 **Rotture volute (passo 3)**, una per volta, con le prove di `VecchiIndirizziTest`. Tutte rosse, salvo
 l'equivalenza dichiarata sotto. Tre erano verdi alla prima prova e hanno avuto la loro prova:
 percorso non in minuscolo, lettura fallita degli indirizzi registrati, motivo della pagina non
-portata.
+portata. Nella seconda rilettura una quarta, il modulo senza pagina d'ingresso mostrato a chi non
+può creare contenuti, ha avuto la sua prova.
 
 | Rottura | Prova rossa |
 |---|---|
@@ -475,6 +490,14 @@ portata.
 | Aggancio dopo le ipotesi di WordPress | T-146 |
 | Blocco della sezione non preso | T-144 |
 | Lettura fallita degli indirizzi registrati non fermata | T-144 |
+| Pagina della sezione non riletta dopo il salvataggio | T-144 |
+| Rapporto chiesto anche senza pagine da registrare | T-144 |
+| Rapporto mai chiesto | T-144 |
+| Pagina d'ingresso obbligatoria nella richiesta | T-144 |
+| Lettura fallita delle pagine con il codice breve non fermata | T-147 |
+| Modulo assente nella schermata iniziale | T-147 |
+| Modulo assente con la pagina d'ingresso ritirata | T-147 |
+| Modulo senza pagina d'ingresso mostrato a chi non può creare contenuti | T-147 |
 | Identificativo preso con `(int)` | T-143 |
 | Pagina non portata accettata | T-143 |
 | Pagina della sezione che registra sé stessa | T-143 |
