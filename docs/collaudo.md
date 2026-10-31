@@ -353,6 +353,24 @@ delibera ANAC 1310/2016, Allegato 1 (TRASP-12). Scheda: `docs/implementazione/ac
 | T-119 | fatto | Data di ultimo aggiornamento del registro: aggiunta, correzione, rimozione, correzione senza cambi, salvataggio rifiutato | ogni cambio conserva l'istante del salvataggio, che la rilettura ritrova; correzione senza cambi e rifiuti non lo spostano |
 | T-120 | fatto | La data sulla pagina pubblica: con righe, senza righe dei cinque anni, registro senza data; [attacco] data conservata non valida | "Ultimo aggiornamento" sotto il titolo nel formato e nel fuso del sito, anche senza righe; senza data valida nessuna riga di aggiornamento |
 
+## Importazione dalle pagine del sito (righe da T-121)
+
+Provano il rapporto che precede il passaggio di una sezione tenuta come pagine WordPress: cosa
+si porterebbe, dove, e quali file sono oltre il termine ordinario di pubblicazione. Nessun requisito
+nuovo: proteggono TRASP-09 e TRASP-19 durante il passaggio. Scheda:
+`docs/implementazione/importazione-da-pagine.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-121 | fatto | Schermata del rapporto: chi la apre, rapporto mostrato; [attacco] senza permesso, nonce mancante o sbagliato, pagina d'ingresso non numerica, inesistente, non pubblicata o non pagina; titoli e indirizzi con codice | solo con il permesso della sezione e il nonce si legge qualcosa; pagina d'ingresso non valida rifiutata con il motivo; ogni valore con escaping |
+| T-122 | fatto | Pagine sotto la pagina d'ingresso e voce proposta: titolo uguale al nome di una voce senza sottovoci, anche con maiuscole, accenti e punteggiatura diversi; uguale a una voce con sottovoci, a più voci, a nessuna; pagine in bozza, private, sotto una bozza o fuori dalla pagina d'ingresso; genitori che girano in tondo | solo le pagine pubblicate discendenti, a ogni profondità; esito proposta, con sottovoci, più voci o nessuna; le pagine non pubblicate e quelle sotto di loro contate come non lette, senza titolo; il rapporto finisce anche con i genitori in tondo |
+| T-123 | fatto | File di una pagina: indirizzi nel testo in un attributo, in un codice breve, senza schema, senza dominio, con `?` e `#`; allegati della pagina; lo stesso file da due fonti; [attacco] percorso con `..` o con un collegamento simbolico che esce dalla cartella dei caricamenti, dominio diverso | presente con dimensione e impronta SHA-256, mancante, fuori; un file una volta sola; fuori non si apre e non ha dimensione né impronta; un dominio diverso non è un file |
+| T-124 | fatto | Oltre il termine ordinario di pubblicazione: data dall'allegato, dalla cartella AAAA/MM, nessuna data; orlo dell'anno; durata dall'albero, albero senza durata; anno di oggi nel fuso del sito | oltre il termine quando l'anno della data più la durata è minore dell'anno di oggi; non oltre all'orlo; "non si sa" senza data o senza durata; la schermata dice "oltre il termine ordinario" con "da verificare" e mai "finita" |
+| T-125 | fatto | Testo, collegamenti esterni, pagine vuote, voci senza pagina | caratteri del testo senza tag né parentesi quadre; collegamenti verso altri domini una volta ciascuno; vuota senza testo, file e collegamenti; ogni voce senza sottovoci non proposta da nessuna pagina |
+| T-126 | fatto | Il rapporto non scrive niente; [guasto] lettura delle pagine o degli allegati fallita | contenuti, metadati, impostazioni, registro e file uguali a prima; lettura fallita dichiarata, mai "nessuna pagina" |
+| T-127 | fatto | Pagine protette da password: sotto la pagina d'ingresso, con figli, scelte come pagina d'ingresso | fuori dal rapporto con tutto ciò che sta sotto, contate fra le non lette; testo, file e collegamenti mai mostrati; rifiutate come pagina d'ingresso |
+| T-128 | fatto | Indirizzi che contengono il percorso dei caricamenti senza cominciare con quello del sito: altro dominio con il sito in una sottocartella, con e senza schema; stesso dominio in un'altra cartella, con e senza dominio; percorso dentro una parola | nessuno è un file; quello di un altro dominio resta un collegamento esterno; con il prefisso giusto il file si trova |
+
 ## Collaudo congiunto con l'albo pretorio
 
 Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
