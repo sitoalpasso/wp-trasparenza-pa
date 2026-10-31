@@ -54,6 +54,10 @@ elencata in fondo a lavoro finito.
 | 2b | `src/class-scheda-documenti.php` | Il deposito diviso in due: la parte che prende il blocco e quella che deposita, che `copia()` chiama tenendo già il blocco |
 | 2b | `src/class-schermata-importazione.php` | Il modulo "file da copiare nelle bozze", la risposta e l'esito |
 | 2b | `tests/ImportazioneFileTest.php` | Nuovo. Righe T-135..T-139 |
+| 3 | `src/class-vecchi-indirizzi.php` | Nuovo. La pagina della sezione scelta, gli indirizzi registrati, il rinvio dalla pagina vecchia alla voce |
+| 3 | `src/class-schermata-importazione.php` | Il modulo "vecchi indirizzi", la risposta e l'esito |
+| 3 | `trasparenza-pa.php` | Caricamento e agganci |
+| 3 | `tests/VecchiIndirizziTest.php` | Nuovo. Righe T-143..T-147 |
 | tutti | `docs/` | Collaudo, architettura, dati |
 
 ## 2. Requisiti serviti
@@ -334,6 +338,92 @@ file, che il deposito controlla.
 | Un file senza data trattato come oltre il termine | Regolamento (UE) 2016/679, art. 5 (TRASP-16) | `docs/requisiti.md`. Scelta prudente, non prescritta così dalla norma |
 | File serviti solo dalla cartella protetta del componente comune | regola di costruzione del progetto (consegna degli allegati) | istruzioni di sviluppo del repository; nessuna norma la prescrive in questa forma |
 | Nessun file aggiunto da qui a un contenuto pubblicato | nessuna norma: scelta di costruzione, prudente verso TRASP-09 | `docs/requisiti.md` |
+
+## 7-quinquies. I vecchi indirizzi (passo 3)
+
+**In parole semplici.** Le pagine vecchie hanno indirizzi già in giro: nei collegamenti di altri
+siti, nei motori di ricerca, nei segnalibri. Quando l'ente toglie una pagina vecchia, chi apre il
+suo indirizzo trova "pagina non trovata". Con questo passo, chi fa il passaggio registra
+l'indirizzo di ogni pagina portata, e da quando la pagina vecchia non risponde più il suo indirizzo
+porta alla voce nuova del contenuto, nella pagina della sezione. Finché la pagina vecchia è
+pubblicata non cambia niente: il rinvio scatta solo al posto di un "pagina non trovata".
+
+**La pagina della sezione.** È la pagina pubblicata che contiene il codice breve della sezione. Il
+modulo la fa scegliere fra le pagine pubblicate che lo contengono, e la scelta si conserva
+(opzione `trasparenza_pa_pagina_sezione`). Alla lettura vale solo se è ancora una pagina pubblicata
+con il codice breve; altrimenti nessun rinvio, e la schermata lo dice.
+
+**Il modulo.** Sotto quello dei file compare "Vecchi indirizzi":
+
+- la scelta della pagina della sezione;
+- per ogni pagina del rapporto già portata, con il contenuto fuori dal cestino, il suo indirizzo e
+  la voce di destinazione, con una casella **già spuntata** per registrarlo; la pagina della
+  sezione stessa non ha casella, perché un rinvio verso sé stessa girerebbe in tondo;
+- gli indirizzi già registrati, anche di pagine non più pubblicate, ciascuno con la casella
+  "togli".
+
+Il pulsante "Registra i vecchi indirizzi" manda il modulo per POST, con il suo nonce.
+
+**Le regole di controllo.** Con il blocco della sezione preso:
+
+1. la pagina della sezione scelta deve essere una pagina pubblicata con il codice breve;
+2. ogni indirizzo da registrare si ricava dal rapporto rifatto al momento, non dal modulo: il
+   modulo dice solo quale pagina. La pagina deve essere nel rapporto, già portata, con il contenuto
+   fuori dal cestino, e diversa dalla pagina della sezione;
+3. l'indirizzo è il percorso della pagina rispetto all'indirizzo del sito, senza barre all'inizio e
+   alla fine, in minuscolo. Si conserva sul contenuto (metadato `_trasparenza_pa_indirizzo_origine`),
+   una volta: un contenuto che lo ha già non ne prende un secondo;
+4. due contenuti non possono avere lo stesso indirizzo: il secondo è scartato;
+5. togliere un indirizzo vale solo per un contenuto della sezione che lo ha.
+
+Ogni registrazione e ogni rimozione ha la sua voce di registro `importazione_indirizzo`, con la
+pagina d'origine e l'indirizzo. Se il registro rifiuta, il metadato non si scrive, o non si toglie.
+
+**Il rinvio.** Su `template_redirect`, prima delle ipotesi di WordPress sugli indirizzi sbagliati,
+e solo quando la richiesta finisce in "pagina non trovata":
+
+1. il percorso chiesto, senza parametri e senza la parte dell'indirizzo del sito, in minuscolo, si
+   cerca fra gli indirizzi registrati, sui contenuti della sezione fuori dal cestino;
+2. la destinazione è la voce del contenuto **adesso**, non quella del momento del passaggio: se un
+   addetto sposta il contenuto, il rinvio lo segue. Una voce che non c'è più nell'albero porta alla
+   pagina della sezione;
+3. il rinvio è permanente (301), perché la pagina vecchia non tornerà e i motori di ricerca devono
+   aggiornare il loro indice;
+4. nessun rinvio se la pagina della sezione non vale, se la lettura fallisce, o se la destinazione
+   coincide con l'indirizzo chiesto.
+
+Il rinvio porta alla voce e mai al contenuto o ai suoi file: un contenuto scaduto non torna
+raggiungibile da un indirizzo vecchio (TRASP-09).
+
+**Permessi.** Gli stessi del passo 2a. Il rinvio è pubblico e non legge niente che non sia già
+pubblico: la voce di un contenuto è visibile nella pagina della sezione.
+
+**Modi di guasto (passo 3).**
+
+| Guasto | Comportamento |
+|---|---|
+| Lettura delle pagine o degli indirizzi registrati fallita, nel passaggio | niente registrato, il motivo |
+| Blocco della sezione occupato | niente registrato, riprovare fra qualche secondo |
+| Registro che rifiuta | quell'indirizzo non registrato, o non tolto |
+| Lettura degli indirizzi fallita, nel rinvio | nessun rinvio: resta "pagina non trovata" |
+| Pagina della sezione tolta o senza codice breve | nessun rinvio; la schermata lo dice |
+
+**Cosa deliberatamente non fa (passo 3).**
+
+- Non toglie, non mette in bozza e non cambia le pagine vecchie: lo decide l'ente, quando il
+  contenuto nuovo è pronto.
+- Non rinvia gli indirizzi dei file: il file nuovo si consegna dal componente comune con un indirizzo
+  suo, e un file vecchio scaduto non deve tornare raggiungibile.
+- Non registra indirizzi scritti a mano: solo quelli delle pagine del rapporto.
+
+**Norme e fonti (passo 3).**
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Ogni indirizzo registrato o tolto ha la sua riga di registro | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
+| Il rinvio porta alla voce, mai al contenuto o ai file | d.lgs. 33/2013, art. 8 (TRASP-09) | `docs/requisiti.md` |
+| Rinvio permanente, perché gli indici dei motori di ricerca seguano la sezione | d.lgs. 33/2013, art. 9 (TRASP-03, indicizzazione della sezione) | `docs/requisiti.md`. Il legame è indiretto: la norma vieta di impedire l'indicizzazione, non prescrive i rinvii. È una scelta di costruzione |
+| Il rinvio scatta solo al posto di "pagina non trovata" | nessuna norma: scelta di costruzione, per non nascondere una pagina che l'ente tiene pubblicata | |
 
 ## Com'è andata (passo 2b)
 
