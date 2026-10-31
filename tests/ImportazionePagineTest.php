@@ -359,7 +359,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$this->assertSame( 'Bandi di Concorso!', $this->riga( $rapporto, $bandi )['titolo'] );
 		// Bozza, privata e la pagina pubblicata sotto la bozza: contate, non lette.
 		$this->assertSame( 3, $rapporto['non_lette'] );
-		$this->assertStringContainsString( '3 pagine non pubblicate, o sotto pagine non pubblicate, non lette', $this->schermata( $this->richiesta( $radice ) ) );
+		$this->assertStringContainsString( '3 pagine non pubblicate o protette da password, o sotto di loro, non lette', $this->schermata( $this->richiesta( $radice ) ) );
 
 		// Genitori che girano in tondo: il rapporto finisce, ogni pagina una volta.
 		global $wpdb;
@@ -543,6 +543,63 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$this->assertFalse( $this->riga( $rapporto, $rinvio )['vuota'] );
 
 		$this->assertSame( array( 'articolazione', 'atti_org', 'procedimenti', 'atti_altri' ), $rapporto['voci_senza_pagina'] );
+	}
+
+	/**
+	 * T-127. Le pagine protette da password restano fuori dal rapporto.
+	 */
+	public function test_t127_pagine_con_password() {
+		$this->file( '2020/01/protetto.pdf', 'protetto' );
+
+		$radice   = $this->pagina( 'Amministrazione trasparente' );
+		$aperta   = $this->pagina( 'Bandi di concorso', $radice );
+		$chiusa   = $this->pagina( 'Telefono e posta elettronica', $radice, '<a href="' . $this->base() . '/2020/01/protetto.pdf">p</a> https://riservato.example/x', array( 'post_password' => 'segreta' ) );
+		$sotto    = $this->pagina( 'Sotto la protetta', $chiusa );
+		$rapporto = $this->rapporto( $radice );
+
+		$this->assertSame( array( $radice, $aperta ), array_column( $rapporto['pagine'], 'id' ) );
+		$this->assertSame( 2, $rapporto['non_lette'] );
+		$this->assertContains( 'telefono', $rapporto['voci_senza_pagina'] );
+
+		$html = $this->schermata( $this->richiesta( $radice ) );
+		$this->assertStringNotContainsString( 'protetto.pdf', $html );
+		$this->assertStringNotContainsString( 'riservato.example', $html );
+		$this->assertStringContainsString( '2 pagine non pubblicate o protette da password, o sotto di loro, non lette', $html );
+
+		// Una pagina protetta non fa da pagina d'ingresso.
+		$errore = ImportazionePagine::rapporto( $chiusa, PaginaPubblica::albero(), '2026-06-15' );
+		$this->assertInstanceOf( \WP_Error::class, $errore );
+		$this->assertSame( 'trasparenza_importazione_radice', $errore->get_error_code() );
+		$html = $this->schermata( $this->richiesta( $chiusa ) );
+		$this->assertStringNotContainsString( 'trasparenza-pa-rapporto', $html );
+		$this->assertStringNotContainsString( 'protetto.pdf', $html );
+	}
+
+	/**
+	 * T-128. Solo gli indirizzi che cominciano con la cartella dei caricamenti del sito sono file.
+	 */
+	public function test_t128_indirizzi_ancorati() {
+		$locale = (string) wp_parse_url( $this->base(), PHP_URL_PATH );
+		$this->file( '2020/01/atto.pdf', 'atto locale' );
+
+		$radice = $this->pagina( 'Amministrazione trasparente' );
+		$pagina = $this->pagina(
+			'Bandi di concorso',
+			$radice,
+			'<a href="https://altro.example/archivio' . $locale . '/2020/01/atto.pdf">altro sito in sottocartella</a>'
+			. '<a href="//altro.example/archivio' . $locale . '/2020/01/atto.pdf">senza schema</a>'
+			. '<a href="/archivio' . $locale . '/2020/01/atto.pdf">stesso sito, altra cartella</a>'
+			. '<a href="' . home_url( '/archivio' . $locale . '/2020/01/atto.pdf' ) . '">stesso dominio, altra cartella</a>'
+			. ' testo/archivio' . $locale . '/2020/01/atto.pdf'
+		);
+
+		$riga = $this->riga( $this->rapporto( $radice ), $pagina );
+		$this->assertSame( array(), $riga['file'] );
+		$this->assertContains( 'https://altro.example/archivio' . $locale . '/2020/01/atto.pdf', $riga['esterni'] );
+
+		// Lo stesso file, scritto con il prefisso giusto, si trova.
+		$giusta = $this->pagina( 'Atti', $radice, '<a href="' . $locale . '/2020/01/atto.pdf">x</a>' );
+		$this->assertSame( array( '2020/01/atto.pdf' ), array_column( $this->riga( $this->rapporto( $radice ), $giusta )['file'], 'percorso' ) );
 	}
 
 	/**
