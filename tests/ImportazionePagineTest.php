@@ -357,6 +357,9 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( 'Bandi di Concorso!', $this->riga( $rapporto, $bandi )['titolo'] );
+		// Bozza, privata e la pagina pubblicata sotto la bozza: contate, non lette.
+		$this->assertSame( 3, $rapporto['non_lette'] );
+		$this->assertStringContainsString( '3 pagine non pubblicate, o sotto pagine non pubblicate, non lette', $this->schermata( $this->richiesta( $radice ) ) );
 
 		// Genitori che girano in tondo: il rapporto finisce, ogni pagina una volta.
 		global $wpdb;
@@ -368,6 +371,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 
 		$giro = $this->rapporto( $a );
 		$this->assertSame( array( $a, $b ), array_column( $giro['pagine'], 'id' ) );
+		$this->assertSame( 0, $giro['non_lette'] );
 	}
 
 	/**
@@ -487,6 +491,11 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$rapporto = ImportazionePagine::rapporto( $radice, $senza_durata, '2026-06-15' );
 		$this->assertIsArray( $rapporto );
 		$this->assertNull( $rapporto['durata'] );
+		$html = $this->schermata( $this->richiesta( $radice ) );
+		$this->assertStringContainsString( 'oltre il termine ordinario di pubblicazione (da verificare: atti che producono ancora effetti, durate degli artt. 14 e 15)', $html );
+		$this->assertStringContainsString( 'File oltre il termine ordinario di 5 anni: ', $html );
+		$this->assertStringNotContainsString( 'finita di sicuro', $html );
+
 		$this->assertSame( array( null ), array_values( array_unique( array_column( $this->riga( $rapporto, $pagina )['file'], 'finita' ), SORT_REGULAR ) ) );
 	}
 
@@ -572,7 +581,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'trasparenza-pa-rapporto', $html );
 		$this->assertSame( $prima, $fotografia() );
 
-		foreach ( array( "post_type = 'page'", "post_type = 'attachment'" ) as $lettura ) {
+		foreach ( array( "post_type = 'page' AND post_status = 'publish'", 'post_status NOT IN', "post_type = 'attachment'" ) as $lettura ) {
 			$wpdb->suppress_errors( true );
 			$filtro = static function ( $sql ) use ( $wpdb, $lettura ) {
 				$sql = (string) $sql;

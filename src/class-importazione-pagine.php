@@ -30,7 +30,7 @@ final class ImportazionePagine {
 	 * @param int        $radice Pagina d'ingresso.
 	 * @param Alberatura $albero Albero in vigore.
 	 * @param string     $oggi   Oggi, AAAA-MM-GG nel fuso del sito.
-	 * @return array{radice: int, durata: int|null, pagine: array<int, array<string, mixed>>, voci_senza_pagina: array<int, string>}|WP_Error
+	 * @return array{radice: int, durata: int|null, pagine: array<int, array<string, mixed>>, non_lette: int, voci_senza_pagina: array<int, string>}|WP_Error
 	 */
 	public static function rapporto( int $radice, Alberatura $albero, string $oggi ) {
 		$pagine = self::pagine();
@@ -41,6 +41,12 @@ final class ImportazionePagine {
 
 		if ( ! isset( $pagine[ $radice ] ) ) {
 			return new WP_Error( 'trasparenza_importazione_radice', __( 'La pagina d\'ingresso indicata non è una pagina pubblicata.', 'trasparenza-pa' ) );
+		}
+
+		$nascoste = self::non_pubblicate();
+
+		if ( is_wp_error( $nascoste ) ) {
+			return $nascoste;
 		}
 
 		$allegati = self::allegati();
@@ -55,6 +61,12 @@ final class ImportazionePagine {
 			$figli[ $pagina['padre'] ][] = $id;
 		}
 
+		$figli_nascosti = array();
+
+		foreach ( $nascoste as $id => $padre ) {
+			$figli_nascosti[ $padre ][] = $id;
+		}
+
 		$per_percorso = array();
 		$per_padre    = array();
 
@@ -66,11 +78,12 @@ final class ImportazionePagine {
 		$nomi = self::nomi( $albero );
 		$base = self::base();
 
-		$durata   = $albero->durata_anni();
-		$righe    = array();
-		$visti    = array();
-		$proposte = array();
-		$da_fare  = array( array( $radice, 0 ) );
+		$durata     = $albero->durata_anni();
+		$righe      = array();
+		$visti      = array();
+		$proposte   = array();
+		$da_fare    = array( array( $radice, 0 ) );
+		$da_contare = array();
 
 		while ( array() !== $da_fare ) {
 			list( $id, $profondita ) = array_shift( $da_fare );
@@ -110,7 +123,27 @@ final class ImportazionePagine {
 				$sotto[] = array( $figlio, $profondita + 1 );
 			}
 
-			$da_fare = array_merge( $sotto, $da_fare );
+			$da_fare    = array_merge( $sotto, $da_fare );
+			$da_contare = array_merge( $da_contare, $figli_nascosti[ $id ] ?? array() );
+		}
+
+		/*
+		 * Sotto una pagina non pubblicata non si legge niente, nemmeno le
+		 * pagine pubblicate: si contano, perche chi prepara il passaggio sappia
+		 * che il rapporto non le copre.
+		 */
+		$non_lette = 0;
+
+		while ( array() !== $da_contare ) {
+			$id = array_shift( $da_contare );
+
+			if ( isset( $visti[ $id ] ) ) {
+				continue;
+			}
+
+			$visti[ $id ] = true;
+			++$non_lette;
+			$da_contare = array_merge( $da_contare, $figli[ $id ] ?? array(), $figli_nascosti[ $id ] ?? array() );
 		}
 
 		$senza = array();
@@ -125,6 +158,7 @@ final class ImportazionePagine {
 			'radice'            => $radice,
 			'durata'            => $durata,
 			'pagine'            => $righe,
+			'non_lette'         => $non_lette,
 			'voci_senza_pagina' => $senza,
 		);
 	}
@@ -186,6 +220,32 @@ final class ImportazionePagine {
 		}
 
 		return $pagine;
+	}
+
+	/**
+	 * Le pagine non pubblicate, fuori dal cestino: solo identificativo e genitore.
+	 *
+	 * Titolo e testo non si leggono: servono solo a contare cosa il rapporto non copre.
+	 *
+	 * @return array<int, int>|WP_Error Genitore per identificativo.
+	 */
+	private static function non_pubblicate() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- serve distinguere nessuna pagina da lettura fallita.
+		$righe = $wpdb->get_results( $wpdb->prepare( "SELECT /* trasparenza-pa-importazione */ ID, post_parent FROM {$wpdb->posts} WHERE post_type = %s AND post_status NOT IN (%s, %s, %s) ORDER BY ID ASC", 'page', 'publish', 'trash', 'auto-draft' ), ARRAY_A );
+
+		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
+			return self::errore_lettura();
+		}
+
+		$nascoste = array();
+
+		foreach ( $righe as $riga ) {
+			$nascoste[ (int) $riga['ID'] ] = (int) $riga['post_parent'];
+		}
+
+		return $nascoste;
 	}
 
 	/**

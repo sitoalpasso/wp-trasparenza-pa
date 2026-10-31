@@ -139,7 +139,7 @@ final class SchermataImportazione {
 	 * @return string
 	 */
 	private static function spiegazione(): string {
-		return '<p>' . esc_html__( 'Per un sito che oggi tiene la sezione come pagine: scegliere la pagina che fa da ingresso alla sezione. Il rapporto dice, per ogni pagina pubblicata che sta sotto, a quale voce corrisponde, quanto testo ha, quali file collega e quali collegamenti portano fuori dal sito. Non scrive e non cambia niente.', 'trasparenza-pa' ) . '</p>';
+		return '<p>' . esc_html__( 'Per un sito che oggi tiene la sezione come pagine: scegliere la pagina che fa da ingresso alla sezione. Il rapporto dice, per la pagina scelta e per ogni pagina pubblicata che sta sotto, a quale voce corrisponde, quanto testo ha, quali file collega e quali collegamenti portano fuori dal sito. Non scrive e non cambia niente.', 'trasparenza-pa' ) . '</p>';
 	}
 
 	/**
@@ -215,7 +215,9 @@ final class SchermataImportazione {
 		/* translators: 1: file presenti, 2: file mancanti, 3: file fuori dalla cartella. */
 		$html .= '<li>' . esc_html( sprintf( __( 'File presenti: %1$d; mancanti: %2$d; fuori dalla cartella dei caricamenti, non aperti: %3$d', 'trasparenza-pa' ), $conti['presente'], $conti['mancante'], $conti['fuori'] ) ) . '</li>';
 		/* translators: %d: numero di file. */
-		$html .= '<li>' . esc_html( sprintf( __( 'File con la pubblicazione finita di sicuro: %d. Il conto non sa degli atti che producono ancora effetti né delle durate legate alla cessazione di un incarico: va rivisto prima di decidere.', 'trasparenza-pa' ), $conti['finita'] ) ) . '</li>';
+		$html .= '<li>' . esc_html( self::oltre( $rapporto['durata'], $conti['finita'] ) ) . '</li>';
+		/* translators: %d: numero di pagine. */
+		$html .= '<li>' . esc_html( sprintf( _n( '%d pagina non pubblicata, o sotto una pagina non pubblicata, non letta', '%d pagine non pubblicate, o sotto pagine non pubblicate, non lette', (int) $rapporto['non_lette'], 'trasparenza-pa' ), (int) $rapporto['non_lette'] ) ) . '</li>';
 		/* translators: %d: numero di pagine. */
 		$html .= '<li>' . esc_html( sprintf( __( 'Pagine vuote: %d', 'trasparenza-pa' ), $conti['vuote'] ) ) . '</li>';
 		/* translators: %d: numero di voci. */
@@ -333,7 +335,7 @@ final class SchermataImportazione {
 			}
 
 			if ( true === $uno['finita'] ) {
-				$html .= '; ' . esc_html__( 'pubblicazione finita di sicuro', 'trasparenza-pa' );
+				$html .= '; ' . esc_html( self::etichetta_oltre() );
 			} elseif ( null === $uno['finita'] ) {
 				$html .= '; ' . esc_html__( 'non si sa se la pubblicazione è finita', 'trasparenza-pa' );
 			}
@@ -342,6 +344,39 @@ final class SchermataImportazione {
 		}
 
 		return $html . '</ul>';
+	}
+
+	/**
+	 * L'etichetta di un file oltre il termine ordinario.
+	 *
+	 * Non dice "finita": l'art. 8, c. 3, tiene pubblicati gli atti finche
+	 * producono effetti e fa salvi i termini degli artt. 14 e 15.
+	 *
+	 * @return string
+	 */
+	private static function etichetta_oltre(): string {
+		return __( 'oltre il termine ordinario di pubblicazione (da verificare: atti che producono ancora effetti, durate degli artt. 14 e 15)', 'trasparenza-pa' );
+	}
+
+
+	/**
+	 * La riga del riepilogo sui file oltre il termine ordinario.
+	 *
+	 * @param int|null $durata Durata dall'albero.
+	 * @param int      $quanti File oltre il termine.
+	 * @return string
+	 */
+	private static function oltre( ?int $durata, int $quanti ): string {
+		if ( null === $durata ) {
+			return __( 'File oltre il termine ordinario: non si sa, l\'albero non dichiara la durata.', 'trasparenza-pa' );
+		}
+
+		return sprintf(
+			/* translators: 1: anni del termine ordinario, 2: numero di file. */
+			__( 'File oltre il termine ordinario di %1$d anni: %2$d. Da verificare uno per uno prima di decidere: gli atti che producono ancora effetti restano pubblicati, e per titolari di incarichi e consulenti valgono le durate degli artt. 14 e 15 del d.lgs. 33/2013.', 'trasparenza-pa' ),
+			$durata,
+			$quanti
+		);
 	}
 
 	/**

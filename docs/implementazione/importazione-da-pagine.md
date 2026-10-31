@@ -16,13 +16,15 @@ TRASP-19 (ogni cosa portata dentro lascia traccia).
    testo contiene; quali file collega o ha allegati, se il file c'è davvero, quanto pesa e la
    sua impronta; quali collegamenti portano fuori dal sito. Poi dice quali voci dell'albero non
    hanno nessuna pagina, e quali pagine sono vuote. Per ogni file dice anche se, dalla data in
-   cui è stato caricato, la sua pubblicazione è finita di sicuro. È la lista da mostrare
+   cui è stato caricato, se è oltre il termine ordinario di pubblicazione, da verificare. È la
+   lista da mostrare
    all'ente prima di portare dentro qualunque cosa.
 2. **Il passaggio vero.** Da una tabella "pagina vecchia, voce nuova" confermata da chi
    amministra, per ogni pagina un contenuto in bozza nella voce scelta, con i file copiati nella
    cartella protetta del componente comune. Nessun contenuto esce pubblicato da solo: la data
-   da cui decorre l'obbligo la scrive un addetto, e un file la cui pubblicazione è finita di
-   sicuro non entra fra i documenti pubblicabili.
+   da cui decorre l'obbligo la scrive un addetto, e un file oltre il termine ordinario non entra
+   fra i documenti pubblicabili senza la scelta esplicita di un addetto, che verifica se l'atto
+   produce ancora effetti.
 3. **I vecchi indirizzi.** L'indirizzo di una pagina vecchia porta alla voce nuova, così i
    collegamenti già in giro non si rompono.
 
@@ -57,7 +59,7 @@ protetti sono TRASP-09 e TRASP-19, e TRASP-04 per la corrispondenza con l'albero
 | Regola del rapporto | Norma | Da dove viene, e se è verificata |
 |---|---|---|
 | Fine della pubblicazione al 31 dicembre dell'anno di decorrenza più la durata | d.lgs. 33/2013, art. 8, c. 3 | Dal file dell'albero in vigore, che porta la durata con la sua fonte (`fonte_durata`), già usata per TRASP-08 nella scheda `fine-pubblicazione.md`. Il testo della norma non è stato riletto per questo passo |
-| Gli atti che producono ancora effetti restano oltre i cinque anni | d.lgs. 33/2013, art. 8, c. 3 | Stessa fonte; il caso è già trattato nella scheda `effetti-oltre-cinque-anni.md`. Qui solo dichiarato, non calcolato |
+| Gli atti che producono ancora effetti restano oltre i cinque anni ("e comunque fino a che gli atti pubblicati producono i loro effetti"), salvi i termini degli artt. 14, c. 2, e 15, c. 4 | d.lgs. 33/2013, art. 8, c. 3 | Il caso è già trattato nelle schede `effetti-oltre-cinque-anni.md` e `cessazione-per-voce.md`. Le parole citate fra virgolette vengono dalla revisione della PR, a memoria, **non verificate su Normattiva** e non rilette per questo passo. Per questo il rapporto non dice mai "finita": dice "oltre il termine ordinario", da verificare |
 | Un documento scaduto non torna nella sezione | d.lgs. 33/2013, art. 8 (TRASP-09) | `docs/requisiti.md` di questo repository |
 | Minimizzazione dei dati personali nel passaggio | Regolamento (UE) 2016/679, art. 5 (TRASP-16) | `docs/requisiti.md` di questo repository. Il principio guida la scelta prudente sulla data, non c'è un obbligo che la prescriva così |
 | Ogni cosa portata dentro lascia traccia (passo 2) | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
@@ -69,7 +71,11 @@ scelta di costruzione, non viene da una norma.
 
 **Quali pagine.** La pagina d'ingresso, che spesso ha testo e file suoi, e le pagine pubblicate
 che ne discendono, a qualunque profondità, ordinate come nell'albero delle pagine (ordine del
-menu, poi titolo, poi identificativo). Bozze, pagine private e cestino restano
+menu, poi titolo, poi identificativo). Sotto una pagina non pubblicata (bozza, privata, in
+attesa, programmata) non si legge niente, nemmeno le pagine pubblicate: il rapporto le **conta**
+("N pagine non pubblicate, o sotto pagine non pubblicate, non lette"), così chi prepara il
+passaggio sa che non le copre. Delle pagine non pubblicate si leggono solo identificativo e
+genitore, mai titolo o testo. Bozze, pagine private e cestino restano
 fuori: il rapporto mostra solo ciò che è già pubblico, quindi non rivela nulla a chi ha il
 permesso della sezione e non quello delle pagine. La pagina d'ingresso deve essere una pagina
 pubblicata; un genitore che, risalendo, riporta alla pagina stessa non fa girare il rapporto
@@ -101,15 +107,16 @@ SHA-256), **mancante** (il percorso non porta a un file), **fuori** (il percorso
 `..` e i collegamenti simbolici, esce dalla cartella dei caricamenti: non si apre e non se ne
 dice altro).
 
-**La data e la pubblicazione finita di sicuro.** La data di un file è quella di caricamento
+**La data e il termine ordinario.** La data di un file è quella di caricamento
 dell'allegato che lo registra; senza allegato, l'anno e il mese della cartella `AAAA/MM` in cui
-sta; altrimenti nessuna. La pubblicazione di un file è **finita di sicuro** quando l'anno della
+sta; altrimenti nessuna. Un file è **oltre il termine ordinario di pubblicazione** quando l'anno della
 data più la durata dell'albero in vigore è minore dell'anno di oggi, nel fuso del sito. Il
 ragionamento: l'obbligo di pubblicare nasce prima che il file venga caricato, quindi la sua fine,
 il 31 dicembre dell'anno di decorrenza più la durata, non può cadere dopo il 31 dicembre
 dell'anno di caricamento più la durata. È un limite prudente nella direzione dei dati personali:
-dice "finita" solo quando lo è comunque. Non sa degli atti che producono ancora effetti (art. 8,
-c. 3) né delle durate legate alla cessazione: lo dice accanto al conteggio. Senza data, o con un
+non dice "finita": il termine ordinario non vale per gli atti che producono ancora effetti (art. 8,
+c. 3) né per le durate degli artt. 14 e 15 legate alla cessazione, quindi accanto a ogni file e
+nel riepilogo il rapporto scrive "da verificare". Nel codice la funzione si chiama `finita()`. Senza data, o con un
 albero senza durata, il rapporto scrive "non si sa".
 
 **Testo e collegamenti esterni.** Il testo della pagina si misura in caratteri, tolti i tag e
@@ -126,6 +133,7 @@ pagina è una voce senza pagina.
 | Dato | Lettura e scrittura |
 |---|---|
 | Pagine | lette con un'interrogazione: identificativo, genitore, titolo, testo, ordine, solo pagine pubblicate. Una lettura fallita ferma il rapporto |
+| Pagine non pubblicate | lette con un'interrogazione a parte: solo identificativo e genitore, fuori dal cestino. Una lettura fallita ferma il rapporto |
 | Allegati | letti con un'interrogazione: identificativo, genitore, data e percorso registrato. Una lettura fallita ferma il rapporto |
 | File | letti dal disco solo dentro la cartella dei caricamenti, per dimensione e impronta |
 | Albero | quello in vigore, per nomi, sottovoci e durata |
@@ -197,7 +205,7 @@ Ogni rottura è stata applicata da sola, con le prove di `ImportazionePagineTest
 | Indirizzo non decodificato | T-123 |
 | Segmento `..` non rifiutato | T-123 |
 | Percorso risolto fuori dalla cartella aperto | T-123 |
-| Fine all'orlo dell'anno contata come finita | T-124 |
+| Fine all'orlo dell'anno contata come oltre il termine | T-124 |
 | Data della cartella preferita a quella dell'allegato | T-124 |
 | Data della cartella ignorata | T-124 |
 | Durata fissa al posto di quella dell'albero | T-124 |
@@ -210,6 +218,10 @@ Ogni rottura è stata applicata da sola, con le prove di `ImportazionePagineTest
 | Pagina con soli collegamenti esterni data per vuota | T-125 |
 | Voci proposte fra quelle senza pagina | T-125 |
 | Lettura delle pagine fallita non fermata | T-126 |
+| Lettura delle pagine non pubblicate fallita non fermata | T-126 |
+| Pagine non pubblicate non contate | T-122 |
+| Pagine pubblicate sotto una non pubblicata non contate | T-122 |
+| Etichetta "finita di sicuro" al posto di "oltre il termine ordinario" | T-124 |
 | Lettura degli allegati fallita non fermata | T-126 |
 | Titolo senza escaping | T-121 |
 
