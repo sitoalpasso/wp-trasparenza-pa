@@ -41,7 +41,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-07/20 | da fare | Si esporta uno schema popolato | formato aperto, condizioni di riutilizzo come parametro, nessun PDF da scansione |
 | TRASP-08 | in corso | Dato con obbligo decorrente nell'anno X (righe T-63..T-66 per i contenuti delle voci); atto che produce effetti oltre (righe T-81..T-83); dati di titolari e consulenti (righe T-84..T-89) | scadenza al 31 dicembre di X+5; casi a cavallo d'anno inclusi; oltre, fino all'ultimo giorno degli effetti, mai prima di quella di legge; per titolari e consulenti, tre anni dopo la cessazione; per i dati patrimoniali, il giorno della cessazione |
 | TRASP-09 | da fare | Dato scaduto, cron fermo, tutti i percorsi C-10..C-21 | fuori dalla sezione, non cancellato, in archivio controllato |
-| TRASP-10 | in corso | Ogni sottosezione e ogni voce (righe T-71..T-74 per i contenuti delle voci) | data di ultimo aggiornamento esposta |
+| TRASP-10 | in corso | Ogni sottosezione e ogni voce (righe T-71..T-74 per i contenuti delle voci, T-119 e T-120 per il registro degli accessi) | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
 | TRASP-12 | da fare | Si invia una richiesta di accesso civico di prova | modulo raggiungibile, destinatari indicati, richiesta nel registro |
 | TRASP-13 | fatto | Responsabile della trasparenza (righe T-54..T-58) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
@@ -350,6 +350,8 @@ delibera ANAC 1310/2016, Allegato 1 (TRASP-12). Scheda: `docs/implementazione/ac
 | T-116 | fatto | Schermata "Accesso civico": [attacco] ufficio e titolare con `&amp;` e `&lt;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
 | T-117 | fatto | Schermata "Rinvii alle banche dati": [attacco] etichetta con `&amp;` e `&lt;` e indirizzo con `&amp;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
 | T-118 | fatto | Data del rinvio: [attacco] con un a capo in fondo, con una cifra in più davanti | rifiutata come le altre date non nel formato |
+| T-119 | fatto | Data di ultimo aggiornamento del registro: aggiunta, correzione, rimozione, correzione senza cambi, salvataggio rifiutato | ogni cambio conserva l'istante del salvataggio, che la rilettura ritrova; correzione senza cambi e rifiuti non lo spostano |
+| T-120 | fatto | La data sulla pagina pubblica: con righe, senza righe dei cinque anni, registro senza data; [attacco] data conservata non valida | "Ultimo aggiornamento" sotto il titolo nel formato e nel fuso del sito, anche senza righe; senza data valida nessuna riga di aggiornamento |
 
 ## Collaudo congiunto con l'albo pretorio
 

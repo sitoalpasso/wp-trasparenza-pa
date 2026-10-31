@@ -56,7 +56,9 @@ prova, elencata in fondo a lavoro finito.
 | 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
 | 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-110 |
 | 4 | `src/class-registro-accessi.php`, `src/class-pagina-pubblica.php` | Il registro nella voce, per cinque anni |
-| 4 | `tests/RegistroAccessiPubblicoTest.php` | Nuovo. Righe T-111..T-113 |
+| 4 | `tests/RegistroAccessiPubblicoTest.php` | Nuovo. Righe T-111..T-114 |
+| 5 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | La data di ultimo aggiornamento conservata e pubblicata |
+| 5 | `tests/RegistroAccessiTest.php`, `tests/RegistroAccessiPubblicoTest.php` | Righe T-119 e T-120 |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
@@ -251,6 +253,30 @@ degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TR
 | Argomento con codice o entità | scritto con escaping, mai interpretato |
 | Data sull'orlo dei cinque anni | decide il giorno di oggi nel fuso del sito |
 
+## 7-octies. La data di ultimo aggiornamento del registro (passo 5)
+
+**Cosa chiede la norma.** Ogni dato della sezione espone la data del suo ultimo aggiornamento
+(art. 6 del d.lgs. 33/2013, TRASP-10), e l'Allegato 1 chiede di aggiornare il registro ogni sei
+mesi: chi consulta deve poter vedere quanto è recente.
+
+**Come.** Ogni salvataggio che cambia il registro, cioè un'aggiunta, una correzione con almeno un
+campo cambiato o una rimozione, conserva l'istante in cui avviene accanto alle righe. La pagina
+pubblica lo mostra sotto il titolo, "Ultimo aggiornamento: ...", nel formato delle date del sito e
+nel suo fuso, come le altre voci della sezione. Lo mostra anche quando non resta nessuna riga dei
+cinque anni: il registro è stato tenuto, e la data lo dice. Una correzione senza cambi non lo
+sposta.
+
+**Il dato conservato.** L'opzione `trasparenza_pa_registro_accessi` prende una chiave in più,
+`aggiornato`, in secondi dall'epoca. Un registro scritto prima di questo passo non ce l'ha: la
+pagina non mostra la data finché il primo salvataggio non la scrive. Un valore che non è un intero
+positivo vale come assente.
+
+| Caso | Esito |
+|---|---|
+| Registro senza la data, o con una data non valida | nessuna riga di aggiornamento; il resto come prima |
+| Salvataggio rifiutato o correzione senza cambi | la data non si sposta |
+| Lettura fallita | come al passo 4: "non disponibile", nessuna data |
+
 ## 8. Cosa deliberatamente NON fa
 
 - Non riceve richieste dal sito: è la scelta del 30 ottobre 2026.
@@ -279,9 +305,10 @@ degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TR
   sbaglio nell'argomento non deve restare nel registro, che non si cancella. Se l'ente preferisce
   poter ricostruire anche l'argomento, si aggiunge.
 
-- **Data di ultimo aggiornamento del registro (TRASP-10).** Il passo 4 non la mostra: il dato
-  conservato non la tiene. Si può ricavare dall'ultima voce del registro delle modifiche, in
-  un'unità a parte.
+- **Aggiornamento senza richieste nuove.** Se in sei mesi non arriva nessuna richiesta, la data
+  resta quella dell'ultimo cambio: è vera, ma non dice che gli addetti hanno controllato. Un
+  pulsante "registro verificato" che sposti la data senza cambiare righe è un'aggiunta possibile,
+  se l'ente la chiederà.
 
 ## Rotture volute, a lavoro finito
 
@@ -395,3 +422,12 @@ Dopo la rilettura, sette rotture in più, tutte rosse: oggi in UTC, controllo de
 giorno reale invece di quello dato, data della richiesta o della decisione confrontata con il
 giorno reale, lettura fallita taciuta come registro vuoto, lettura con `get_option`, frase della
 lettura fallita tolta. Le ventuno rotture di prima rigirate sul codice nuovo: tutte rosse.
+
+### Passo 5: la data di ultimo aggiornamento
+
+Undici rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova: data
+non scritta o fissa, data conservata letta senza controllo, non positiva o in testo ammessa,
+data tolta dalla pagina, data mostrata solo con righe dei cinque anni, data nel fuso UTC invece
+che in quello del sito, correzione senza cambi che sposta la data, giorno di oggi in UTC, lettura
+fallita taciuta. La prova della data nel fuso del sito usa un istante alle 11 UTC con il fuso
+Pacific/Kiritimati, dove è già il giorno dopo.
