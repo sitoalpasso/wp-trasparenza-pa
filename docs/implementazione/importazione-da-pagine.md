@@ -47,6 +47,9 @@ elencata in fondo a lavoro finito.
 | 1 | `src/class-schermata-importazione.php` | Nuovo. La schermata che chiede la pagina d'ingresso e mostra il rapporto |
 | 1 | `trasparenza-pa.php` | Caricamento e agganci |
 | 1 | `tests/ImportazionePagineTest.php` | Nuovo. Righe T-121..T-128 |
+| 2a | `src/class-importazione-pagine.php` | Le pagine già portate nel rapporto; `porta()`, che crea i contenuti in bozza |
+| 2a | `src/class-schermata-importazione.php` | Il modulo "pagina vecchia, voce nuova" sotto il rapporto, la risposta e l'esito |
+| 2a | `tests/ImportazioneBozzeTest.php` | Nuovo. Righe T-129..T-133 |
 | tutti | `docs/` | Collaudo, architettura, dati |
 
 ## 2. Requisiti serviti
@@ -165,6 +168,65 @@ nonce della schermata. Senza l'uno o l'altro nessuna pagina si legge.
 - Non interpreta i codici brevi dei costruttori di pagine: cerca solo gli indirizzi. Un
   indirizzo scritto in forma codificata (per esempio in base64) non si trova, e un file collegato
   così non compare: per questo c'è anche l'elenco degli allegati della pagina.
+
+## 7-bis. Il passaggio in bozza (passo 2a)
+
+Il passo 2 si divide in due pull request: 2a porta le pagine come contenuti in bozza, 2b ci
+copia i file.
+
+**Il modulo.** Sotto il rapporto compare la tabella "pagina vecchia, voce nuova": per ogni pagina
+del rapporto un elenco con le voci senza sottovoci, già posizionato sulla voce proposta quando
+c'è, e la scelta "non portare", che è quella di partenza per le altre. Una pagina già portata non
+ha elenco: mostra il contenuto che l'ha portata, con il collegamento alla sua schermata. Il
+pulsante "Porta in bozza le pagine scelte" manda il modulo per POST, con il suo nonce.
+
+**Cosa succede.** Per ogni pagina con una voce scelta nasce un contenuto della sezione:
+
+- in **bozza**, mai pubblicato da questo passo;
+- con il **titolo** della pagina e nessun testo: il testo dei costruttori di pagine è mescolato
+  alla grafica e va riscritto a mano, come dice il rapporto;
+- con la **voce** scelta e il ricordo della **pagina d'origine** (metadato
+  `trasparenza_pa_pagina_origine`);
+- **senza decorrenza**: la data da cui decorre l'obbligo la scrive un addetto nel riquadro
+  "Pubblicazione". Senza, il contenuto non compare al pubblico nemmeno se qualcuno lo pubblica;
+- con chi ha mandato il modulo come autore.
+
+**Le regole di controllo.** La richiesta non si prende per buona. Il rapporto si rifà al momento,
+con le stesse regole del passo 1, e si portano solo pagine che ci sono, con voci fra quelle senza
+sottovoci dell'albero in vigore. Una pagina fuori dal rapporto (bozza, protetta da password, fuori
+dalla pagina d'ingresso, inesistente) o una voce non ammessa scartano quella riga e lo dicono;
+le altre righe proseguono. Una pagina già portata non si porta una seconda volta: conta ogni
+contenuto che la ricorda come origine, cestino compreso, perché un doppione nella sezione è
+peggio di un passaggio da rifare a mano.
+
+**Registro e ordine delle scritture.** Prima il contenuto in bozza, che non si vede; poi la voce
+di registro `importazione_pagina` con la pagina d'origine e la voce; poi i due metadati, riletti.
+Se il registro rifiuta, il contenuto appena creato si cancella e la riga dice perché: un
+contenuto portato senza traccia nel registro non resta. Tutto il passaggio tiene il blocco della
+sezione, così due passaggi insieme non portano due volte la stessa pagina.
+
+**Permessi.** Il permesso della sezione, più quello di creare contenuti della sezione: chi può
+amministrare la sezione ma non scrivere contenuti vede il rapporto e non il modulo, e la risposta
+lo rifiuta.
+
+**Modi di guasto (passo 2a).**
+
+| Guasto | Comportamento |
+|---|---|
+| Lettura delle pagine già portate fallita | niente portato: "non si sa quali pagine sono già state portate" |
+| Lettura delle pagine fallita | niente portato, lo stesso messaggio del rapporto |
+| Blocco della sezione occupato | niente portato, riprovare fra qualche secondo |
+| Creazione del contenuto fallita | quella riga non portata, le altre proseguono |
+| Registro che rifiuta | contenuto appena creato cancellato, quella riga non portata |
+| Metadati non scritti | contenuto cancellato, quella riga non portata |
+
+**Norme e fonti (passo 2a).**
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Ogni contenuto portato ha la sua riga di registro | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
+| Nessuna decorrenza scritta dal passaggio: senza, il contenuto non si vede | d.lgs. 33/2013, art. 8, c. 3 (TRASP-08) | Scheda `fine-pubblicazione.md` di questo repository. Il testo della norma non è stato riletto per questo passo |
+| Contenuti in bozza, scelta di pubblicare lasciata all'addetto | nessuna norma: scelta di costruzione, prudente verso TRASP-09 e TRASP-16 | `docs/requisiti.md` |
 
 ## Dubbi annotati
 
