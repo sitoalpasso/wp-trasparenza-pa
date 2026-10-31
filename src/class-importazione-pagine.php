@@ -302,6 +302,237 @@ final class ImportazionePagine {
 	}
 
 	/**
+	 * Copia i file scelti fra i documenti dei contenuti in bozza.
+	 *
+	 * Le scelte non si prendono per buone: il rapporto si rifa adesso, con il
+	 * blocco della sezione preso, e si copiano solo file presenti del rapporto,
+	 * nei contenuti in bozza o in attesa che hanno portato la loro pagina, una
+	 * volta sola per impronta. Un file oltre il termine ordinario o senza data
+	 * si copia solo dalle scelte confermate. Chi chiama controlla permessi e
+	 * nonce.
+	 *
+	 * @param int                      $radice     Pagina d'ingresso.
+	 * @param array<int|string, mixed> $normali    Percorsi scelti per pagina.
+	 * @param array<int|string, mixed> $confermati Percorsi scelti per pagina, con la conferma per quelli oltre il termine.
+	 * @param Alberatura               $albero     Albero in vigore.
+	 * @param string                   $oggi       Oggi, AAAA-MM-GG nel fuso del sito.
+	 * @return array<int, array{pagina: int, titolo: string, percorso: string, esito: string, allegato: int|null, motivo: string}>|WP_Error
+	 */
+	public static function copia( int $radice, array $normali, array $confermati, Alberatura $albero, string $oggi ) {
+		if ( ! Blocco::prendi() ) {
+			return new WP_Error( 'trasparenza_importazione_occupato', __( 'Niente copiato: un altro salvataggio della sezione è in corso. Riprovare fra qualche secondo.', 'trasparenza-pa' ) );
+		}
+
+		try {
+			$rapporto = self::rapporto( $radice, $albero, $oggi );
+
+			if ( is_wp_error( $rapporto ) ) {
+				return $rapporto;
+			}
+
+			$pagine = array();
+
+			foreach ( $rapporto['pagine'] as $pagina ) {
+				$pagine[ $pagina['id'] ] = $pagina;
+			}
+
+			$scelte = array();
+
+			foreach ( array(
+				false => $normali,
+				true  => $confermati,
+			) as $confermata => $elenco ) {
+				foreach ( $elenco as $chiave => $percorsi ) {
+					$id = 1 === preg_match( '/\A[1-9][0-9]{0,18}\z/', (string) $chiave ) ? (int) $chiave : 0;
+
+					foreach ( is_array( $percorsi ) ? $percorsi : array( $percorsi ) as $percorso ) {
+						$scelte[] = array( $id, is_string( $percorso ) ? $percorso : '', (bool) $confermata );
+					}
+				}
+			}
+
+			$righe   = array();
+			$copiate = array();
+
+			foreach ( $scelte as list( $id, $percorso, $confermata ) ) {
+				$pagina = $pagine[ $id ] ?? null;
+				$titolo = null === $pagina ? '' : (string) $pagina['titolo'];
+
+				if ( null === $pagina ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'scartato', null, __( 'La pagina non è fra quelle del rapporto: non pubblicata, protetta da password, fuori dalla pagina d\'ingresso o inesistente.', 'trasparenza-pa' ) );
+					continue;
+				}
+
+				if ( null === $pagina['portata'] ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'scartato', null, __( 'La pagina non è ancora stata portata in bozza.', 'trasparenza-pa' ) );
+					continue;
+				}
+
+				$contenuto = (int) $pagina['portata'];
+
+				if ( ! isset( $copiate[ $contenuto ] ) ) {
+					$copiate[ $contenuto ] = self::impronte( $contenuto );
+				}
+
+				$file = null;
+
+				foreach ( $pagina['file'] as $uno ) {
+					if ( $uno['percorso'] === $percorso ) {
+						$file = $uno;
+						break;
+					}
+				}
+
+				if ( is_string( $copiate[ $contenuto ] ) ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'stato' === $copiate[ $contenuto ] ? 'scartato' : 'errore', null, 'stato' === $copiate[ $contenuto ] ? __( 'Il contenuto che ha portato la pagina non è in bozza né in attesa di revisione: da qui non riceve file, perché in un contenuto pubblicato un allegato aggiunto è subito pubblico.', 'trasparenza-pa' ) : __( 'Lo stato o i documenti del contenuto non si sono potuti leggere dalla banca dati: non si sa se il file c\'è già. Riprovare fra qualche minuto.', 'trasparenza-pa' ) );
+				} elseif ( null === $file ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'scartato', null, __( 'Il file non è fra quelli della pagina nel rapporto.', 'trasparenza-pa' ) );
+				} elseif ( 'presente' !== $file['stato'] ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'scartato', null, __( 'Il file manca, o il suo percorso esce dalla cartella dei caricamenti.', 'trasparenza-pa' ) );
+				} elseif ( $file['protetto'] ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'scartato', null, __( 'Il file è già protetto dal componente comune per un altro contenuto: una copia avrebbe una scadenza diversa.', 'trasparenza-pa' ) );
+				} elseif ( false !== $file['finita'] && ! $confermata ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'scartato', null, __( 'Il file è oltre il termine ordinario di pubblicazione, o la sua data non si conosce: si copia solo con la conferma, dopo aver verificato che l\'atto produce ancora effetti.', 'trasparenza-pa' ) );
+				} elseif ( in_array( $file['impronta'], $copiate[ $contenuto ], true ) ) {
+					$righe[] = self::riga_file( $id, $titolo, $percorso, 'gia_copiato', null, __( 'Un allegato con gli stessi byte è già fra quelli del contenuto.', 'trasparenza-pa' ) );
+				} else {
+					$riga    = self::copia_file( $id, $titolo, $percorso, $contenuto );
+					$righe[] = $riga;
+
+					if ( 'copiato' === $riga['esito'] ) {
+						$copiate[ $contenuto ][] = $file['impronta'];
+					}
+				}
+			}
+
+			return $righe;
+		} finally {
+			Blocco::rilascia();
+		}
+	}
+
+	/**
+	 * Le impronte dei documenti di un contenuto che puo ricevere file.
+	 *
+	 * @param int $contenuto Contenuto.
+	 * @return array<int, string>|string Impronte; `stato` se il contenuto non e in bozza o in attesa; `lettura` se una lettura e fallita.
+	 */
+	private static function impronte( int $contenuto ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lo stato decide se un file diventa pubblico: si legge dalla banca dati, non dalla memoria.
+		$stato = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $contenuto ) );
+
+		if ( '' !== $wpdb->last_error || ! is_string( $stato ) ) {
+			return 'lettura';
+		}
+
+		if ( ! in_array( $stato, array( 'draft', 'pending' ), true ) ) {
+			return 'stato';
+		}
+
+		$documenti = SchedaDocumenti::documenti( $contenuto );
+
+		if ( is_wp_error( $documenti ) ) {
+			return 'lettura';
+		}
+
+		$impronte = array();
+
+		foreach ( $documenti as $allegato ) {
+			$impronta = conformita_core_impronta_allegato( $allegato );
+
+			if ( ! is_array( $impronta ) || 'sha256' !== $impronta['algoritmo'] ) {
+				return 'lettura';
+			}
+
+			$impronte[] = (string) $impronta['valore'];
+		}
+
+		return $impronte;
+	}
+
+	/**
+	 * Copia un file in un temporaneo e lo deposita fra i documenti del contenuto.
+	 *
+	 * Il deposito sposta il file che riceve: senza il temporaneo sposterebbe
+	 * l'originale, e la pagina vecchia perderebbe il suo file.
+	 *
+	 * @param int    $pagina    Pagina d'origine.
+	 * @param string $titolo    Titolo della pagina.
+	 * @param string $percorso  Percorso del file, gia controllato sul rapporto.
+	 * @param int    $contenuto Contenuto che lo riceve.
+	 * @return array{pagina: int, titolo: string, percorso: string, esito: string, allegato: int|null, motivo: string}
+	 */
+	private static function copia_file( int $pagina, string $titolo, string $percorso, int $contenuto ): array {
+		$reale = self::reale( $percorso, self::base()['cartella'] );
+
+		if ( null === $reale || 'fuori' === $reale ) {
+			return self::riga_file( $pagina, $titolo, $percorso, 'errore', null, __( 'Il file non si è potuto leggere.', 'trasparenza-pa' ) );
+		}
+
+		if ( ! function_exists( 'wp_tempnam' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		$temporaneo = wp_tempnam( wp_basename( $percorso ) );
+
+		try {
+			if ( '' === $temporaneo || ! copy( $reale, $temporaneo ) ) {
+				return self::riga_file( $pagina, $titolo, $percorso, 'errore', null, __( 'Il file non si è potuto copiare in un file temporaneo.', 'trasparenza-pa' ) );
+			}
+
+			$esito = SchedaDocumenti::deposita_nel_blocco(
+				$contenuto,
+				array(
+					'name'     => wp_basename( $percorso ),
+					'tmp_name' => $temporaneo,
+					'type'     => '',
+					'size'     => (int) filesize( $temporaneo ),
+					'error'    => UPLOAD_ERR_OK,
+				),
+				'percorso_locale',
+				array(
+					'pagina'   => $pagina,
+					'percorso' => $percorso,
+				)
+			);
+		} finally {
+			if ( '' !== $temporaneo && file_exists( $temporaneo ) ) {
+				wp_delete_file( $temporaneo );
+			}
+		}
+
+		if ( 'salvato' !== $esito['codice'] ) {
+			return self::riga_file( $pagina, $titolo, $percorso, 'errore', null, $esito['messaggio'] );
+		}
+
+		return self::riga_file( $pagina, $titolo, $percorso, 'copiato', (int) $esito['allegato'], '' );
+	}
+
+	/**
+	 * Una riga dell'esito della copia.
+	 *
+	 * @param int      $pagina   Pagina.
+	 * @param string   $titolo   Titolo.
+	 * @param string   $percorso Percorso.
+	 * @param string   $esito    Esito.
+	 * @param int|null $allegato Documento creato.
+	 * @param string   $motivo   Motivo.
+	 * @return array{pagina: int, titolo: string, percorso: string, esito: string, allegato: int|null, motivo: string}
+	 */
+	private static function riga_file( int $pagina, string $titolo, string $percorso, string $esito, ?int $allegato, string $motivo ): array {
+		return array(
+			'pagina'   => $pagina,
+			'titolo'   => $titolo,
+			'percorso' => $percorso,
+			'esito'    => $esito,
+			'allegato' => $allegato,
+			'motivo'   => $motivo,
+		);
+	}
+
+	/**
 	 * Crea il contenuto in bozza di una pagina, con registro e metadati.
 	 *
 	 * @param int    $pagina Pagina d'origine.
@@ -604,6 +835,7 @@ final class ImportazionePagine {
 					'allegato' => null === $allegato ? null : (int) $allegato['id'],
 					'data'     => $data,
 					'finita'   => self::finita( $data, $durata, $oggi ),
+					'protetto' => null !== $allegato && conformita_core_allegato_protetto( (int) $allegato['id'] ),
 				),
 				self::sul_disco( $percorso, $base['cartella'] )
 			);
@@ -615,51 +847,27 @@ final class ImportazionePagine {
 	/**
 	 * Stato, dimensione e impronta di un file, solo dentro la cartella dei caricamenti.
 	 *
-	 * Un percorso con un segmento `..` e fuori senza chiedere niente al disco; gli
-	 * altri si risolvono, collegamenti simbolici compresi, e si aprono solo se
-	 * restano dentro la cartella.
-	 *
 	 * @param string $percorso Percorso relativo o pieno.
 	 * @param string $cartella Cartella dei caricamenti.
 	 * @return array{stato: string, byte: int|null, impronta: string|null}
 	 */
 	private static function sul_disco( string $percorso, string $cartella ): array {
-		$fuori    = array(
-			'stato'    => 'fuori',
+		$reale  = self::reale( $percorso, $cartella );
+		$niente = array(
+			'stato'    => 'fuori' === $reale ? 'fuori' : 'mancante',
 			'byte'     => null,
 			'impronta' => null,
 		);
-		$mancante = array_merge( $fuori, array( 'stato' => 'mancante' ) );
 
-		if ( '' === $percorso || str_contains( $percorso, "\0" ) ) {
-			return $mancante;
-		}
-
-		if ( in_array( '..', preg_split( '#[/\\\\]#', $percorso ), true ) ) {
-			return $fuori;
-		}
-
-		$radice = realpath( $cartella );
-		$pieno  = path_is_absolute( $percorso ) ? $percorso : $cartella . '/' . ltrim( $percorso, '/' );
-		$reale  = realpath( $pieno );
-
-		if ( false === $radice || false === $reale ) {
-			return $mancante;
-		}
-
-		if ( ! str_starts_with( $reale, trailingslashit( $radice ) ) ) {
-			return $fuori;
-		}
-
-		if ( ! is_file( $reale ) ) {
-			return $mancante;
+		if ( null === $reale || 'fuori' === $reale ) {
+			return $niente;
 		}
 
 		$byte     = filesize( $reale );
 		$impronta = hash_file( 'sha256', $reale );
 
 		if ( false === $byte || false === $impronta ) {
-			return $mancante;
+			return array_merge( $niente, array( 'stato' => 'mancante' ) );
 		}
 
 		return array(
@@ -667,6 +875,41 @@ final class ImportazionePagine {
 			'byte'     => $byte,
 			'impronta' => $impronta,
 		);
+	}
+
+	/**
+	 * Il percorso reale di un file dentro la cartella dei caricamenti.
+	 *
+	 * Un percorso con un segmento `..` e fuori senza chiedere niente al disco; gli
+	 * altri si risolvono, collegamenti simbolici compresi, e valgono solo se
+	 * restano dentro la cartella.
+	 *
+	 * @param string $percorso Percorso relativo o pieno.
+	 * @param string $cartella Cartella dei caricamenti.
+	 * @return string|null Il percorso reale; `fuori`; nullo se il file non c'e.
+	 */
+	private static function reale( string $percorso, string $cartella ): ?string {
+		if ( '' === $percorso || str_contains( $percorso, "\0" ) ) {
+			return null;
+		}
+
+		if ( in_array( '..', preg_split( '#[/\\\\]#', $percorso ), true ) ) {
+			return 'fuori';
+		}
+
+		$radice = realpath( $cartella );
+		$pieno  = path_is_absolute( $percorso ) ? $percorso : $cartella . '/' . ltrim( $percorso, '/' );
+		$reale  = realpath( $pieno );
+
+		if ( false === $radice || false === $reale ) {
+			return null;
+		}
+
+		if ( ! str_starts_with( $reale, trailingslashit( $radice ) ) ) {
+			return 'fuori';
+		}
+
+		return is_file( $reale ) ? $reale : null;
 	}
 
 	/**

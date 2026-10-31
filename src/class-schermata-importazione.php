@@ -48,6 +48,21 @@ final class SchermataImportazione {
 	const CAMPO_VOCI = 'voce';
 
 	/**
+	 * Azione del modulo che copia i file nelle bozze, e del suo nonce.
+	 */
+	const AZIONE_FILE = 'trasparenza_pa_importazione_file';
+
+	/**
+	 * Nome del campo con i file scelti per ogni pagina.
+	 */
+	const CAMPO_COPIA = 'copia';
+
+	/**
+	 * Nome del campo con i file oltre il termine ordinario, o senza data, confermati.
+	 */
+	const CAMPO_VERIFICATA = 'copia_verificata';
+
+	/**
 	 * Prefisso del dato temporaneo che porta l'esito alla schermata.
 	 */
 	const ESITO = 'trasparenza_pa_esito_importazione_';
@@ -59,6 +74,7 @@ final class SchermataImportazione {
 		// Dopo il registro degli accessi.
 		add_action( 'admin_menu', array( self::class, 'da_admin_menu' ), 15 );
 		add_action( 'admin_post_' . self::AZIONE_BOZZE, array( self::class, 'da_admin_post' ) );
+		add_action( 'admin_post_' . self::AZIONE_FILE, array( self::class, 'da_admin_post' ) );
 	}
 
 	/**
@@ -79,7 +95,7 @@ final class SchermataImportazione {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce lo verifica salva(), prima di leggere qualunque altro campo.
 		$richiesta = wp_unslash( $_POST );
 		$richiesta = is_array( $richiesta ) ? $richiesta : array();
-		$esito     = self::salva( $richiesta );
+		$esito     = self::AZIONE_FILE === ( $richiesta['action'] ?? '' ) ? self::salva_file( $richiesta ) : self::salva( $richiesta );
 
 		if ( in_array( $esito['codice'], array( 'permesso', 'nonce' ), true ) ) {
 			wp_die( esc_html( $esito['messaggio'] ), '', array( 'response' => 403 ) );
@@ -157,6 +173,59 @@ final class SchermataImportazione {
 	}
 
 	/**
+	 * Copia nelle bozze i file scelti.
+	 *
+	 * @param array<string, mixed> $richiesta Campi del modulo, gia senza barre inverse.
+	 * @return array{codice: string, messaggio: string, righe: array<int, array<string, mixed>>}
+	 */
+	public static function salva_file( array $richiesta ): array {
+		if ( ! self::puo_portare() ) {
+			return self::esito( 'permesso', __( 'Non avete il permesso di portare file nella sezione: servono il permesso della sezione e quello di creare contenuti.', 'trasparenza-pa' ) );
+		}
+
+		$nonce = $richiesta['_wpnonce'] ?? '';
+
+		if ( ! is_string( $nonce ) || ! wp_verify_nonce( $nonce, self::AZIONE_FILE ) ) {
+			return self::esito( 'nonce', __( 'La richiesta è scaduta o non viene da questa schermata: niente copiato. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
+		}
+
+		$radice = $richiesta[ self::CAMPO_RADICE ] ?? null;
+
+		if ( ! is_string( $radice ) || 1 !== preg_match( '/\A[1-9][0-9]{0,18}\z/', $radice ) ) {
+			return self::esito( 'radice', __( 'Niente copiato: la pagina d\'ingresso indicata non è una pagina pubblicata senza password.', 'trasparenza-pa' ) );
+		}
+
+		$normali    = $richiesta[ self::CAMPO_COPIA ] ?? array();
+		$confermati = $richiesta[ self::CAMPO_VERIFICATA ] ?? array();
+
+		if ( ! is_array( $normali ) || ! is_array( $confermati ) ) {
+			return self::esito( 'dati', __( 'Niente copiato: la richiesta non conteneva i file scelti.', 'trasparenza-pa' ) );
+		}
+
+		$albero = PaginaPubblica::albero();
+
+		if ( null === $albero ) {
+			return self::esito( 'albero', __( 'Niente copiato: l\'albero della sezione non è caricato.', 'trasparenza-pa' ) );
+		}
+
+		$righe = ImportazionePagine::copia( (int) $radice, $normali, $confermati, $albero, RegistroAccessi::oggi() );
+
+		if ( is_wp_error( $righe ) ) {
+			$codici = array(
+				'trasparenza_importazione_radice'   => 'radice',
+				'trasparenza_importazione_occupato' => 'occupato',
+			);
+
+			return self::esito( $codici[ $righe->get_error_code() ] ?? 'lettura', __( 'Niente copiato.', 'trasparenza-pa' ) . ' ' . $righe->get_error_message() );
+		}
+
+		$copiati = count( array_filter( $righe, static fn( $riga ) => 'copiato' === $riga['esito'] ) );
+
+		/* translators: %d: numero di file. */
+		return self::esito( 'copiato', sprintf( __( 'File copiati: %d.', 'trasparenza-pa' ), $copiati ), $righe );
+	}
+
+	/**
 	 * Un esito.
 	 *
 	 * @param string                           $codice    Codice.
@@ -196,19 +265,23 @@ final class SchermataImportazione {
 
 		delete_transient( $chiave );
 
-		$html = '<div class="notice ' . ( 'portato' === $esito['codice'] ? 'notice-success' : 'notice-error' ) . '"><p>' . esc_html( (string) $esito['messaggio'] ) . '</p>';
+		$html = '<div class="notice ' . ( in_array( $esito['codice'], array( 'portato', 'copiato' ), true ) ? 'notice-success' : 'notice-error' ) . '"><p>' . esc_html( (string) $esito['messaggio'] ) . '</p>';
 
 		if ( isset( $esito['righe'] ) && is_array( $esito['righe'] ) && array() !== $esito['righe'] ) {
 			$nomi  = array(
 				'portata'     => __( 'portata in bozza', 'trasparenza-pa' ),
 				'gia_portata' => __( 'già portata', 'trasparenza-pa' ),
 				'scartata'    => __( 'scartata', 'trasparenza-pa' ),
-				'errore'      => __( 'non portata', 'trasparenza-pa' ),
+				'errore'      => 'copiato' === $esito['codice'] ? __( 'non copiato', 'trasparenza-pa' ) : __( 'non portata', 'trasparenza-pa' ),
+				'copiato'     => __( 'copiato', 'trasparenza-pa' ),
+				'gia_copiato' => __( 'già copiato', 'trasparenza-pa' ),
+				'scartato'    => __( 'scartato', 'trasparenza-pa' ),
 			);
 			$html .= '<ul>';
 
 			foreach ( $esito['righe'] as $riga ) {
 				$titolo = '' === (string) $riga['titolo'] ? sprintf( '#%d', (int) $riga['pagina'] ) : (string) $riga['titolo'];
+				$titolo = isset( $riga['percorso'] ) ? $titolo . ', ' . (string) $riga['percorso'] : $titolo;
 				$html  .= '<li>' . esc_html( $titolo . ': ' . ( $nomi[ $riga['esito'] ] ?? '' ) . ( '' === (string) $riga['motivo'] ? '' : '. ' . $riga['motivo'] ) ) . '</li>';
 			}
 
@@ -295,7 +368,7 @@ final class SchermataImportazione {
 			return $html . self::avviso( $rapporto->get_error_message() ) . $modulo . '</div>';
 		}
 
-		$bozze = self::puo_portare() ? self::modulo_bozze( $rapporto, $albero ) : '';
+		$bozze = self::puo_portare() ? self::modulo_bozze( $rapporto, $albero ) . self::modulo_file( $rapporto ) : '';
 
 		return $html . self::modulo( $radice ) . self::rapporto( $rapporto, $albero, $oggi ) . $bozze . '</div>';
 	}
@@ -345,6 +418,90 @@ final class SchermataImportazione {
 		}
 
 		return $html . '</tbody></table><p><button type="submit" class="button button-primary">' . esc_html__( 'Porta in bozza le pagine scelte', 'trasparenza-pa' ) . '</button></p></form>';
+	}
+
+	/**
+	 * Il modulo "file da copiare nelle bozze".
+	 *
+	 * Solo le pagine portate il cui contenuto e in bozza o in attesa. Casella
+	 * spuntata per i file entro il termine ordinario; per gli altri presenti,
+	 * casella non spuntata nel campo di conferma; per i rimanenti il motivo.
+	 *
+	 * @param array<string, mixed> $rapporto Rapporto.
+	 * @return string
+	 */
+	private static function modulo_file( array $rapporto ): string {
+		$righe = '';
+
+		foreach ( $rapporto['pagine'] as $pagina ) {
+			if ( null === $pagina['portata'] || array() === $pagina['file'] || ! in_array( get_post_status( (int) $pagina['portata'] ), array( 'draft', 'pending' ), true ) ) {
+				continue;
+			}
+
+			$impronte  = array();
+			$documenti = SchedaDocumenti::documenti( (int) $pagina['portata'] );
+
+			foreach ( is_array( $documenti ) ? $documenti : array() as $allegato ) {
+				$impronta = conformita_core_impronta_allegato( $allegato );
+
+				if ( is_array( $impronta ) ) {
+					$impronte[] = (string) $impronta['valore'];
+				}
+			}
+
+			$righe .= '<tr><td>' . self::rientro( (int) $pagina['profondita'] ) . esc_html( $pagina['titolo'] ) . '</td><td><ul>';
+
+			foreach ( $pagina['file'] as $file ) {
+				$righe .= '<li>' . self::casella( (int) $pagina['id'], $file, $impronte ) . '</li>';
+			}
+
+			$righe .= '</ul></td></tr>';
+		}
+
+		if ( '' === $righe ) {
+			return '';
+		}
+
+		$html  = '<h2>' . esc_html__( 'File da copiare nelle bozze', 'trasparenza-pa' ) . '</h2>';
+		$html .= '<p>' . esc_html__( 'I file scelti si copiano fra i documenti del contenuto in bozza che ha portato la pagina, nella cartella protetta. Il file originale resta dov\'è. Un file oltre il termine ordinario di pubblicazione, o senza data, si copia solo spuntandolo dopo aver verificato che l\'atto produce ancora effetti, o che vale una durata degli artt. 14 e 15 del d.lgs. 33/2013.', 'trasparenza-pa' ) . '</p>';
+		$html .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">'
+			. '<input type="hidden" name="action" value="' . esc_attr( self::AZIONE_FILE ) . '">'
+			. '<input type="hidden" name="' . esc_attr( self::CAMPO_RADICE ) . '" value="' . esc_attr( (string) $rapporto['radice'] ) . '">'
+			. wp_nonce_field( self::AZIONE_FILE, '_wpnonce', false, false );
+		$html .= '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Pagina', 'trasparenza-pa' ) . '</th><th scope="col">' . esc_html__( 'File', 'trasparenza-pa' ) . '</th></tr></thead><tbody>' . $righe . '</tbody></table>';
+
+		return $html . '<p><button type="submit" class="button button-primary">' . esc_html__( 'Copia i file scelti', 'trasparenza-pa' ) . '</button></p></form>';
+	}
+
+	/**
+	 * La casella di un file nel modulo dei file, o il motivo per cui non c'e.
+	 *
+	 * @param int                  $pagina   Pagina.
+	 * @param array<string, mixed> $file     File del rapporto.
+	 * @param array<int, string>   $impronte Impronte dei documenti del contenuto.
+	 * @return string
+	 */
+	private static function casella( int $pagina, array $file, array $impronte ): string {
+		$nome = '<code>' . esc_html( $file['percorso'] ) . '</code>';
+
+		if ( 'presente' !== $file['stato'] ) {
+			return $nome . ' ' . esc_html__( '(file mancante o fuori dalla cartella dei caricamenti: non si copia)', 'trasparenza-pa' );
+		}
+
+		if ( $file['protetto'] ) {
+			return $nome . ' ' . esc_html__( '(già protetto dal componente comune per un altro contenuto: non si copia)', 'trasparenza-pa' );
+		}
+
+		if ( in_array( $file['impronta'], $impronte, true ) ) {
+			return $nome . ' ' . esc_html__( '(già copiato)', 'trasparenza-pa' );
+		}
+
+		if ( false === $file['finita'] ) {
+			return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_COPIA . '[' . $pagina . '][]' ) . '" value="' . esc_attr( $file['percorso'] ) . '" checked> ' . $nome . '</label>';
+		}
+
+		return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_VERIFICATA . '[' . $pagina . '][]' ) . '" value="' . esc_attr( $file['percorso'] ) . '"> ' . $nome . ' '
+			. esc_html( true === $file['finita'] ? self::etichetta_oltre() : __( 'data non nota: da verificare come un file oltre il termine ordinario', 'trasparenza-pa' ) ) . '</label>';
 	}
 
 	/**
