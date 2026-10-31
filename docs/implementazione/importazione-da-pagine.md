@@ -347,7 +347,16 @@ Due rotture restavano verdi alla prima prova e hanno avuto la loro prova: dettag
 sostituiscono quelli di base nella voce di registro (T-136), e il modulo dei file senza il suo
 aggancio (T-139).
 
-Suite completa in locale: 352 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+Dopo la rilettura si sono aggiunti T-140 e T-141. Il primo: un percorso scritto con `./` o con una
+barra doppia non veniva riconosciuto come l'allegato protetto a cui porta; ora il confronto con la
+cartella protetta del componente comune si fa sul percorso reale, e copre anche un file di quella
+cartella che nessun allegato registra. Il secondo: il valore delle caselle si scrive con
+`Testo::esatto()`. Il confronto per percorso con l'allegato resta; non si è aggiunta una tabella dei
+percorsi reali di tutti gli allegati del sito, perché ogni file depositato dal componente comune sta
+nella sua cartella e la verifica sulla cartella lo copre già, senza una lettura del disco per
+allegato.
+
+Suite completa in locale: 354 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
 
 **Rotture volute (passo 2b)**, una per volta, con le prove di `ImportazioneFileTest`. Tutte rosse,
@@ -386,6 +395,9 @@ salvo l'equivalenza dichiarata sotto.
 | Modulo dei file a chi non può creare contenuti | T-139 |
 | `protetto` sempre falso nel rapporto | T-135 |
 | Modulo dei file senza aggancio | T-139 |
+| Cartella protetta non confrontata sul percorso reale | T-140 |
+| Cartella protetta non trovata | T-140 |
+| Valore della casella con `esc_attr()` | T-141 |
 
 Equivalenza: chiamare il deposito che prende il blocco, invece di quello che lavora dentro il
 blocco già preso, fa diventare rossa T-136 solo perché quel deposito non porta la pagina d'origine

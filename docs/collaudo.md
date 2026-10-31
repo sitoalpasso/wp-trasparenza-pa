@@ -381,8 +381,8 @@ nuovo: proteggono TRASP-09 e TRASP-19 durante il passaggio. Scheda:
 | T-137 | fatto | File oltre il termine ordinario e senza data: nel campo normale e nel campo di conferma | nel campo normale scartato con il motivo; nel campo di conferma copiato |
 | T-138 | fatto | Doppioni e guasti: secondo passaggio, due percorsi con gli stessi byte; [guasto] blocco occupato, lettura dei documenti fallita, deposito rifiutato, registro che rifiuta | "già copiato", nessun secondo documento; con il blocco occupato niente copiato; con un guasto su un file o una pagina le altre righe proseguono e nessun temporaneo resta |
 | T-139 | fatto | Schermata: modulo dei file sotto quello delle bozze, solo pagine portate in bozza o in attesa; caselle spuntate e non spuntate; file già copiati, mancanti, fuori, protetti; esito; chi non può creare contenuti; [attacco] percorsi e titoli con codice | modulo per POST con nonce; casella spuntata solo entro il termine, campo di conferma per gli altri; motivo senza casella per gli altri stati; ogni valore con escaping |
-| T-140 | da fare | File nella cartella protetta del componente comune: percorso scritto con `./` o con `//` verso un allegato protetto; file della cartella protetta che nessun allegato registra | nel rapporto `protetto` vero; il passaggio non lo copia, nemmeno dal campo di conferma |
-| T-141 | da fare | Casella di un file con un'entità già scritta nel nome (`&amp;` letterale) | il valore della casella, riletto dal browser, è identico al percorso; il file si copia |
+| T-140 | fatto | File nella cartella protetta del componente comune: percorso scritto con `./` o con `//` verso un allegato protetto; file della cartella protetta che nessun allegato registra | nel rapporto `protetto` vero; il passaggio non lo copia, nemmeno dal campo di conferma |
+| T-141 | fatto | Casella di un file con un'entità già scritta nel nome (`&amp;` letterale) | il valore della casella, riletto dal browser, è identico al percorso; il file si copia |
 
 ## Collaudo congiunto con l'albo pretorio
 
