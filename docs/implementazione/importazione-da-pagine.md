@@ -315,6 +315,7 @@ file, che il deposito controlla.
 | Copia nel temporaneo fallita | quel file non copiato |
 | Deposito rifiutato (tipo non ammesso, protezione non verificata) | quel file non copiato, con il motivo del componente comune; temporaneo cancellato |
 | Registro che rifiuta | come nel riquadro "Documenti": allegato tolto, quel file non copiato |
+| La cartella protetta del componente comune non si può chiedere | niente copiato: senza la cartella non si sa quali file sono già protetti, e nel dubbio si chiude (T-142) |
 
 **Cosa deliberatamente non fa (passo 2b).**
 
