@@ -591,6 +591,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 			. '<a href="/archivio' . $locale . '/2020/01/atto.pdf">stesso sito, altra cartella</a>'
 			. '<a href="' . home_url( '/archivio' . $locale . '/2020/01/atto.pdf' ) . '">stesso dominio, altra cartella</a>'
 			. ' testo/archivio' . $locale . '/2020/01/atto.pdf'
+			. ' testo' . $locale . '/2020/01/atto.pdf'
 		);
 
 		$riga = $this->riga( $this->rapporto( $radice ), $pagina );

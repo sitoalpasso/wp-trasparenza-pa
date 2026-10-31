@@ -40,7 +40,7 @@ final class ImportazionePagine {
 		}
 
 		if ( ! isset( $pagine[ $radice ] ) ) {
-			return new WP_Error( 'trasparenza_importazione_radice', __( 'La pagina d\'ingresso indicata non è una pagina pubblicata.', 'trasparenza-pa' ) );
+			return new WP_Error( 'trasparenza_importazione_radice', __( 'La pagina d\'ingresso indicata non è una pagina pubblicata senza password.', 'trasparenza-pa' ) );
 		}
 
 		$nascoste = self::non_pubblicate();
@@ -195,7 +195,7 @@ final class ImportazionePagine {
 	}
 
 	/**
-	 * Le pagine pubblicate, per identificativo, nell'ordine delle pagine.
+	 * Le pagine pubblicate senza password, per identificativo, nell'ordine delle pagine.
 	 *
 	 * @return array<int, array{padre: int, titolo: string, testo: string}>|WP_Error
 	 */
@@ -203,7 +203,7 @@ final class ImportazionePagine {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- serve distinguere nessuna pagina da lettura fallita, cosa che get_pages() non dice.
-		$righe = $wpdb->get_results( $wpdb->prepare( "SELECT /* trasparenza-pa-importazione */ ID, post_parent, post_title, post_content FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s ORDER BY menu_order ASC, post_title ASC, ID ASC", 'page', 'publish' ), ARRAY_A );
+		$righe = $wpdb->get_results( $wpdb->prepare( "SELECT /* trasparenza-pa-importazione */ ID, post_parent, post_title, post_content FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND post_password = '' ORDER BY menu_order ASC, post_title ASC, ID ASC", 'page', 'publish' ), ARRAY_A );
 
 		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
 			return self::errore_lettura();
@@ -223,9 +223,10 @@ final class ImportazionePagine {
 	}
 
 	/**
-	 * Le pagine non pubblicate, fuori dal cestino: solo identificativo e genitore.
+	 * Le pagine non pubblicate o protette da password, fuori dal cestino: solo identificativo e genitore.
 	 *
 	 * Titolo e testo non si leggono: servono solo a contare cosa il rapporto non copre.
+	 * Una pagina protetta da password e pubblicata, ma il suo testo non e pubblico.
 	 *
 	 * @return array<int, int>|WP_Error Genitore per identificativo.
 	 */
@@ -233,7 +234,7 @@ final class ImportazionePagine {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- serve distinguere nessuna pagina da lettura fallita.
-		$righe = $wpdb->get_results( $wpdb->prepare( "SELECT /* trasparenza-pa-importazione */ ID, post_parent FROM {$wpdb->posts} WHERE post_type = %s AND post_status NOT IN (%s, %s, %s) ORDER BY ID ASC", 'page', 'publish', 'trash', 'auto-draft' ), ARRAY_A );
+		$righe = $wpdb->get_results( $wpdb->prepare( "SELECT /* trasparenza-pa-importazione */ ID, post_parent FROM {$wpdb->posts} WHERE post_type = %s AND post_status NOT IN (%s, %s) AND ( post_status <> %s OR post_password <> '' ) ORDER BY ID ASC", 'page', 'trash', 'auto-draft', 'publish' ), ARRAY_A );
 
 		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
 			return self::errore_lettura();
@@ -369,15 +370,35 @@ final class ImportazionePagine {
 		$percorsi = array();
 
 		if ( '' !== $base['percorso'] ) {
-			$schema = '#(?:(?:https?:)?//([A-Za-z0-9.\-]+(?::\d+)?))?' . preg_quote( $base['percorso'], '#' ) . '/([^\s"\'<>\[\]?\#]+)#i';
+			$prefisso = $base['percorso'] . '/';
 
-			if ( preg_match_all( $schema, $testo, $trovati, PREG_SET_ORDER ) ) {
-				foreach ( $trovati as $trovato ) {
-					if ( '' !== $trovato[1] && strtolower( $trovato[1] ) !== $base['dominio'] ) {
+			/*
+			 * Prima l'indirizzo intero, che comincia dopo un apice, un uguale,
+			 * una parentesi, uno spazio o all'inizio del testo; poi si decide se
+			 * e un file: stesso dominio della cartella dei caricamenti, o nessun
+			 * dominio, e un percorso che comincia con quello della cartella.
+			 */
+			if ( preg_match_all( '#(?<![^\s"\'=\[\(>])((?:https?:)?//[^\s"\'<>\[\]]+|/[^\s"\'<>\[\]]+)#i', $testo, $trovati ) ) {
+				foreach ( $trovati[1] as $indirizzo ) {
+					$indirizzo = html_entity_decode( $indirizzo, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+					$percorso  = (string) preg_replace( '/[?#].*\z/s', '', $indirizzo );
+
+					if ( str_starts_with( $percorso, '//' ) || 1 === preg_match( '#\Ahttps?://#i', $percorso ) ) {
+						$dominio = (string) wp_parse_url( ( str_starts_with( $percorso, '//' ) ? 'http:' : '' ) . $percorso, PHP_URL_HOST );
+						$porta   = wp_parse_url( ( str_starts_with( $percorso, '//' ) ? 'http:' : '' ) . $percorso, PHP_URL_PORT );
+
+						if ( strtolower( $dominio . ( null !== $porta ? ':' . $porta : '' ) ) !== $base['dominio'] ) {
+							continue;
+						}
+
+						$percorso = (string) preg_replace( '#\A(?:https?:)?//[^/]*#i', '', $percorso );
+					}
+
+					if ( ! str_starts_with( $percorso, $prefisso ) || strlen( $percorso ) === strlen( $prefisso ) ) {
 						continue;
 					}
 
-					$percorsi[] = rawurldecode( html_entity_decode( $trovato[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+					$percorsi[] = rawurldecode( substr( $percorso, strlen( $prefisso ) ) );
 				}
 			}
 		}

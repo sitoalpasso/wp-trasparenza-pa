@@ -217,7 +217,7 @@ final class SchermataImportazione {
 		/* translators: %d: numero di file. */
 		$html .= '<li>' . esc_html( self::oltre( $rapporto['durata'], $conti['finita'] ) ) . '</li>';
 		/* translators: %d: numero di pagine. */
-		$html .= '<li>' . esc_html( sprintf( _n( '%d pagina non pubblicata, o sotto una pagina non pubblicata, non letta', '%d pagine non pubblicate, o sotto pagine non pubblicate, non lette', (int) $rapporto['non_lette'], 'trasparenza-pa' ), (int) $rapporto['non_lette'] ) ) . '</li>';
+		$html .= '<li>' . esc_html( sprintf( _n( '%d pagina non pubblicata o protetta da password, o sotto di loro, non letta', '%d pagine non pubblicate o protette da password, o sotto di loro, non lette', (int) $rapporto['non_lette'], 'trasparenza-pa' ), (int) $rapporto['non_lette'] ) ) . '</li>';
 		/* translators: %d: numero di pagine. */
 		$html .= '<li>' . esc_html( sprintf( __( 'Pagine vuote: %d', 'trasparenza-pa' ), $conti['vuote'] ) ) . '</li>';
 		/* translators: %d: numero di voci. */
