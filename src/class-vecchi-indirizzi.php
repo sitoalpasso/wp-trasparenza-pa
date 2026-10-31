@@ -133,9 +133,16 @@ final class VecchiIndirizzi {
 			return null;
 		}
 
+		/* Una voce non letta non e una voce assente: il 301 resterebbe nei browser. */
+		$valori = Metadato::leggi( (int) $contenuto, SchedaContenuto::META_COLLOCAZIONE );
+
+		if ( is_wp_error( $valori ) ) {
+			return null;
+		}
+
 		$radice = $albero->radice();
-		$voce   = get_post_meta( (int) $contenuto, SchedaContenuto::META_COLLOCAZIONE, true );
-		$voce   = is_string( $voce ) && $albero->esiste( $voce ) ? $voce : $radice;
+		$voce   = $valori[0] ?? '';
+		$voce   = $albero->esiste( $voce ) ? $voce : $radice;
 		$verso  = PaginaPubblica::indirizzo( (string) get_permalink( $sezione ), $voce, $radice );
 
 		return self::percorso( $verso ) === $percorso && $voce === $radice ? null : $verso;
