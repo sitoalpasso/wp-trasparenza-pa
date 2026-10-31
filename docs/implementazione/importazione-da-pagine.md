@@ -162,6 +162,57 @@ nonce della schermata. Senza l'uno o l'altro nessuna pagina si legge.
   rimetterebbe in pubblico dati personali, e il passo 2 lascia comunque all'addetto la scelta di
   pubblicare con una decorrenza scritta.
 
+## Com'è andata (passo 1)
+
+Costruito come scritto sopra. Due aggiunte venute dal lavoro:
+
+- la data mostrata in "Calcolato al" è lo stesso giorno da cui si contano le fini, preso con
+  `RegistroAccessi::oggi()` nel fuso del sito: la prova lo guarda in un fuso lontano;
+- le interrogazioni portano il segno `trasparenza-pa-importazione` in un commento SQL, così la
+  prova del guasto rompe solo quelle.
+
+Suite completa in locale: 338 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
 ## Rotture volute, a lavoro finito
 
-Da compilare.
+Ogni rottura è stata applicata da sola, con le prove di `ImportazionePagineTest`. Tutte rosse.
+
+| Rottura | Prova rossa |
+|---|---|
+| Schermata senza controllo del permesso | T-121 |
+| Schermata senza controllo del nonce | T-121 |
+| Pagina d'ingresso controllata senza `\A` e `\z` | T-121 |
+| Pagina d'ingresso non pubblicata accettata | T-121 |
+| Pagine non pubblicate al posto delle pubblicate | T-122 |
+| Figli dopo le pagine già in coda, non subito dopo il genitore | T-122 |
+| Confronto con gli accenti | T-122 |
+| Confronto con la punteggiatura | T-122 |
+| Più voci con lo stesso nome trattate come una | T-122 |
+| Voce con sottovoci proposta | T-122 |
+| Radice dell'albero fra le voci confrontabili | T-122 |
+| Indirizzo di un altro dominio preso per un file | T-123 |
+| Allegati della pagina ignorati | T-123 |
+| Lo stesso file due volte | T-123 |
+| Indirizzo non decodificato | T-123 |
+| Segmento `..` non rifiutato | T-123 |
+| Percorso risolto fuori dalla cartella aperto | T-123 |
+| Fine all'orlo dell'anno contata come finita | T-124 |
+| Data della cartella preferita a quella dell'allegato | T-124 |
+| Data della cartella ignorata | T-124 |
+| Durata fissa al posto di quella dell'albero | T-124 |
+| Oggi in UTC al posto del fuso del sito | T-124 |
+| Collegamenti al sito stesso fra gli esterni | T-125 |
+| Collegamenti esterni ripetuti | T-125 |
+| Punto finale lasciato nel collegamento | T-125 |
+| Testo fra parentesi quadre contato | T-125 |
+| Entità contate come più caratteri | T-125 |
+| Pagina con soli collegamenti esterni data per vuota | T-125 |
+| Voci proposte fra quelle senza pagina | T-125 |
+| Lettura delle pagine fallita non fermata | T-126 |
+| Lettura degli allegati fallita non fermata | T-126 |
+| Titolo senza escaping | T-121 |
+
+Una regola senza rottura: il segno delle pagine già visitate, che impedisce di girare in tondo
+fra genitori. Toglierlo non fa diventare rossa la prova: la fa girare per sempre. La prova T-122
+che lo copre finisce solo con il segno al suo posto.
