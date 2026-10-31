@@ -107,7 +107,7 @@ final class Rinvii {
 			return self::errore( __( 'L\'etichetta del rinvio è obbligatoria: su una riga, senza codice e al massimo di 200 caratteri. Dice cosa si trova dall\'altra parte del collegamento.', 'trasparenza-pa' ) );
 		}
 
-		$giorno = 1 === preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $valori['data'], $parti ) && checkdate( (int) $parti[2], (int) $parti[3], (int) $parti[1] );
+		$giorno = 1 === preg_match( '/\A(\d{4})-(\d{2})-(\d{2})\z/', $valori['data'], $parti ) && checkdate( (int) $parti[2], (int) $parti[3], (int) $parti[1] );
 
 		if ( ! $giorno ) {
 			return self::errore( __( 'La data del rinvio è obbligatoria, nella forma AAAA-MM-GG, ed esistente nel calendario.', 'trasparenza-pa' ) );

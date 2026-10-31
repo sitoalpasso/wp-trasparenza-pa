@@ -668,4 +668,26 @@ class ResponsabileTest extends WP_UnitTestCase {
 			$this->assertStringNotContainsString( 'trasparenza-pa-responsabile', PaginaPubblica::disegna( $albero, $voce, 'https://example.org/sezione/' ), $voce );
 		}
 	}
+
+	/**
+	 * T-115: [attacco] un testo con entita HTML scritte come testo torna dal modulo identico, e il modulo rimandato com'e si salva.
+	 */
+	public function test_t115_entita_scritte_come_testo(): void {
+		wp_set_current_user( $this->responsabile );
+
+		$dati = array_merge( $this->validi(), array( 'nome' => 'Maria &amp; Rossi &lt;RPCT&gt;' ) );
+
+		$this->assertSame( 'salvato', SchermataResponsabile::salva( $this->richiesta( $dati ) )['codice'] );
+
+		$campi = $this->campi_del_modulo( $this->schermata() );
+
+		$this->assertEquals( $dati, $campi[ SchermataResponsabile::CAMPO_PARTENZA ], 'Le partenze tornano identiche.' );
+		$this->assertEquals( $dati, $campi[ SchermataResponsabile::CAMPO ], 'I campi tornano identici.' );
+
+		$campi[ SchermataResponsabile::CAMPO ]['email'] = 'altra@example.org';
+		$esito = SchermataResponsabile::salva( $this->richiesta( $campi[ SchermataResponsabile::CAMPO ], $campi[ SchermataResponsabile::CAMPO_PARTENZA ] ) );
+
+		$this->assertSame( 'salvato', $esito['codice'], $esito['messaggio'] );
+		$this->assertEquals( array_merge( $dati, array( 'email' => 'altra@example.org' ) ), Responsabile::dati() );
+	}
 }

@@ -269,6 +269,8 @@ class RinviiDichiaratiTest extends WP_UnitTestCase {
 			'data in altro formato'      => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '15/01/2026' ) ) ),
 			'data con altro intorno'     => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '2026-01-15T10:00' ) ) ),
 			'data con altro prima'       => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => 'x2026-01-15' ) ) ),
+			'data con una cifra davanti' => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '02026-01-15' ) ) ),
+			'data con a capo in fondo'   => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => "2026-01-15\n" ) ) ),
 			'data inesistente'           => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '2026-02-30' ) ) ),
 			'data vuota'                 => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => '' ) ) ),
 			'data di domani'             => array( 'zeta_uno', array_merge( $this->valido(), array( 'data' => $domani ) ) ),
@@ -586,5 +588,48 @@ class RinviiDichiaratiTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'non è disponibile', $html );
 		$this->assertStringNotContainsString( '<form', $html );
+	}
+
+	/**
+	 * T-117: [attacco] etichetta e indirizzo con entita HTML scritte come testo tornano dal modulo identici, e il modulo rimandato com'e si salva.
+	 */
+	public function test_t117_entita_scritte_come_testo(): void {
+		$rinvio = array_merge(
+			$this->valido(),
+			array(
+				'indirizzo' => 'https://example.org/banca/ente?dato=1&amp;tipo=2',
+				'etichetta' => 'Dati &amp; atti &lt;Banca Uno&gt;',
+			)
+		);
+
+		$this->assertSame( $rinvio, Rinvii::controlla( PaginaPubblica::albero(), 'zeta_uno', $rinvio ), 'Il controllo li ammette.' );
+		$this->assertSame( 'salvato', SchermataRinvii::salva( $this->richiesta( 'zeta_uno', $rinvio ) )['codice'] );
+
+		$html   = $this->schermata();
+		$inizio = strpos( $html, 'name="' . SchermataRinvii::CAMPO_VOCE . '" value="zeta_uno"' );
+		$this->assertIsInt( $inizio );
+		$modulo = substr( $html, $inizio, (int) strpos( $html, '</form>', $inizio ) - $inizio );
+
+		$campi = array(
+			SchermataRinvii::CAMPO          => array(),
+			SchermataRinvii::CAMPO_PARTENZA => array(),
+		);
+
+		preg_match_all( '/name="(' . SchermataRinvii::CAMPO . '|' . SchermataRinvii::CAMPO_PARTENZA . ')\[([a-z]+)\]" value="([^"]*)"/', $modulo, $trovati, PREG_SET_ORDER );
+
+		foreach ( $trovati as $campo ) {
+			$campi[ $campo[1] ][ $campo[2] ] = html_entity_decode( $campo[3], ENT_QUOTES );
+		}
+
+		$campi[ SchermataRinvii::CAMPO ]['banca'] = $rinvio['banca'];
+
+		$this->assertEquals( $rinvio, $campi[ SchermataRinvii::CAMPO_PARTENZA ], 'La partenza torna identica.' );
+		$this->assertEquals( $rinvio, $campi[ SchermataRinvii::CAMPO ], 'I campi tornano identici.' );
+
+		$campi[ SchermataRinvii::CAMPO ]['data'] = '2026-01-20';
+		$esito                                   = SchermataRinvii::salva( $this->richiesta( 'zeta_uno', $campi[ SchermataRinvii::CAMPO ], $campi[ SchermataRinvii::CAMPO_PARTENZA ] ) );
+
+		$this->assertSame( 'salvato', $esito['codice'], $esito['messaggio'] );
+		$this->assertEquals( array_merge( $rinvio, array( 'data' => '2026-01-20' ) ), Rinvii::dati()['zeta_uno'] );
 	}
 }

@@ -387,7 +387,7 @@ final class SchermataRegistroAccessi {
 			$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_NUMERO ) . '" value="' . esc_attr( (string) $numero ) . '">';
 
 			foreach ( RegistroAccessi::CAMPI as $campo ) {
-				$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA . '[' . $campo . ']' ) . '" value="' . self::valore( (string) ( $partenza[ $campo ] ?? '' ) ) . '">';
+				$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA . '[' . $campo . ']' ) . '" value="' . Testo::esatto( (string) ( $partenza[ $campo ] ?? '' ) ) . '">';
 			}
 		}
 
@@ -407,7 +407,7 @@ final class SchermataRegistroAccessi {
 		);
 
 		foreach ( $testi as $campo => list( $etichetta, $tipo ) ) {
-			$html .= '<tr><th scope="row"><label for="' . esc_attr( $prefisso . $campo ) . '">' . esc_html( $etichetta ) . '</label></th><td><input type="' . esc_attr( $tipo ) . '" id="' . esc_attr( $prefisso . $campo ) . '" name="' . esc_attr( self::CAMPO . '[' . $campo . ']' ) . '" value="' . self::valore( $valori[ $campo ] ) . '" class="regular-text"></td></tr>';
+			$html .= '<tr><th scope="row"><label for="' . esc_attr( $prefisso . $campo ) . '">' . esc_html( $etichetta ) . '</label></th><td><input type="' . esc_attr( $tipo ) . '" id="' . esc_attr( $prefisso . $campo ) . '" name="' . esc_attr( self::CAMPO . '[' . $campo . ']' ) . '" value="' . Testo::esatto( $valori[ $campo ] ) . '" class="regular-text"></td></tr>';
 		}
 
 		$html .= '<tr><th scope="row"><label for="' . esc_attr( $prefisso . 'esito' ) . '">' . esc_html__( 'Esito', 'trasparenza-pa' ) . '</label></th><td><select id="' . esc_attr( $prefisso . 'esito' ) . '" name="' . esc_attr( self::CAMPO . '[esito]' ) . '">';
@@ -417,7 +417,7 @@ final class SchermataRegistroAccessi {
 		}
 
 		$html .= '</select></td></tr>';
-		$html .= '<tr><th scope="row"><label for="' . esc_attr( $prefisso . 'decisione' ) . '">' . esc_html__( 'Data della decisione', 'trasparenza-pa' ) . '</label></th><td><input type="date" id="' . esc_attr( $prefisso . 'decisione' ) . '" name="' . esc_attr( self::CAMPO . '[decisione]' ) . '" value="' . self::valore( $valori['decisione'] ) . '" class="regular-text"></td></tr>';
+		$html .= '<tr><th scope="row"><label for="' . esc_attr( $prefisso . 'decisione' ) . '">' . esc_html__( 'Data della decisione', 'trasparenza-pa' ) . '</label></th><td><input type="date" id="' . esc_attr( $prefisso . 'decisione' ) . '" name="' . esc_attr( self::CAMPO . '[decisione]' ) . '" value="' . Testo::esatto( $valori['decisione'] ) . '" class="regular-text"></td></tr>';
 		$html .= '</tbody></table>';
 
 		if ( 0 === $numero ) {
@@ -429,19 +429,6 @@ final class SchermataRegistroAccessi {
 		$html .= '<button type="submit" class="button" name="' . esc_attr( self::CAMPO_OPERAZIONE ) . '" value="elimina">' . esc_html__( 'Togli dal registro', 'trasparenza-pa' ) . '</button></p>';
 
 		return $html . '</form>';
-	}
-
-	/**
-	 * Un testo per l'attributo value, che il browser rimanda identico.
-	 *
-	 * Al posto di esc_attr(), che lascia com'e un'entita gia scritta: "&amp;" scritto come testo
-	 * tornerebbe "&", e la partenza non sarebbe piu uguale alla riga conservata.
-	 *
-	 * @param string $testo Testo.
-	 * @return string
-	 */
-	private static function valore( string $testo ): string {
-		return htmlspecialchars( $testo, ENT_QUOTES, 'UTF-8', true );
 	}
 
 	/**
