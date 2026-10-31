@@ -48,3 +48,18 @@ com'è: il salvataggio riesce e il dato resta identico. Per la data, i due casi 
   identico anche lì, si cambia con la stessa funzione.
 - Non rifiuta le sequenze come `&amp;` al salvataggio: sono testo lecito, e rifiutarle
   costringerebbe gli addetti a indovinare perché.
+
+## Rotture volute, a lavoro finito
+
+Dodici rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova:
+partenza o campo di nuovo con `esc_attr()` in ciascuna delle tre schermate e nella schermata del
+registro degli accessi, argomento della tabella pubblica con `esc_html()`, codifica senza la
+ricodifica delle entità già scritte, codifica che lascia le virgolette, data del rinvio con `$`
+in fondo o senza l'ancora all'inizio.
+
+Il caso della data con una cifra davanti era già rifiutato, perché l'espressione aveva l'ancora
+all'inizio: la prova resta come guardia. Mancava solo quella in fondo.
+
+PHPCS non riconosce un metodo di classe come funzione di escaping, e la sua configurazione
+accetta solo nomi di funzione: nelle due schermate che stampano con `printf()` l'uso di
+`Testo::esatto()` porta un `phpcs:ignore` con il motivo, come gli altri della sezione.

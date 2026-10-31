@@ -346,10 +346,10 @@ delibera ANAC 1310/2016, Allegato 1 (TRASP-12). Scheda: `docs/implementazione/ac
 | T-112 | fatto | Cinque anni dall'ultima data della riga: riga decisa, riga in corso, orli dell'anno | la riga decisa nell'anno A si vede fino al 31/12 di A+5 e non dal 1/1 di A+6; conta la decisione, non la richiesta; la riga in corso si vede sempre; il giorno di oggi è quello del fuso del sito, anche per dire se una data è futura: con un fuso lontano da UTC la riga di oggi si vede e quella di domani no |
 | T-113 | fatto | Dove si mostra: voce dell'accesso civico con e senza i dati dell'accesso civico, altre voci | il registro solo nella voce indicata dall'albero, sotto il riquadro, anche senza i dati; nelle altre voci no |
 | T-114 | fatto | [guasto] Lettura del registro fallita sulla pagina pubblica | nessuna tabella e nessuna frase di registro vuoto: "Il registro non è disponibile in questo momento." |
-| T-115 | da fare | Schermata "Responsabile": [attacco] nome con `&amp;` e `&lt;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
-| T-116 | da fare | Schermata "Accesso civico": [attacco] ufficio e titolare con `&amp;` e `&lt;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
-| T-117 | da fare | Schermata "Rinvii alle banche dati": [attacco] etichetta con `&amp;` e `&lt;` e indirizzo con `&amp;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
-| T-118 | da fare | Data del rinvio: [attacco] con un a capo in fondo, con una cifra in più davanti | rifiutata come le altre date non nel formato |
+| T-115 | fatto | Schermata "Responsabile": [attacco] nome con `&amp;` e `&lt;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
+| T-116 | fatto | Schermata "Accesso civico": [attacco] ufficio e titolare con `&amp;` e `&lt;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
+| T-117 | fatto | Schermata "Rinvii alle banche dati": [attacco] etichetta con `&amp;` e `&lt;` e indirizzo con `&amp;` scritti come testo, modulo rimandato come il browser lo legge | i campi e le partenze tornano identici; il salvataggio riesce senza un conflitto inesistente |
+| T-118 | fatto | Data del rinvio: [attacco] con un a capo in fondo, con una cifra in più davanti | rifiutata come le altre date non nel formato |
 
 ## Collaudo congiunto con l'albo pretorio
 
