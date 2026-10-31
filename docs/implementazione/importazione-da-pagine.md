@@ -329,6 +329,68 @@ file, che il deposito controlla.
 | File serviti solo dalla cartella protetta del componente comune | regola di costruzione del progetto (consegna degli allegati) | istruzioni di sviluppo del repository; nessuna norma la prescrive in questa forma |
 | Nessun file aggiunto da qui a un contenuto pubblicato | nessuna norma: scelta di costruzione, prudente verso TRASP-09 | `docs/requisiti.md` |
 
+## Com'è andata (passo 2b)
+
+Costruito come scritto sopra. Due aggiunte venute dal lavoro:
+
+- nel rapporto ogni file porta ora anche `protetto`, vero quando l'allegato che lo registra è
+  depositato dal componente comune; il modulo e il passaggio lo leggono da lì;
+- la copia è possibile anche in un contenuto in attesa di revisione, non solo in bozza: nessuno
+  dei due è pubblico.
+
+Due rotture restavano verdi alla prima prova e hanno avuto la loro prova: dettagli aggiunti che
+sostituiscono quelli di base nella voce di registro (T-136), e il modulo dei file senza il suo
+aggancio (T-139).
+
+Suite completa in locale: 352 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute (passo 2b)**, una per volta, con le prove di `ImportazioneFileTest`. Tutte rosse,
+salvo l'equivalenza dichiarata sotto.
+
+| Rottura | Prova rossa |
+|---|---|
+| Blocco della sezione non preso | T-138 |
+| Chiave della pagina presa con `(int)` | T-135 |
+| Pagina non portata accettata | T-135 |
+| Stato del contenuto non controllato | T-135 |
+| Contenuto in attesa di revisione escluso | T-135 |
+| Percorso non confrontato con i file del rapporto | T-135 |
+| File mancante o fuori accettato | T-135 |
+| File già protetto copiato | T-135 |
+| File senza data copiato senza conferma | T-137 |
+| File oltre il termine copiato senza conferma | T-137 |
+| Doppioni con i documenti del contenuto | T-138 |
+| Doppioni nella stessa richiesta | T-138 |
+| Originale spostato invece che copiato | T-136 |
+| Temporaneo non cancellato | T-136, T-138 |
+| Pagina d'origine non scritta nel registro | T-136 |
+| Permesso del contenuto non controllato dentro il blocco | T-135 |
+| Dettagli aggiunti che sostituiscono quelli di base | T-136 |
+| Modulo senza permesso della sezione o di creare contenuti | T-135 |
+| Nonce di un'altra azione accettato | T-135 |
+| Nonce non controllato | T-135 |
+| Pagina d'ingresso non controllata nella forma | T-135 |
+| Campo normale non controllato come elenco | T-135 |
+| Campo di conferma non controllato come elenco | T-135 |
+| Pagina con contenuto pubblicato nel modulo | T-139 |
+| File senza data con la casella già spuntata | T-139 |
+| File già copiato con la sua casella | T-139 |
+| File mancante con la sua casella | T-139 |
+| Percorso senza escaping nel modulo | T-139 |
+| Modulo dei file a chi non può creare contenuti | T-139 |
+| `protetto` sempre falso nel rapporto | T-135 |
+| Modulo dei file senza aggancio | T-139 |
+
+Equivalenza: chiamare il deposito che prende il blocco, invece di quello che lavora dentro il
+blocco già preso, fa diventare rossa T-136 solo perché quel deposito non porta la pagina d'origine
+nel registro. Il blocco preso due volte, da solo, non si vede su questa banca dati, che tiene lo
+stesso blocco più volte dalla stessa connessione; il pericolo riguarda versioni più vecchie, ed è
+il motivo della divisione.
+
+Resta senza prova anche la scelta, in `da_admin_post()`, fra la risposta delle bozze e quella dei
+file: la funzione finisce con un reindirizzamento e `exit`, come per il passo 2a.
+
 ## Com'è andata (passo 2a)
 
 Costruito come scritto sopra. Il nome vero del metadato è `_trasparenza_pa_pagina_origine`, con il
