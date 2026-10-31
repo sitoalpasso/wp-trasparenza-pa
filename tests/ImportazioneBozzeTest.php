@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove del passaggio in bozza dalle pagine del sito: righe T-129..T-133.
+ * Prove del passaggio in bozza dalle pagine del sito: righe T-129..T-134.
  *
  * @package TrasparenzaPa
  */
@@ -461,5 +461,34 @@ class ImportazioneBozzeTest extends WP_UnitTestCase {
 		$html            = SchermataImportazione::html( $get );
 		$this->assertStringContainsString( 'trasparenza-pa-rapporto', $html );
 		$this->assertStringNotContainsString( SchermataImportazione::AZIONE_BOZZE, $html );
+	}
+
+	/**
+	 * T-134. Titoli con caratteri particolari e rientro delle pagine figlie.
+	 */
+	public function test_t134_titoli_e_rientro() {
+		$titolo = 'Documenti A\\B "doppie" l\'apostrofo & C\\\\D';
+		$id     = $this->pagina( wp_slash( $titolo ), $this->radice, array( 'menu_order' => 9 ) );
+		$this->assertSame( $titolo, get_post( $id )->post_title );
+
+		$esito = SchermataImportazione::salva( $this->richiesta( array( $id => 'bandi' ) ) );
+		$this->assertSame( 'portato', $esito['codice'] );
+		$contenuti = $this->contenuti();
+		$this->assertCount( 1, $contenuti );
+		$this->assertSame( $titolo, $contenuti[0]->post_title );
+		$this->assertSame( $titolo, $esito['righe'][0]['titolo'] );
+
+		$figlia = $this->pagina( 'Pagina figlia', $id );
+		$html   = SchermataImportazione::html(
+			array(
+				'page'                              => SchermataImportazione::PAGINA,
+				SchermataImportazione::CAMPO_RADICE => (string) $this->radice,
+				'_wpnonce'                          => wp_create_nonce( SchermataImportazione::AZIONE ),
+			)
+		);
+		$this->assertStringContainsString( 'Pagina figlia', $html );
+		$this->assertStringNotContainsString( '&mdash;', $html );
+		$this->assertStringNotContainsString( "\u{2014}", $html );
+		$this->assertStringContainsString( '&nbsp;&nbsp;&nbsp;&nbsp;- <a href="' . esc_url( get_permalink( $figlia ) ) . '">Pagina figlia</a>', $html );
 	}
 }
