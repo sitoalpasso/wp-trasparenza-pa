@@ -228,6 +228,53 @@ lo rifiuta.
 | Nessuna decorrenza scritta dal passaggio: senza, il contenuto non si vede | d.lgs. 33/2013, art. 8, c. 3 (TRASP-08) | Scheda `fine-pubblicazione.md` di questo repository. Il testo della norma non è stato riletto per questo passo |
 | Contenuti in bozza, scelta di pubblicare lasciata all'addetto | nessuna norma: scelta di costruzione, prudente verso TRASP-09 e TRASP-16 | `docs/requisiti.md` |
 
+## Com'è andata (passo 2a)
+
+Costruito come scritto sopra. Il nome vero del metadato è `_trasparenza_pa_pagina_origine`, con il
+trattino basso davanti come gli altri metadati della sezione, così WordPress non lo mostra fra i
+campi personalizzati. Una chiave del modulo con uno zero davanti (`0123`) non vale come la pagina
+123: è scartata, perché due chiavi diverse per la stessa pagina porterebbero due contenuti.
+
+Suite completa in locale: 346 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute (passo 2a)**, una per volta, con le prove di `ImportazioneBozzeTest`. Tutte
+rosse, salvo un'equivalenza dichiarata sotto.
+
+| Rottura | Prova rossa |
+|---|---|
+| Passaggio senza il permesso della sezione | T-129 |
+| Passaggio senza il permesso di creare contenuti | T-129 |
+| Nonce del rapporto accettato per il passaggio | T-129 |
+| Nonce non controllato | T-129 |
+| Pagina d'ingresso non controllata nella forma | T-129 |
+| Voci non controllate come elenco | T-129 |
+| Chiave della pagina presa con `(int)` | T-129 |
+| Pagina fuori dal rapporto accettata | T-129 |
+| Voce non ammessa accettata | T-129 |
+| Blocco della sezione non preso | T-132 |
+| Pagina già portata riportata | T-132 |
+| Contenuti nel cestino non contati come portati | T-132 |
+| Lettura delle pagine già portate fallita non fermata | T-132 |
+| Contenuto pubblicato invece che in bozza | T-130 |
+| Testo nel contenuto | T-130 |
+| Autore fisso | T-130 |
+| Registro che rifiuta: contenuto lasciato | T-131 |
+| Registro che rifiuta ignorato | T-131 |
+| Pagina d'origine non scritta | T-130, T-132 |
+| Voce non scritta | T-130 |
+| Metadati non riletti | T-131 |
+| Modulo mostrato a chi non può creare contenuti | T-133 |
+| Voce proposta non preselezionata | T-133 |
+| Titolo senza escaping nel modulo | T-133 |
+| Esito mostrato più di una volta | T-133 |
+| Pagina già portata con la sua scelta | T-133 |
+
+Equivalenza: togliere il controllo "la voce è un testo" e confrontare le voci in modo non stretto
+non fa diventare rossa nessuna prova. Un valore che arriva da un modulo è un testo o un elenco, e
+un elenco non è mai uguale a una voce nemmeno nel confronto non stretto. Il controllo resta come
+difesa esplicita.
+
 ## Dubbi annotati
 
 - La data di caricamento come limite: un file caricato in anticipo rispetto all'obbligo, caso
