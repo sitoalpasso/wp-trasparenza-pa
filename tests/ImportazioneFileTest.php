@@ -1,6 +1,6 @@
 <?php
 /**
- * Prove dei file copiati dalle pagine nei contenuti in bozza: righe T-135..T-141.
+ * Prove dei file copiati dalle pagine nei contenuti in bozza: righe T-135..T-142.
  *
  * @package TrasparenzaPa
  */
@@ -135,6 +135,7 @@ class ImportazioneFileTest extends WP_UnitTestCase {
 
 		remove_all_filters( 'query' );
 		remove_all_filters( 'map_meta_cap' );
+		ImportazionePagine::fissa_cartella_protetta( array( '\\Conformita_Core_Allegati', 'cartella' ) );
 		$wpdb->suppress_errors( false );
 		Blocco::rilascia();
 
@@ -832,6 +833,24 @@ class ImportazioneFileTest extends WP_UnitTestCase {
 
 		$esito = SchermataImportazione::salva_file( $this->richiesta( array( $bandi => array( $rimandato ) ) ) );
 		$this->assertSame( 'copiato', $this->esiti( $esito )[ $bandi . ' ' . $percorso ] );
+		$this->assertCount( 1, $this->documenti( $contenuti['Bandi di concorso'] ) );
+	}
+
+	/**
+	 * T-142. Cartella protetta che non si può chiedere: niente copiato.
+	 */
+	public function test_t142_cartella_protetta_non_disponibile() {
+		$contenuti = $this->porta( array( 'Bandi di concorso' => 'bandi' ) );
+		ImportazionePagine::fissa_cartella_protetta( array( '\\Conformita_Core_Allegati', 'funzione_che_non_esiste' ) );
+
+		$esito = SchermataImportazione::salva_file( $this->richiesta( array( $this->pagine['Bandi di concorso'] => array( $this->percorsi['entro'] ) ) ) );
+		$this->assertSame( 'protetta', $esito['codice'] );
+		$this->assertStringContainsString( 'cartella protetta', $esito['messaggio'] );
+		$this->assertSame( array(), $this->documenti( $contenuti['Bandi di concorso'] ) );
+
+		ImportazionePagine::fissa_cartella_protetta( array( '\\Conformita_Core_Allegati', 'cartella' ) );
+		$esito = SchermataImportazione::salva_file( $this->richiesta( array( $this->pagine['Bandi di concorso'] => array( $this->percorsi['entro'] ) ) ) );
+		$this->assertSame( 'copiato', $esito['codice'] );
 		$this->assertCount( 1, $this->documenti( $contenuti['Bandi di concorso'] ) );
 	}
 }
