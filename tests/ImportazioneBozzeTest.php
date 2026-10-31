@@ -124,7 +124,7 @@ class ImportazioneBozzeTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * I contenuti della sezione, di ogni stato.
+	 * I contenuti della sezione, di ogni stato, cestino compreso.
 	 *
 	 * @return array<int, \WP_Post>
 	 */
@@ -132,7 +132,7 @@ class ImportazioneBozzeTest extends WP_UnitTestCase {
 		return get_posts(
 			array(
 				'post_type'      => TIPO_CONTENUTO,
-				'post_status'    => 'any',
+				'post_status'    => array( 'draft', 'pending', 'private', 'future', 'publish', 'trash' ),
 				'posts_per_page' => -1,
 				'orderby'        => 'ID',
 				'order'          => 'ASC',
@@ -189,6 +189,14 @@ class ImportazioneBozzeTest extends WP_UnitTestCase {
 		wp_set_current_user( $solo_sezione );
 		$this->assertSame( 'permesso', SchermataImportazione::salva( $this->richiesta( array( $bandi => 'bandi' ) ) )['codice'] );
 
+		$solo_contenuti = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$tipo           = get_post_type_object( TIPO_CONTENUTO );
+		get_user_by( 'id', $solo_contenuti )->add_cap( $tipo->cap->create_posts );
+		get_user_by( 'id', $solo_contenuti )->add_cap( $tipo->cap->edit_posts );
+		wp_set_current_user( $solo_contenuti );
+		$this->assertTrue( current_user_can( $tipo->cap->create_posts ) );
+		$this->assertSame( 'permesso', SchermataImportazione::salva( $this->richiesta( array( $bandi => 'bandi' ) ) )['codice'] );
+
 		wp_set_current_user( $this->amministratore );
 
 		foreach ( array( null, 'sbagliato', array( 'x' ) ) as $nonce ) {
@@ -243,6 +251,11 @@ class ImportazioneBozzeTest extends WP_UnitTestCase {
 			$this->assertSame( 'scartata', $this->esiti( $esito )[ $scartata ] ?? null, (string) $scartata );
 		}
 
+		$this->assertCount( 1, $this->contenuti() );
+
+		// Pagina scritta con uno zero davanti: non è la stessa pagina.
+		$esito = SchermataImportazione::salva( $this->richiesta( array( '0' . $this->pagine['Varie'] => 'atti_altri' ) ) );
+		$this->assertSame( array( 'scartata' ), array_column( $esito['righe'], 'esito' ) );
 		$this->assertCount( 1, $this->contenuti() );
 
 		// Voce non testo.

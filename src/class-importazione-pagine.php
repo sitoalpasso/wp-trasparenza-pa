@@ -25,12 +25,23 @@ defined( 'ABSPATH' ) || exit;
 final class ImportazionePagine {
 
 	/**
+	 * Metadato del contenuto che ricorda la pagina da cui e stato portato.
+	 */
+	const META_ORIGINE = '_trasparenza_pa_pagina_origine';
+
+	/**
+	 * Nome dell'operazione nel registro delle modifiche.
+	 */
+	const AZIONE_REGISTRO = 'importazione_pagina';
+
+	/**
 	 * Il rapporto.
 	 *
 	 * @param int        $radice Pagina d'ingresso.
 	 * @param Alberatura $albero Albero in vigore.
 	 * @param string     $oggi   Oggi, AAAA-MM-GG nel fuso del sito.
 	 * @return array{radice: int, durata: int|null, pagine: array<int, array<string, mixed>>, non_lette: int, voci_senza_pagina: array<int, string>}|WP_Error
+	 *         Ogni pagina porta anche `portata`: il contenuto che l'ha gia portata, o nullo.
 	 */
 	public static function rapporto( int $radice, Alberatura $albero, string $oggi ) {
 		$pagine = self::pagine();
@@ -41,6 +52,12 @@ final class ImportazionePagine {
 
 		if ( ! isset( $pagine[ $radice ] ) ) {
 			return new WP_Error( 'trasparenza_importazione_radice', __( 'La pagina d\'ingresso indicata non è una pagina pubblicata senza password.', 'trasparenza-pa' ) );
+		}
+
+		$portate = self::portate();
+
+		if ( is_wp_error( $portate ) ) {
+			return $portate;
 		}
 
 		$nascoste = self::non_pubblicate();
@@ -114,6 +131,7 @@ final class ImportazionePagine {
 				'file'       => $file,
 				'esterni'    => $esterni,
 				'vuota'      => 0 === $caratteri && array() === $file && array() === $esterni,
+				'portata'    => $portate[ $id ] ?? null,
 			);
 
 			// In profondità: i figli subito dopo il genitore, nel loro ordine.
@@ -220,6 +238,166 @@ final class ImportazionePagine {
 		}
 
 		return $pagine;
+	}
+
+	/**
+	 * Porta in bozza le pagine scelte, ciascuna nella sua voce.
+	 *
+	 * Le scelte non si prendono per buone: il rapporto si rifa adesso, con il
+	 * blocco della sezione preso, e si portano solo le sue pagine, nelle voci
+	 * senza sottovoci dell'albero, una volta sola. Chi chiama controlla
+	 * permessi e nonce.
+	 *
+	 * @param int                      $radice Pagina d'ingresso.
+	 * @param array<int|string, mixed> $scelte Voce scelta per pagina; vuota vuol dire non portare.
+	 * @param Alberatura               $albero Albero in vigore.
+	 * @param string                   $oggi   Oggi, AAAA-MM-GG nel fuso del sito.
+	 * @return array<int, array{pagina: int, titolo: string, esito: string, contenuto: int|null, motivo: string}>|WP_Error
+	 */
+	public static function porta( int $radice, array $scelte, Alberatura $albero, string $oggi ) {
+		if ( ! Blocco::prendi() ) {
+			return new WP_Error( 'trasparenza_importazione_occupato', __( 'Niente portato: un altro salvataggio della sezione è in corso. Riprovare fra qualche secondo.', 'trasparenza-pa' ) );
+		}
+
+		try {
+			$rapporto = self::rapporto( $radice, $albero, $oggi );
+
+			if ( is_wp_error( $rapporto ) ) {
+				return $rapporto;
+			}
+
+			$pagine = array();
+
+			foreach ( $rapporto['pagine'] as $pagina ) {
+				$pagine[ $pagina['id'] ] = $pagina;
+			}
+
+			$ammesse = SchedaContenuto::voci_ammesse( $albero );
+			$righe   = array();
+
+			foreach ( $scelte as $chiave => $voce ) {
+				if ( '' === $voce ) {
+					continue;
+				}
+
+				$id     = 1 === preg_match( '/\A[1-9][0-9]{0,18}\z/', (string) $chiave ) ? (int) $chiave : 0;
+				$pagina = $pagine[ $id ] ?? null;
+				$titolo = null === $pagina ? '' : (string) $pagina['titolo'];
+
+				if ( null === $pagina ) {
+					$righe[] = self::riga( $id, $titolo, 'scartata', null, __( 'La pagina non è fra quelle del rapporto: non pubblicata, protetta da password, fuori dalla pagina d\'ingresso o inesistente.', 'trasparenza-pa' ) );
+				} elseif ( ! is_string( $voce ) || ! in_array( $voce, $ammesse, true ) ) {
+					$righe[] = self::riga( $id, $titolo, 'scartata', null, __( 'La voce scelta non è fra quelle in cui si può collocare un contenuto.', 'trasparenza-pa' ) );
+				} elseif ( null !== $pagina['portata'] ) {
+					$righe[] = self::riga( $id, $titolo, 'gia_portata', (int) $pagina['portata'], __( 'La pagina è già stata portata.', 'trasparenza-pa' ) );
+				} else {
+					$righe[] = self::crea( $id, $titolo, $voce );
+				}
+			}
+
+			return $righe;
+		} finally {
+			Blocco::rilascia();
+		}
+	}
+
+	/**
+	 * Crea il contenuto in bozza di una pagina, con registro e metadati.
+	 *
+	 * @param int    $pagina Pagina d'origine.
+	 * @param string $titolo Titolo.
+	 * @param string $voce   Voce, gia controllata.
+	 * @return array{pagina: int, titolo: string, esito: string, contenuto: int|null, motivo: string}
+	 */
+	private static function crea( int $pagina, string $titolo, string $voce ): array {
+		$id = wp_insert_post(
+			array(
+				'post_type'    => TIPO_CONTENUTO,
+				'post_status'  => 'draft',
+				'post_title'   => $titolo,
+				'post_content' => '',
+				'post_author'  => get_current_user_id(),
+			),
+			true
+		);
+
+		if ( is_wp_error( $id ) || 0 === $id ) {
+			return self::riga( $pagina, $titolo, 'errore', null, __( 'Il contenuto non si è potuto creare.', 'trasparenza-pa' ) );
+		}
+
+		$traccia = conformita_core_registra_voce(
+			array(
+				'sezione'   => SEZIONE,
+				'contenuto' => $id,
+				'azione'    => self::AZIONE_REGISTRO,
+				'dettagli'  => array(
+					'pagina' => $pagina,
+					'voce'   => $voce,
+				),
+			)
+		);
+
+		if ( is_wp_error( $traccia ) ) {
+			wp_delete_post( $id, true );
+
+			/* translators: %s: motivo riportato dal registro. */
+			return self::riga( $pagina, $titolo, 'errore', null, sprintf( __( 'Non portata: il registro delle modifiche non ha accettato il passaggio, e un contenuto senza traccia nel registro non resta. Motivo: %s', 'trasparenza-pa' ), $traccia->get_error_message() ) );
+		}
+
+		add_post_meta( $id, self::META_ORIGINE, (string) $pagina, true );
+		add_post_meta( $id, SchedaContenuto::META_COLLOCAZIONE, $voce, true );
+
+		if ( Metadato::leggi( $id, self::META_ORIGINE ) !== array( (string) $pagina ) || Metadato::leggi( $id, SchedaContenuto::META_COLLOCAZIONE ) !== array( $voce ) ) {
+			wp_delete_post( $id, true );
+
+			return self::riga( $pagina, $titolo, 'errore', null, __( 'Non portata: la voce o la pagina d\'origine non si sono potute scrivere, e il contenuto è stato tolto. Il registro contiene un passaggio che non è avvenuto.', 'trasparenza-pa' ) );
+		}
+
+		return self::riga( $pagina, $titolo, 'portata', $id, '' );
+	}
+
+	/**
+	 * Una riga dell'esito.
+	 *
+	 * @param int      $pagina    Pagina.
+	 * @param string   $titolo    Titolo.
+	 * @param string   $esito     Esito.
+	 * @param int|null $contenuto Contenuto.
+	 * @param string   $motivo    Motivo.
+	 * @return array{pagina: int, titolo: string, esito: string, contenuto: int|null, motivo: string}
+	 */
+	private static function riga( int $pagina, string $titolo, string $esito, ?int $contenuto, string $motivo ): array {
+		return array(
+			'pagina'    => $pagina,
+			'titolo'    => $titolo,
+			'esito'     => $esito,
+			'contenuto' => $contenuto,
+			'motivo'    => $motivo,
+		);
+	}
+
+	/**
+	 * Le pagine gia portate: contenuto per pagina d'origine, cestino compreso.
+	 *
+	 * @return array<int, int>|WP_Error
+	 */
+	private static function portate() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- serve distinguere nessuna pagina portata da lettura fallita.
+		$righe = $wpdb->get_results( $wpdb->prepare( "SELECT /* trasparenza-pa-importazione */ m.post_id, m.meta_value FROM {$wpdb->postmeta} m INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE m.meta_key = %s AND p.post_type = %s ORDER BY m.post_id ASC", self::META_ORIGINE, TIPO_CONTENUTO ), ARRAY_A );
+
+		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
+			return new WP_Error( 'trasparenza_importazione_portate', __( 'Il rapporto non si può fare: non si sa quali pagine sono già state portate, perché la lettura non è riuscita.', 'trasparenza-pa' ) );
+		}
+
+		$portate = array();
+
+		foreach ( $righe as $riga ) {
+			$portate[ (int) $riga['meta_value'] ] ??= (int) $riga['post_id'];
+		}
+
+		return $portate;
 	}
 
 	/**

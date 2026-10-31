@@ -38,11 +38,184 @@ final class SchermataImportazione {
 	const CAMPO_RADICE = 'radice';
 
 	/**
+	 * Azione del modulo che porta le pagine in bozza, e del suo nonce.
+	 */
+	const AZIONE_BOZZE = 'trasparenza_pa_importazione_bozze';
+
+	/**
+	 * Nome del campo con la voce scelta per ogni pagina.
+	 */
+	const CAMPO_VOCI = 'voce';
+
+	/**
+	 * Prefisso del dato temporaneo che porta l'esito alla schermata.
+	 */
+	const ESITO = 'trasparenza_pa_esito_importazione_';
+
+	/**
 	 * Aggancia la schermata a WordPress.
 	 */
 	public static function aggancia(): void {
 		// Dopo il registro degli accessi.
 		add_action( 'admin_menu', array( self::class, 'da_admin_menu' ), 15 );
+		add_action( 'admin_post_' . self::AZIONE_BOZZE, array( self::class, 'da_admin_post' ) );
+	}
+
+	/**
+	 * Chi puo portare le pagine in bozza: il permesso della sezione e quello di creare contenuti.
+	 *
+	 * @return bool
+	 */
+	public static function puo_portare(): bool {
+		$tipo = get_post_type_object( TIPO_CONTENUTO );
+
+		return current_user_can( Permessi::AMMINISTRAZIONE ) && null !== $tipo && current_user_can( $tipo->cap->create_posts );
+	}
+
+	/**
+	 * Risposta al modulo che porta le pagine in bozza.
+	 */
+	public static function da_admin_post(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce lo verifica salva(), prima di leggere qualunque altro campo.
+		$richiesta = wp_unslash( $_POST );
+		$richiesta = is_array( $richiesta ) ? $richiesta : array();
+		$esito     = self::salva( $richiesta );
+
+		if ( in_array( $esito['codice'], array( 'permesso', 'nonce' ), true ) ) {
+			wp_die( esc_html( $esito['messaggio'] ), '', array( 'response' => 403 ) );
+		}
+
+		self::conserva_esito( $esito );
+
+		$radice = $richiesta[ self::CAMPO_RADICE ] ?? '';
+		$indice = admin_url( 'admin.php?page=' . self::PAGINA );
+
+		if ( is_string( $radice ) && 1 === preg_match( '/\A[1-9][0-9]{0,18}\z/', $radice ) ) {
+			$indice = add_query_arg(
+				array(
+					self::CAMPO_RADICE => $radice,
+					'_wpnonce'         => wp_create_nonce( self::AZIONE ),
+				),
+				$indice
+			);
+		}
+
+		wp_safe_redirect( $indice );
+		exit;
+	}
+
+	/**
+	 * Porta in bozza le pagine scelte.
+	 *
+	 * @param array<string, mixed> $richiesta Campi del modulo, gia senza barre inverse.
+	 * @return array{codice: string, messaggio: string, righe: array<int, array<string, mixed>>}
+	 */
+	public static function salva( array $richiesta ): array {
+		if ( ! self::puo_portare() ) {
+			return self::esito( 'permesso', __( 'Non avete il permesso di portare pagine nella sezione: servono il permesso della sezione e quello di creare contenuti.', 'trasparenza-pa' ) );
+		}
+
+		$nonce = $richiesta['_wpnonce'] ?? '';
+
+		if ( ! is_string( $nonce ) || ! wp_verify_nonce( $nonce, self::AZIONE_BOZZE ) ) {
+			return self::esito( 'nonce', __( 'La richiesta è scaduta o non viene da questa schermata: niente portato. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
+		}
+
+		$radice = $richiesta[ self::CAMPO_RADICE ] ?? null;
+
+		if ( ! is_string( $radice ) || 1 !== preg_match( '/\A[1-9][0-9]{0,18}\z/', $radice ) ) {
+			return self::esito( 'radice', __( 'Niente portato: la pagina d\'ingresso indicata non è una pagina pubblicata senza password.', 'trasparenza-pa' ) );
+		}
+
+		$scelte = $richiesta[ self::CAMPO_VOCI ] ?? null;
+
+		if ( ! is_array( $scelte ) ) {
+			return self::esito( 'dati', __( 'Niente portato: la richiesta non conteneva le voci scelte.', 'trasparenza-pa' ) );
+		}
+
+		$albero = PaginaPubblica::albero();
+
+		if ( null === $albero ) {
+			return self::esito( 'albero', __( 'Niente portato: l\'albero della sezione non è caricato.', 'trasparenza-pa' ) );
+		}
+
+		$righe = ImportazionePagine::porta( (int) $radice, $scelte, $albero, RegistroAccessi::oggi() );
+
+		if ( is_wp_error( $righe ) ) {
+			$codici = array(
+				'trasparenza_importazione_radice'   => 'radice',
+				'trasparenza_importazione_occupato' => 'occupato',
+			);
+
+			return self::esito( $codici[ $righe->get_error_code() ] ?? 'lettura', __( 'Niente portato.', 'trasparenza-pa' ) . ' ' . $righe->get_error_message() );
+		}
+
+		$portate = count( array_filter( $righe, static fn( $riga ) => 'portata' === $riga['esito'] ) );
+
+		/* translators: %d: numero di pagine. */
+		return self::esito( 'portato', sprintf( __( 'Pagine portate in bozza: %d.', 'trasparenza-pa' ), $portate ), $righe );
+	}
+
+	/**
+	 * Un esito.
+	 *
+	 * @param string                           $codice    Codice.
+	 * @param string                           $messaggio Messaggio.
+	 * @param array<int, array<string, mixed>> $righe     Righe.
+	 * @return array{codice: string, messaggio: string, righe: array<int, array<string, mixed>>}
+	 */
+	private static function esito( string $codice, string $messaggio, array $righe = array() ): array {
+		return array(
+			'codice'    => $codice,
+			'messaggio' => $messaggio,
+			'righe'     => $righe,
+		);
+	}
+
+	/**
+	 * Conserva l'esito per la schermata, un minuto, per chi ha mandato il modulo.
+	 *
+	 * @param array<string, mixed> $esito Esito.
+	 */
+	public static function conserva_esito( array $esito ): void {
+		set_transient( self::ESITO . get_current_user_id(), $esito, MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * L'esito conservato, una volta.
+	 *
+	 * @return string
+	 */
+	private static function esito_mostrato(): string {
+		$chiave = self::ESITO . get_current_user_id();
+		$esito  = get_transient( $chiave );
+
+		if ( ! is_array( $esito ) || ! isset( $esito['codice'], $esito['messaggio'] ) ) {
+			return '';
+		}
+
+		delete_transient( $chiave );
+
+		$html = '<div class="notice ' . ( 'portato' === $esito['codice'] ? 'notice-success' : 'notice-error' ) . '"><p>' . esc_html( (string) $esito['messaggio'] ) . '</p>';
+
+		if ( isset( $esito['righe'] ) && is_array( $esito['righe'] ) && array() !== $esito['righe'] ) {
+			$nomi  = array(
+				'portata'     => __( 'portata in bozza', 'trasparenza-pa' ),
+				'gia_portata' => __( 'già portata', 'trasparenza-pa' ),
+				'scartata'    => __( 'scartata', 'trasparenza-pa' ),
+				'errore'      => __( 'non portata', 'trasparenza-pa' ),
+			);
+			$html .= '<ul>';
+
+			foreach ( $esito['righe'] as $riga ) {
+				$titolo = '' === (string) $riga['titolo'] ? sprintf( '#%d', (int) $riga['pagina'] ) : (string) $riga['titolo'];
+				$html  .= '<li>' . esc_html( $titolo . ': ' . ( $nomi[ $riga['esito'] ] ?? '' ) . ( '' === (string) $riga['motivo'] ? '' : '. ' . $riga['motivo'] ) ) . '</li>';
+			}
+
+			$html .= '</ul>';
+		}
+
+		return $html . '</div>';
 	}
 
 	/**
@@ -87,6 +260,8 @@ final class SchermataImportazione {
 			return $html . self::avviso( __( 'Non avete il permesso di amministrare la sezione.', 'trasparenza-pa' ) ) . '</div>';
 		}
 
+		$html .= self::esito_mostrato();
+
 		if ( ! array_key_exists( self::CAMPO_RADICE, $richiesta ) ) {
 			return $html . self::spiegazione() . self::modulo( 0 ) . '</div>';
 		}
@@ -120,7 +295,56 @@ final class SchermataImportazione {
 			return $html . self::avviso( $rapporto->get_error_message() ) . $modulo . '</div>';
 		}
 
-		return $html . self::modulo( $radice ) . self::rapporto( $rapporto, $albero, $oggi ) . '</div>';
+		$bozze = self::puo_portare() ? self::modulo_bozze( $rapporto, $albero ) : '';
+
+		return $html . self::modulo( $radice ) . self::rapporto( $rapporto, $albero, $oggi ) . $bozze . '</div>';
+	}
+
+	/**
+	 * Il modulo "pagina vecchia, voce nuova".
+	 *
+	 * @param array<string, mixed> $rapporto Rapporto.
+	 * @param Alberatura           $albero   Albero.
+	 * @return string
+	 */
+	private static function modulo_bozze( array $rapporto, Alberatura $albero ): string {
+		$voci = array();
+
+		foreach ( SchedaContenuto::voci_ammesse( $albero ) as $voce ) {
+			$voci[ $voce ] = implode( ' / ', self::percorso( $voce, $albero ) );
+		}
+
+		$html  = '<h2>' . esc_html__( 'Pagina vecchia, voce nuova', 'trasparenza-pa' ) . '</h2>';
+		$html .= '<p>' . esc_html__( 'Per ogni pagina scelta nasce un contenuto in bozza nella voce indicata, con il titolo della pagina e senza testo. Nessun contenuto viene pubblicato: la data da cui decorre l\'obbligo la scrive un addetto. Una pagina si porta una volta sola.', 'trasparenza-pa' ) . '</p>';
+		$html .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">'
+			. '<input type="hidden" name="action" value="' . esc_attr( self::AZIONE_BOZZE ) . '">'
+			. '<input type="hidden" name="' . esc_attr( self::CAMPO_RADICE ) . '" value="' . esc_attr( (string) $rapporto['radice'] ) . '">'
+			. wp_nonce_field( self::AZIONE_BOZZE, '_wpnonce', false, false );
+		$html .= '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Pagina', 'trasparenza-pa' ) . '</th><th scope="col">' . esc_html__( 'Voce nuova', 'trasparenza-pa' ) . '</th></tr></thead><tbody>';
+
+		foreach ( $rapporto['pagine'] as $pagina ) {
+			$html .= '<tr><td>' . str_repeat( '&mdash; ', (int) $pagina['profondita'] ) . esc_html( $pagina['titolo'] ) . '</td><td>';
+
+			if ( null !== $pagina['portata'] ) {
+				$collegamento = get_edit_post_link( (int) $pagina['portata'], 'raw' );
+				$html        .= esc_html__( 'Già portata:', 'trasparenza-pa' ) . ' '
+					. ( null === $collegamento ? esc_html( sprintf( '#%d', (int) $pagina['portata'] ) ) : '<a href="' . esc_url( $collegamento ) . '">' . esc_html( get_the_title( (int) $pagina['portata'] ) ) . '</a>' );
+			} else {
+				$scelta = 'proposta' === $pagina['esito_voce'] ? (string) $pagina['voce'] : '';
+				$html  .= '<select name="' . esc_attr( self::CAMPO_VOCI . '[' . (int) $pagina['id'] . ']' ) . '" aria-label="' . esc_attr( $pagina['titolo'] ) . '">'
+					. '<option value=""' . selected( $scelta, '', false ) . '>' . esc_html__( 'Non portare', 'trasparenza-pa' ) . '</option>';
+
+				foreach ( $voci as $voce => $nome ) {
+					$html .= '<option value="' . esc_attr( $voce ) . '"' . selected( $scelta, $voce, false ) . '>' . esc_html( $nome ) . '</option>';
+				}
+
+				$html .= '</select>';
+			}
+
+			$html .= '</td></tr>';
+		}
+
+		return $html . '</tbody></table><p><button type="submit" class="button button-primary">' . esc_html__( 'Porta in bozza le pagine scelte', 'trasparenza-pa' ) . '</button></p></form>';
 	}
 
 	/**
