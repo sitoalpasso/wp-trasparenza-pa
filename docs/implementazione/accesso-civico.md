@@ -56,7 +56,9 @@ prova, elencata in fondo a lavoro finito.
 | 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
 | 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-110 |
 | 4 | `src/class-registro-accessi.php`, `src/class-pagina-pubblica.php` | Il registro nella voce, per cinque anni |
-| 4 | `tests/RegistroAccessiPubblicoTest.php` | Nuovo. Righe T-111..T-113 |
+| 4 | `tests/RegistroAccessiPubblicoTest.php` | Nuovo. Righe T-111..T-114 |
+| 5 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | La data di ultimo aggiornamento conservata e pubblicata |
+| 5 | `tests/RegistroAccessiTest.php`, `tests/RegistroAccessiPubblicoTest.php` | Righe T-119 e T-120 |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
@@ -420,3 +422,12 @@ Dopo la rilettura, sette rotture in più, tutte rosse: oggi in UTC, controllo de
 giorno reale invece di quello dato, data della richiesta o della decisione confrontata con il
 giorno reale, lettura fallita taciuta come registro vuoto, lettura con `get_option`, frase della
 lettura fallita tolta. Le ventuno rotture di prima rigirate sul codice nuovo: tutte rosse.
+
+### Passo 5: la data di ultimo aggiornamento
+
+Undici rotture, una per volta e poi tolte, e tutte fanno diventare rossa almeno una prova: data
+non scritta o fissa, data conservata letta senza controllo, non positiva o in testo ammessa,
+data tolta dalla pagina, data mostrata solo con righe dei cinque anni, data nel fuso UTC invece
+che in quello del sito, correzione senza cambi che sposta la data, giorno di oggi in UTC, lettura
+fallita taciuta. La prova della data nel fuso del sito usa un istante alle 11 UTC con il fuso
+Pacific/Kiritimati, dove è già il giorno dopo.
