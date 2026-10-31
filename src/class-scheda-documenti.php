@@ -303,7 +303,7 @@ final class SchedaDocumenti {
 	 * @param int                  $id      Identificativo del contenuto.
 	 * @param array<string, mixed> $file    Il file, nella forma di `$_FILES`.
 	 * @param string               $origine `caricamento` oppure `percorso_locale`, come per il componente comune.
-	 * @return array{codice: string, messaggio: string}
+	 * @return array{codice: string, messaggio: string, allegato?: int}
 	 */
 	public static function deposita( int $id, array $file, string $origine ): array {
 		$permesso = self::permesso( $id );
@@ -317,40 +317,64 @@ final class SchedaDocumenti {
 		}
 
 		try {
-			$allegato = conformita_core_deposita_allegato( $id, $file, array( 'origine' => $origine ) );
-
-			if ( is_wp_error( $allegato ) ) {
-				/* translators: %s: motivo riportato dal componente comune. */
-				return self::esito( 'deposito', sprintf( __( 'Allegato non aggiunto. %s', 'trasparenza-pa' ), $allegato->get_error_message() ) );
-			}
-
-			$allegato = (int) $allegato;
-			$nome     = wp_basename( (string) get_attached_file( $allegato ) );
-			$traccia  = self::registra( $id, 'aggiunto', $allegato, $nome );
-
-			if ( is_wp_error( $traccia ) ) {
-				$motivo = $traccia->get_error_message();
-				$esito  = self::cancella( $allegato );
-
-				if ( 'riga' === $esito ) {
-					/* translators: %s: motivo riportato dal registro. */
-					return self::esito( 'registro', sprintf( __( 'Il registro delle modifiche non ha accettato l\'allegato, e l\'allegato non si è potuto togliere: resta senza traccia nel registro. Toglierlo a mano. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
-				}
-
-				if ( 'file' === $esito ) {
-					/* translators: 1: nome del file, 2: motivo riportato dal registro. */
-					return self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta. L\'allegato è tolto dall\'elenco, ma il file %1$s è rimasto nella cartella protetta, dove nessuno lo scarica: va tolto a mano dal server. Motivo: %2$s', 'trasparenza-pa' ), $nome, $motivo ) );
-				}
-
-				/* translators: %s: motivo riportato dal registro. */
-				return self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta, e un cambio senza traccia nel registro non si fa. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
-			}
-
-			/* translators: %s: nome del file. */
-			return self::esito( 'salvato', sprintf( __( 'Allegato aggiunto: %s.', 'trasparenza-pa' ), $nome ) );
+			return self::deposita_nel_blocco( $id, $file, $origine );
 		} finally {
 			Blocco::rilascia();
 		}
+	}
+
+	/**
+	 * Il deposito, per chi tiene gia il blocco della sezione.
+	 *
+	 * Prendere due volte lo stesso blocco non e sicuro su tutte le versioni
+	 * della banca dati: chi deposita dentro un passaggio che tiene gia il
+	 * blocco, come l'importazione dalle pagine, chiama questa. Il permesso si
+	 * controlla anche qui.
+	 *
+	 * @param int                  $id       Identificativo del contenuto.
+	 * @param array<string, mixed> $file     Il file, nella forma di `$_FILES`.
+	 * @param string               $origine  `caricamento` oppure `percorso_locale`.
+	 * @param array<string, mixed> $dettagli Dettagli aggiunti alla voce di registro.
+	 * @return array{codice: string, messaggio: string, allegato?: int}
+	 */
+	public static function deposita_nel_blocco( int $id, array $file, string $origine, array $dettagli = array() ): array {
+		$permesso = self::permesso( $id );
+
+		if ( null !== $permesso ) {
+			return $permesso;
+		}
+
+		$allegato = conformita_core_deposita_allegato( $id, $file, array( 'origine' => $origine ) );
+
+		if ( is_wp_error( $allegato ) ) {
+			/* translators: %s: motivo riportato dal componente comune. */
+			return self::esito( 'deposito', sprintf( __( 'Allegato non aggiunto. %s', 'trasparenza-pa' ), $allegato->get_error_message() ) );
+		}
+
+		$allegato = (int) $allegato;
+		$nome     = wp_basename( (string) get_attached_file( $allegato ) );
+		$traccia  = self::registra( $id, 'aggiunto', $allegato, $nome, $dettagli );
+
+		if ( is_wp_error( $traccia ) ) {
+			$motivo = $traccia->get_error_message();
+			$esito  = self::cancella( $allegato );
+
+			if ( 'riga' === $esito ) {
+				/* translators: %s: motivo riportato dal registro. */
+				return self::esito( 'registro', sprintf( __( 'Il registro delle modifiche non ha accettato l\'allegato, e l\'allegato non si è potuto togliere: resta senza traccia nel registro. Toglierlo a mano. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
+			}
+
+			if ( 'file' === $esito ) {
+				/* translators: 1: nome del file, 2: motivo riportato dal registro. */
+				return self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta. L\'allegato è tolto dall\'elenco, ma il file %1$s è rimasto nella cartella protetta, dove nessuno lo scarica: va tolto a mano dal server. Motivo: %2$s', 'trasparenza-pa' ), $nome, $motivo ) );
+			}
+
+			/* translators: %s: motivo riportato dal registro. */
+			return self::esito( 'registro', sprintf( __( 'Allegato non aggiunto: il registro delle modifiche non ha accettato l\'aggiunta, e un cambio senza traccia nel registro non si fa. Motivo: %s', 'trasparenza-pa' ), $motivo ) );
+		}
+
+		/* translators: %s: nome del file. */
+		return array_merge( self::esito( 'salvato', sprintf( __( 'Allegato aggiunto: %s.', 'trasparenza-pa' ), $nome ) ), array( 'allegato' => $allegato ) );
 	}
 
 	/**
@@ -465,9 +489,10 @@ final class SchedaDocumenti {
 	 * @param string $operazione `aggiunto` oppure `tolto`.
 	 * @param int    $allegato  Identificativo dell'allegato.
 	 * @param string $nome       Nome del file.
+	 * @param array  $altri      Dettagli aggiunti, che non sostituiscono quelli di base.
 	 * @return int|WP_Error
 	 */
-	private static function registra( int $id, string $operazione, int $allegato, string $nome ) {
+	private static function registra( int $id, string $operazione, int $allegato, string $nome, array $altri = array() ) {
 		$impronta = conformita_core_impronta_allegato( $allegato );
 
 		return conformita_core_registra_voce(
@@ -480,7 +505,7 @@ final class SchedaDocumenti {
 					'allegato'   => $allegato,
 					'nome'       => $nome,
 					'impronta'   => is_array( $impronta ) ? $impronta['algoritmo'] . ':' . $impronta['valore'] : '',
-				),
+				) + $altri,
 			)
 		);
 	}

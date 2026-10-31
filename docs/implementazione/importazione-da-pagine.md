@@ -50,6 +50,10 @@ elencata in fondo a lavoro finito.
 | 2a | `src/class-importazione-pagine.php` | Le pagine già portate nel rapporto; `porta()`, che crea i contenuti in bozza |
 | 2a | `src/class-schermata-importazione.php` | Il modulo "pagina vecchia, voce nuova" sotto il rapporto, la risposta e l'esito |
 | 2a | `tests/ImportazioneBozzeTest.php` | Nuovo. Righe T-129..T-133 |
+| 2b | `src/class-importazione-pagine.php` | `copia()`, che copia i file scelti nei contenuti in bozza; nel rapporto, i file che il componente comune protegge già |
+| 2b | `src/class-scheda-documenti.php` | Il deposito diviso in due: la parte che prende il blocco e quella che deposita, che `copia()` chiama tenendo già il blocco |
+| 2b | `src/class-schermata-importazione.php` | Il modulo "file da copiare nelle bozze", la risposta e l'esito |
+| 2b | `tests/ImportazioneFileTest.php` | Nuovo. Righe T-135..T-139 |
 | tutti | `docs/` | Collaudo, architettura, dati |
 
 ## 2. Requisiti serviti
@@ -234,6 +238,175 @@ lo rifiuta.
 | Ogni contenuto portato ha la sua riga di registro | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
 | Nessuna decorrenza scritta dal passaggio: senza, il contenuto non si vede | d.lgs. 33/2013, art. 8, c. 3 (TRASP-08) | Scheda `fine-pubblicazione.md` di questo repository. Il testo della norma non è stato riletto per questo passo |
 | Contenuti in bozza, scelta di pubblicare lasciata all'addetto | nessuna norma: scelta di costruzione, prudente verso TRASP-09 e TRASP-16 | `docs/requisiti.md` |
+
+## 7-ter. I file nelle bozze (passo 2b)
+
+**In parole semplici.** Dopo il passo 2a ogni pagina portata ha il suo contenuto in bozza, ancora
+senza documenti. Il passo 2b copia i file della pagina vecchia fra i documenti di quel contenuto,
+nella cartella protetta del componente comune, la stessa in cui finisce un file caricato a mano
+dal riquadro "Documenti". Il file originale resta dov'è: la pagina vecchia continua a funzionare
+finché il passaggio non è finito. Un file oltre il termine ordinario di pubblicazione, o di cui
+non si conosce la data, non si copia senza una conferma a parte di chi fa il passaggio.
+
+**Il modulo.** Sotto il modulo del passo 2a compare "File da copiare nelle bozze". Ci sono solo
+le pagine già portate il cui contenuto è in bozza o in attesa di revisione; per ciascuna, i file
+del rapporto:
+
+- un file presente, entro il termine ordinario: casella **già spuntata**;
+- un file presente, oltre il termine ordinario o senza data: casella **non spuntata**, in un campo
+  diverso (`copia_verificata`), con accanto "copiare solo dopo aver verificato che l'atto produce
+  ancora effetti, o che vale una durata degli artt. 14 e 15";
+- un file già fra i documenti del contenuto (stessa impronta SHA-256): "già copiato", nessuna
+  casella;
+- un file mancante, fuori dalla cartella dei caricamenti, o registrato da un allegato che il
+  componente comune protegge già: il motivo, nessuna casella.
+
+Il pulsante "Copia i file scelti" manda il modulo per POST, con il suo nonce.
+
+**Le regole di controllo.** La richiesta non si prende per buona: con il blocco della sezione
+preso, il rapporto si rifà al momento con le regole del passo 1, e per ogni file chiesto:
+
+1. la pagina deve essere nel rapporto e già portata, altrimenti la riga è scartata;
+2. il contenuto che l'ha portata deve essere in bozza o in attesa di revisione, riletto dalla
+   banca dati: un contenuto pubblicato, programmato, privato o nel cestino non riceve file da qui,
+   perché un documento aggiunto a un contenuto pubblicato è subito pubblico;
+3. il percorso deve essere, carattere per carattere, uno dei file di quella pagina nel rapporto
+   appena rifatto: nessun percorso arriva dal modulo al disco senza essere passato dalle regole del
+   rapporto, quindi un percorso che esce dalla cartella dei caricamenti non si apre;
+4. il file deve essere presente e non protetto dal componente comune;
+5. un file oltre il termine ordinario o senza data si copia solo se arriva nel campo
+   `copia_verificata`; nel campo normale è scartato e la riga dice perché;
+6. un file con la stessa impronta di un documento del contenuto, o di un file già copiato nella
+   stessa richiesta, è "già copiato": nessun doppione, e ripetere il passaggio dopo
+   un'interruzione copia solo quello che manca.
+
+**Come si copia.** Il file si copia in un file temporaneo, e il temporaneo passa al deposito del
+componente comune con l'origine "percorso locale": il deposito sposta il file che riceve, e senza
+la copia sposterebbe l'originale. Il deposito è lo stesso del riquadro "Documenti": tipo di file
+ammesso, protezione della cartella verificata, voce di registro `documento_contenuto` con nome e
+impronta, allegato tolto se il registro rifiuta. Per i file portati dalle pagine la voce di registro
+porta anche la pagina d'origine e il percorso. Il temporaneo si cancella sempre, anche quando il
+deposito rifiuta. Il blocco della sezione resta preso per tutto il passaggio: il deposito ha una
+parte che lo prende e una che lavora dentro un blocco già preso, perché prendere due volte lo stesso
+blocco non è sicuro su tutte le versioni della banca dati.
+
+**File protetti dal componente comune.** Una pagina può collegare un file che il componente comune
+ha già depositato per un altro contenuto, per esempio un atto dell'albo. Copiarlo farebbe nascere
+un secondo documento con una scadenza diversa: il rapporto lo segna come "già protetto" e il
+passaggio non lo copia. Il confronto si fa sul percorso reale, non su come è scritto nella pagina:
+`cartella/./file.pdf` o `cartella//file.pdf` portano allo stesso file, e allo stesso allegato (T-140).
+In più, un file il cui percorso reale sta dentro la cartella protetta del componente comune è
+"già protetto" anche se nessun allegato lo registra.
+
+**Valori del modulo.** Il percorso di ogni casella si scrive con `Testo::esatto()`, che ricodifica
+anche le entità già scritte: un nome di file con `&amp;` letterale torna dal browser identico, e
+non viene scartato (T-141).
+
+**Permessi.** Gli stessi del passo 2a, più il permesso di modificare il contenuto che riceve il
+file, che il deposito controlla.
+
+**Modi di guasto (passo 2b).**
+
+| Guasto | Comportamento |
+|---|---|
+| Lettura delle pagine o delle pagine già portate fallita | niente copiato, lo stesso messaggio del rapporto |
+| Blocco della sezione occupato | niente copiato, riprovare fra qualche secondo |
+| Stato del contenuto o documenti del contenuto non leggibili | file di quella pagina non copiati, le altre proseguono |
+| Copia nel temporaneo fallita | quel file non copiato |
+| Deposito rifiutato (tipo non ammesso, protezione non verificata) | quel file non copiato, con il motivo del componente comune; temporaneo cancellato |
+| Registro che rifiuta | come nel riquadro "Documenti": allegato tolto, quel file non copiato |
+
+**Cosa deliberatamente non fa (passo 2b).**
+
+- Non copia a lotti: tutti i file scelti in una richiesta. Se il server interrompe una richiesta
+  troppo lunga, la si ripete e si copiano solo i file mancanti.
+- Non confronta l'impronta del temporaneo con quella del rapporto: il rapporto si rifà nello stesso
+  blocco, un istante prima, e l'impronta del file depositato resta nel registro.
+- Non tocca la pagina vecchia né il file originale.
+
+**Norme e fonti (passo 2b).**
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Ogni file copiato ha la sua riga di registro, con pagina d'origine e impronta | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
+| Un file oltre il termine ordinario non si copia senza conferma | d.lgs. 33/2013, art. 8, c. 3 (TRASP-08, TRASP-09) | `docs/requisiti.md` e §2-bis di questa scheda; le parole sugli effetti restano citate a memoria, non verificate su Normattiva |
+| Un file senza data trattato come oltre il termine | Regolamento (UE) 2016/679, art. 5 (TRASP-16) | `docs/requisiti.md`. Scelta prudente, non prescritta così dalla norma |
+| File serviti solo dalla cartella protetta del componente comune | regola di costruzione del progetto (consegna degli allegati) | istruzioni di sviluppo del repository; nessuna norma la prescrive in questa forma |
+| Nessun file aggiunto da qui a un contenuto pubblicato | nessuna norma: scelta di costruzione, prudente verso TRASP-09 | `docs/requisiti.md` |
+
+## Com'è andata (passo 2b)
+
+Costruito come scritto sopra. Due aggiunte venute dal lavoro:
+
+- nel rapporto ogni file porta ora anche `protetto`, vero quando l'allegato che lo registra è
+  depositato dal componente comune; il modulo e il passaggio lo leggono da lì;
+- la copia è possibile anche in un contenuto in attesa di revisione, non solo in bozza: nessuno
+  dei due è pubblico.
+
+Due rotture restavano verdi alla prima prova e hanno avuto la loro prova: dettagli aggiunti che
+sostituiscono quelli di base nella voce di registro (T-136), e il modulo dei file senza il suo
+aggancio (T-139).
+
+Dopo la rilettura si sono aggiunti T-140 e T-141. Il primo: un percorso scritto con `./` o con una
+barra doppia non veniva riconosciuto come l'allegato protetto a cui porta; ora il confronto con la
+cartella protetta del componente comune si fa sul percorso reale, e copre anche un file di quella
+cartella che nessun allegato registra. Il secondo: il valore delle caselle si scrive con
+`Testo::esatto()`. Il confronto per percorso con l'allegato resta; non si è aggiunta una tabella dei
+percorsi reali di tutti gli allegati del sito, perché ogni file depositato dal componente comune sta
+nella sua cartella e la verifica sulla cartella lo copre già, senza una lettura del disco per
+allegato.
+
+Suite completa in locale: 354 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute (passo 2b)**, una per volta, con le prove di `ImportazioneFileTest`. Tutte rosse,
+salvo l'equivalenza dichiarata sotto.
+
+| Rottura | Prova rossa |
+|---|---|
+| Blocco della sezione non preso | T-138 |
+| Chiave della pagina presa con `(int)` | T-135 |
+| Pagina non portata accettata | T-135 |
+| Stato del contenuto non controllato | T-135 |
+| Contenuto in attesa di revisione escluso | T-135 |
+| Percorso non confrontato con i file del rapporto | T-135 |
+| File mancante o fuori accettato | T-135 |
+| File già protetto copiato | T-135 |
+| File senza data copiato senza conferma | T-137 |
+| File oltre il termine copiato senza conferma | T-137 |
+| Doppioni con i documenti del contenuto | T-138 |
+| Doppioni nella stessa richiesta | T-138 |
+| Originale spostato invece che copiato | T-136 |
+| Temporaneo non cancellato | T-136, T-138 |
+| Pagina d'origine non scritta nel registro | T-136 |
+| Permesso del contenuto non controllato dentro il blocco | T-135 |
+| Dettagli aggiunti che sostituiscono quelli di base | T-136 |
+| Modulo senza permesso della sezione o di creare contenuti | T-135 |
+| Nonce di un'altra azione accettato | T-135 |
+| Nonce non controllato | T-135 |
+| Pagina d'ingresso non controllata nella forma | T-135 |
+| Campo normale non controllato come elenco | T-135 |
+| Campo di conferma non controllato come elenco | T-135 |
+| Pagina con contenuto pubblicato nel modulo | T-139 |
+| File senza data con la casella già spuntata | T-139 |
+| File già copiato con la sua casella | T-139 |
+| File mancante con la sua casella | T-139 |
+| Percorso senza escaping nel modulo | T-139 |
+| Modulo dei file a chi non può creare contenuti | T-139 |
+| `protetto` sempre falso nel rapporto | T-135 |
+| Modulo dei file senza aggancio | T-139 |
+| Cartella protetta non confrontata sul percorso reale | T-140 |
+| Cartella protetta non trovata | T-140 |
+| Valore della casella con `esc_attr()` | T-141 |
+
+Equivalenza: chiamare il deposito che prende il blocco, invece di quello che lavora dentro il
+blocco già preso, fa diventare rossa T-136 solo perché quel deposito non porta la pagina d'origine
+nel registro. Il blocco preso due volte, da solo, non si vede su questa banca dati, che tiene lo
+stesso blocco più volte dalla stessa connessione; il pericolo riguarda versioni più vecchie, ed è
+il motivo della divisione.
+
+Resta senza prova anche la scelta, in `da_admin_post()`, fra la risposta delle bozze e quella dei
+file: la funzione finisce con un reindirizzamento e `exit`, come per il passo 2a.
 
 ## Com'è andata (passo 2a)
 
