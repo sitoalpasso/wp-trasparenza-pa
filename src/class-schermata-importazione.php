@@ -482,7 +482,7 @@ final class SchermataImportazione {
 	 * @return string
 	 */
 	private static function casella( int $pagina, array $file, array $impronte ): string {
-		$nome = '<code>' . esc_html( $file['percorso'] ) . '</code>';
+		$nome = '<code>' . Testo::esatto( $file['percorso'] ) . '</code>';
 
 		if ( 'presente' !== $file['stato'] ) {
 			return $nome . ' ' . esc_html__( '(file mancante o fuori dalla cartella dei caricamenti: non si copia)', 'trasparenza-pa' );
@@ -497,10 +497,10 @@ final class SchermataImportazione {
 		}
 
 		if ( false === $file['finita'] ) {
-			return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_COPIA . '[' . $pagina . '][]' ) . '" value="' . esc_attr( $file['percorso'] ) . '" checked> ' . $nome . '</label>';
+			return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_COPIA . '[' . $pagina . '][]' ) . '" value="' . Testo::esatto( $file['percorso'] ) . '" checked> ' . $nome . '</label>';
 		}
 
-		return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_VERIFICATA . '[' . $pagina . '][]' ) . '" value="' . esc_attr( $file['percorso'] ) . '"> ' . $nome . ' '
+		return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_VERIFICATA . '[' . $pagina . '][]' ) . '" value="' . Testo::esatto( $file['percorso'] ) . '"> ' . $nome . ' '
 			. esc_html( true === $file['finita'] ? self::etichetta_oltre() : __( 'data non nota: da verificare come un file oltre il termine ordinario', 'trasparenza-pa' ) ) . '</label>';
 	}
 

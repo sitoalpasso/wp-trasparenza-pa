@@ -750,7 +750,9 @@ final class ImportazionePagine {
 	/**
 	 * La cartella dei caricamenti: dominio, percorso nell'indirizzo, cartella sul disco.
 	 *
-	 * @return array{dominio: string, percorso: string, cartella: string}
+	 * Piu la cartella protetta del componente comune, risolta, o vuota se non c'e.
+	 *
+	 * @return array{dominio: string, percorso: string, cartella: string, protetta: string}
 	 */
 	private static function base(): array {
 		$caricamenti = wp_upload_dir( null, false );
@@ -758,10 +760,13 @@ final class ImportazionePagine {
 		$dominio     = (string) wp_parse_url( $indirizzo, PHP_URL_HOST );
 		$porta       = wp_parse_url( $indirizzo, PHP_URL_PORT );
 
+		$protetta = is_callable( array( '\\Conformita_Core_Allegati', 'cartella' ) ) ? realpath( (string) \Conformita_Core_Allegati::cartella() ) : false;
+
 		return array(
 			'dominio'  => strtolower( $dominio . ( null !== $porta ? ':' . $porta : '' ) ),
 			'percorso' => untrailingslashit( (string) wp_parse_url( $indirizzo, PHP_URL_PATH ) ),
 			'cartella' => untrailingslashit( (string) $caricamenti['basedir'] ),
+			'protetta' => false === $protetta ? '' : $protetta,
 		);
 	}
 
@@ -835,13 +840,30 @@ final class ImportazionePagine {
 					'allegato' => null === $allegato ? null : (int) $allegato['id'],
 					'data'     => $data,
 					'finita'   => self::finita( $data, $durata, $oggi ),
-					'protetto' => null !== $allegato && conformita_core_allegato_protetto( (int) $allegato['id'] ),
+					'protetto' => ( null !== $allegato && conformita_core_allegato_protetto( (int) $allegato['id'] ) ) || self::nella_protetta( $percorso, $base ),
 				),
 				self::sul_disco( $percorso, $base['cartella'] )
 			);
 		}
 
 		return $file;
+	}
+
+	/**
+	 * Il file sta, una volta risolto, dentro la cartella protetta del componente comune.
+	 *
+	 * Ogni file che il componente comune deposita sta li dentro. Il confronto si
+	 * fa sul percorso reale: un percorso scritto in un altro modo, con `./` o
+	 * con una barra doppia, porta allo stesso file e non sfugge.
+	 *
+	 * @param string                $percorso Percorso relativo o pieno.
+	 * @param array<string, string> $base     Cartella dei caricamenti e cartella protetta.
+	 * @return bool
+	 */
+	private static function nella_protetta( string $percorso, array $base ): bool {
+		$reale = self::reale( $percorso, $base['cartella'] );
+
+		return '' !== $base['protetta'] && null !== $reale && 'fuori' !== $reale && str_starts_with( $reale, trailingslashit( $base['protetta'] ) );
 	}
 
 	/**
