@@ -46,7 +46,7 @@ elencata in fondo a lavoro finito.
 | 1 | `src/class-importazione-pagine.php` | Nuovo. Il rapporto: pagine, voce proposta, file, voci senza pagina |
 | 1 | `src/class-schermata-importazione.php` | Nuovo. La schermata che chiede la pagina d'ingresso e mostra il rapporto |
 | 1 | `trasparenza-pa.php` | Caricamento e agganci |
-| 1 | `tests/ImportazionePagineTest.php` | Nuovo. Righe T-121..T-126 |
+| 1 | `tests/ImportazionePagineTest.php` | Nuovo. Righe T-121..T-128 |
 | tutti | `docs/` | Collaudo, architettura, dati |
 
 ## 2. Requisiti serviti
@@ -71,14 +71,14 @@ scelta di costruzione, non viene da una norma.
 
 **Quali pagine.** La pagina d'ingresso, che spesso ha testo e file suoi, e le pagine pubblicate
 che ne discendono, a qualunque profondità, ordinate come nell'albero delle pagine (ordine del
-menu, poi titolo, poi identificativo). Sotto una pagina non pubblicata (bozza, privata, in
-attesa, programmata) non si legge niente, nemmeno le pagine pubblicate: il rapporto le **conta**
-("N pagine non pubblicate, o sotto pagine non pubblicate, non lette"), così chi prepara il
-passaggio sa che non le copre. Delle pagine non pubblicate si leggono solo identificativo e
-genitore, mai titolo o testo. Bozze, pagine private e cestino restano
-fuori: il rapporto mostra solo ciò che è già pubblico, quindi non rivela nulla a chi ha il
-permesso della sezione e non quello delle pagine. La pagina d'ingresso deve essere una pagina
-pubblicata; un genitore che, risalendo, riporta alla pagina stessa non fa girare il rapporto
+menu, poi titolo, poi identificativo). Una pagina non pubblicata (bozza, privata, in attesa,
+programmata) o protetta da password non si legge, e sotto di lei non si legge niente, nemmeno le
+pagine pubblicate: il rapporto le **conta** ("N pagine non pubblicate o protette da password, o
+sotto di loro, non lette"), così chi prepara il passaggio sa che non le copre. Di queste pagine
+si leggono solo identificativo e genitore, mai titolo o testo. Il rapporto mostra solo ciò che è
+già pubblico, quindi non rivela nulla a chi ha il permesso della sezione e non quello delle
+pagine: una pagina protetta da password è pubblicata, ma il suo testo no. La pagina d'ingresso
+deve essere una pagina pubblicata senza password; un genitore che, risalendo, riporta alla pagina stessa non fa girare il rapporto
 all'infinito.
 
 **Quale voce.** Il titolo della pagina si confronta con il nome di ogni voce dell'albero in
@@ -96,9 +96,12 @@ La voce proposta è una proposta: il passaggio vero la fa confermare.
 
 **Quali file.** Due fonti, unite senza doppioni per percorso relativo:
 
-- gli indirizzi scritti nel testo della pagina che cadono nella cartella dei caricamenti, in un
-  attributo o in un codice breve, con o senza schema e con o senza dominio; con un dominio, solo
-  se è quello della cartella dei caricamenti del sito. La parte dopo `?` o `#` non conta;
+- gli indirizzi scritti nel testo della pagina, in un attributo o in un codice breve. Prima si
+  prende l'indirizzo intero, che comincia all'inizio del testo o dopo uno spazio, un apice, un
+  uguale, una parentesi o un `>`; poi si decide: con un dominio, solo se è quello della cartella
+  dei caricamenti del sito; con o senza dominio, solo se il percorso **comincia** con quello della
+  cartella. Un indirizzo che contiene quel percorso più avanti, per esempio un altro sito
+  WordPress installato in una sottocartella, non è un file. La parte dopo `?` o `#` non conta;
 - gli allegati della libreria dei media che hanno la pagina come genitore.
 
 Per ogni file: il percorso relativo alla cartella dei caricamenti, l'allegato della libreria che
@@ -132,8 +135,8 @@ pagina è una voce senza pagina.
 
 | Dato | Lettura e scrittura |
 |---|---|
-| Pagine | lette con un'interrogazione: identificativo, genitore, titolo, testo, ordine, solo pagine pubblicate. Una lettura fallita ferma il rapporto |
-| Pagine non pubblicate | lette con un'interrogazione a parte: solo identificativo e genitore, fuori dal cestino. Una lettura fallita ferma il rapporto |
+| Pagine | lette con un'interrogazione: identificativo, genitore, titolo, testo, ordine, solo pagine pubblicate senza password. Una lettura fallita ferma il rapporto |
+| Pagine non pubblicate o protette da password | lette con un'interrogazione a parte: solo identificativo e genitore, fuori dal cestino. Una lettura fallita ferma il rapporto |
 | Allegati | letti con un'interrogazione: identificativo, genitore, data e percorso registrato. Una lettura fallita ferma il rapporto |
 | File | letti dal disco solo dentro la cartella dei caricamenti, per dimensione e impronta |
 | Albero | quello in vigore, per nomi, sottovoci e durata |
@@ -179,7 +182,7 @@ Costruito come scritto sopra. Due aggiunte venute dal lavoro:
 - le interrogazioni portano il segno `trasparenza-pa-importazione` in un commento SQL, così la
   prova del guasto rompe solo quelle.
 
-Suite completa in locale: 338 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+Suite completa in locale: 340 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
 
 ## Rotture volute, a lavoro finito
@@ -199,7 +202,6 @@ Ogni rottura è stata applicata da sola, con le prove di `ImportazionePagineTest
 | Più voci con lo stesso nome trattate come una | T-122 |
 | Voce con sottovoci proposta | T-122 |
 | Radice dell'albero fra le voci confrontabili | T-122 |
-| Indirizzo di un altro dominio preso per un file | T-123 |
 | Allegati della pagina ignorati | T-123 |
 | Lo stesso file due volte | T-123 |
 | Indirizzo non decodificato | T-123 |
@@ -224,6 +226,12 @@ Ogni rottura è stata applicata da sola, con le prove di `ImportazionePagineTest
 | Etichetta "finita di sicuro" al posto di "oltre il termine ordinario" | T-124 |
 | Lettura degli allegati fallita non fermata | T-126 |
 | Titolo senza escaping | T-121 |
+| Pagine protette da password lette | T-127 |
+| Pagine protette da password non contate fra le non lette | T-127 |
+| Dominio di un indirizzo intero non controllato | T-123, T-128 |
+| Percorso della cartella cercato in un punto qualunque dell'indirizzo | T-128 |
+| Indirizzo preso a metà di una parola | T-128 |
+| Parte dopo `?` o `#` lasciata nel percorso | T-123 |
 
 Una regola senza rottura: il segno delle pagine già visitate, che impedisce di girare in tondo
 fra genitori. Toglierlo non fa diventare rossa la prova: la fa girare per sempre. La prova T-122
