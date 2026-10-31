@@ -505,7 +505,7 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 		$this->assertDoesNotMatchRegularExpression( '/<select name="' . SchermataImportazione::CAMPO_SEZIONE . '"[^>]*>(?:(?!<\/select>).)*<option value="' . $this->radice . '"/s', $html, 'Solo pagine con il codice breve.' );
 		$this->assertStringContainsString( '<input type="checkbox" name="' . SchermataImportazione::CAMPO_REGISTRA . '[]" value="' . $this->pagine['Bandi di concorso'] . '" checked>', $html );
 		$this->assertStringContainsString( 'amministrazione-trasparente/bandi-di-concorso', $html );
-		$this->assertStringNotContainsString( 'value="' . $this->pagine['Organizzazione'] . '"', $html, 'Pagina non portata.' );
+		$this->assertStringNotContainsString( SchermataImportazione::CAMPO_REGISTRA . '[]" value="' . $this->pagine['Organizzazione'] . '"', $html, 'Pagina non portata.' );
 		$this->assertStringContainsString( 'Varie &lt;b&gt;e&lt;/b&gt; &quot;altro&quot;', $html );
 		$this->assertStringNotContainsString( 'Varie <b>e</b>', $html );
 
