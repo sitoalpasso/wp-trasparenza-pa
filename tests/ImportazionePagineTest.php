@@ -213,9 +213,9 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 	 */
 	private function richiesta( $radice ): array {
 		return array(
-			'page'                             => SchermataImportazione::PAGINA,
+			'page'                              => SchermataImportazione::PAGINA,
 			SchermataImportazione::CAMPO_RADICE => (string) $radice,
-			'_wpnonce'                         => wp_create_nonce( SchermataImportazione::AZIONE ),
+			'_wpnonce'                          => wp_create_nonce( SchermataImportazione::AZIONE ),
 		);
 	}
 
@@ -261,7 +261,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 
 		// Il modulo chiede la pagina d'ingresso fra le pagine pubblicate, con il nonce.
 		$modulo = $this->schermata( array() );
-		$this->assertStringContainsString( '<option value="' . $radice . '"', $modulo );
+		$this->assertStringContainsString( 'value="' . $radice . '"', $modulo );
 		$this->assertStringContainsString( 'name="_wpnonce"', $modulo );
 		$this->assertStringContainsString( 'method="get"', $modulo );
 		$this->assertStringNotContainsString( 'trasparenza-pa-rapporto', $modulo );
@@ -302,12 +302,12 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$bozza    = $this->pagina( 'Bozza', 0, '', array( 'post_status' => 'draft' ) );
 		$articolo = (int) self::factory()->post->create( array( 'post_type' => 'post' ) );
 
-		foreach ( array( 'abc', '0', '-3', $radice . ' ', '999999999', (string) $bozza, (string) $articolo, array( $radice ) ) as $valore ) {
-			$richiesta = $this->richiesta( $radice );
+		foreach ( array( 'abc', '0', '-3', $radice . ' ', $radice . "\n", '0' . $radice, '999999999', (string) $bozza, (string) $articolo, array( $radice ) ) as $valore ) {
+			$richiesta                                        = $this->richiesta( $radice );
 			$richiesta[ SchermataImportazione::CAMPO_RADICE ] = $valore;
 			$html = $this->schermata( $richiesta );
 			$this->assertStringNotContainsString( 'trasparenza-pa-rapporto', $html, wp_json_encode( $valore ) );
-			$this->assertStringContainsString( 'La pagina d\'ingresso', $html, wp_json_encode( $valore ) );
+			$this->assertStringContainsString( 'La pagina d&#039;ingresso indicata', $html, wp_json_encode( $valore ) );
 		}
 
 		$this->assertInstanceOf( \WP_Error::class, ImportazionePagine::rapporto( $bozza, PaginaPubblica::albero(), '2026-06-15' ) );
@@ -362,6 +362,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		global $wpdb;
 		$a = $this->pagina( 'Giro A' );
 		$b = $this->pagina( 'Giro B', $a );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- wp_update_post() non permette un giro di genitori.
 		$wpdb->update( $wpdb->posts, array( 'post_parent' => $b ), array( 'ID' => $a ) );
 		clean_post_cache( $a );
 
@@ -393,7 +394,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 			. '[fusion_button link="' . $base . '/2020/05/due.pdf" target="_blank"]Due[/fusion_button]'
 			. '<a href="' . $senza . '/2021/01/tre.pdf">Tre</a>'
 			. '<a href=\'' . $locale . '/2022/02/mancante.pdf\'>Mancante</a>'
-			. '<a href="https://altro.example' . $locale . '/2019/03/uno.pdf">Altro sito</a>'
+			. '<a href="https://altro.example' . $locale . '/2017/01/altrui.pdf">Altro sito</a>'
 			. '<a href="' . $base . '/2019/03/../../../wp-config.php">Su</a>'
 			. '<a href="' . $base . '/2019/03/collegamento.pdf">Collegamento</a>'
 			. '<a href="' . $base . '/2019/03/spazio%20e%20accento%20%C3%A8.pdf">Spazio</a>'
@@ -406,8 +407,10 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$altra  = $this->pagina( 'Altra', $radice );
 		$this->allegato( '2018/07/di-altra.pdf', 'contenuto altra', $altra, '2018-07-04 12:00:00' );
 
-		$file = $this->file_per_percorso( $this->riga( $this->rapporto( $radice ), $pagina ) );
+		$riga = $this->riga( $this->rapporto( $radice ), $pagina );
+		$file = $this->file_per_percorso( $riga );
 
+		$this->assertCount( 8, $riga['file'] );
 		$this->assertSame(
 			array( '2019/03/uno.pdf', '2020/05/due.pdf', '2021/01/tre.pdf', '2022/02/mancante.pdf', '2019/03/../../../wp-config.php', '2019/03/collegamento.pdf', '2019/03/spazio e accento è.pdf', '2018/07/solo-allegato.pdf' ),
 			array_keys( $file )
@@ -439,6 +442,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 		$this->assertSame( $solo, $file['2018/07/solo-allegato.pdf']['allegato'] );
 		$this->assertSame( '2018-07-03', $file['2018/07/solo-allegato.pdf']['data'] );
 		$this->assertArrayNotHasKey( '2018/07/di-altra.pdf', $file );
+		$this->assertArrayNotHasKey( '2017/01/altrui.pdf', $file );
 	}
 
 	/**
@@ -514,17 +518,20 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 			'[fusion_button link="https://banca.example/dati?a=1"][/fusion_button]<a href="https://banca.example/dati?a=1">di nuovo</a> https://altra.example/pagina. <a href="' . home_url( '/contatti/' ) . '">sito</a>'
 		);
 		$vuota   = $this->pagina( 'Varie', $radice, '<p> </p>[fusion_separator /]' );
+		$rinvio  = $this->pagina( 'Rinvio', $radice, '[fusion_button link="https://banca.example/sola"][/fusion_button]' );
 
 		$rapporto = $this->rapporto( $radice );
 
 		$this->assertSame( mb_strlen( 'Ciao mondo x è' ), $this->riga( $rapporto, $testo )['caratteri'] );
 		$this->assertFalse( $this->riga( $rapporto, $testo )['vuota'] );
 		$this->assertSame( array( 'https://banca.example/dati?a=1', 'https://altra.example/pagina' ), $this->riga( $rapporto, $esterni )['esterni'] );
-		$this->assertSame( 0, $this->riga( $rapporto, $esterni )['caratteri'] < 0 ? -1 : 0 );
 		$this->assertFalse( $this->riga( $rapporto, $esterni )['vuota'] );
 		$this->assertSame( 0, $this->riga( $rapporto, $vuota )['caratteri'] );
 		$this->assertSame( array(), $this->riga( $rapporto, $vuota )['esterni'] );
 		$this->assertTrue( $this->riga( $rapporto, $vuota )['vuota'] );
+		$this->assertSame( 0, $this->riga( $rapporto, $rinvio )['caratteri'] );
+		$this->assertSame( array( 'https://banca.example/sola' ), $this->riga( $rapporto, $rinvio )['esterni'] );
+		$this->assertFalse( $this->riga( $rapporto, $rinvio )['vuota'] );
 
 		$this->assertSame( array( 'articolazione', 'atti_org', 'procedimenti', 'atti_altri' ), $rapporto['voci_senza_pagina'] );
 	}
@@ -549,6 +556,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 
 			sort( $file );
 
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery -- la fotografia legge la banca dati, non la memoria.
 			return array(
 				(int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->posts}" ),
 				(string) $wpdb->get_var( "SELECT MAX(post_modified_gmt) FROM {$wpdb->posts}" ),
@@ -556,6 +564,7 @@ class ImportazionePagineTest extends WP_UnitTestCase {
 				(string) $wpdb->get_var( "SELECT MD5(GROUP_CONCAT(option_name, option_value ORDER BY option_name)) FROM {$wpdb->options}" ),
 				$file,
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery
 		};
 
 		$prima = $fotografia();
