@@ -293,7 +293,14 @@ blocco non è sicuro su tutte le versioni della banca dati.
 **File protetti dal componente comune.** Una pagina può collegare un file che il componente comune
 ha già depositato per un altro contenuto, per esempio un atto dell'albo. Copiarlo farebbe nascere
 un secondo documento con una scadenza diversa: il rapporto lo segna come "già protetto" e il
-passaggio non lo copia.
+passaggio non lo copia. Il confronto si fa sul percorso reale, non su come è scritto nella pagina:
+`cartella/./file.pdf` o `cartella//file.pdf` portano allo stesso file, e allo stesso allegato (T-140).
+In più, un file il cui percorso reale sta dentro la cartella protetta del componente comune è
+"già protetto" anche se nessun allegato lo registra.
+
+**Valori del modulo.** Il percorso di ogni casella si scrive con `Testo::esatto()`, che ricodifica
+anche le entità già scritte: un nome di file con `&amp;` letterale torna dal browser identico, e
+non viene scartato (T-141).
 
 **Permessi.** Gli stessi del passo 2a, più il permesso di modificare il contenuto che riceve il
 file, che il deposito controlla.
@@ -316,8 +323,6 @@ file, che il deposito controlla.
 - Non confronta l'impronta del temporaneo con quella del rapporto: il rapporto si rifà nello stesso
   blocco, un istante prima, e l'impronta del file depositato resta nel registro.
 - Non tocca la pagina vecchia né il file originale.
-- Non riconosce un file nella cartella protetta che nessun allegato registra: il componente comune
-  non ne lascia, e un collegamento diretto a quella cartella non si apre comunque.
 
 **Norme e fonti (passo 2b).**
 
