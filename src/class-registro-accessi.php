@@ -228,8 +228,7 @@ final class RegistroAccessi {
 
 		foreach ( $righe as $riga ) {
 			$html .= '<tr><td>' . esc_html( self::etichetta_tipo( $riga['tipo'] ) ) . '</td>';
-			// L'argomento come e stato scritto: esc_html() lascerebbe com'e un'entita gia scritta.
-			$html .= '<td>' . htmlspecialchars( $riga['argomento'], ENT_QUOTES, 'UTF-8', true ) . '</td>';
+			$html .= '<td>' . Testo::esatto( $riga['argomento'] ) . '</td>';
 			$html .= '<td>' . esc_html( self::data( $riga['richiesta'] ) ) . '</td>';
 			$html .= '<td>' . esc_html( self::etichetta_esito( $riga['esito'] ) ) . '</td>';
 			$html .= '<td>' . esc_html( self::data( $riga['decisione'] ) ) . '</td></tr>';

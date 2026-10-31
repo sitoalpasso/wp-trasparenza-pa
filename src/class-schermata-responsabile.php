@@ -332,7 +332,7 @@ final class SchermataResponsabile {
 			printf(
 				'<input type="hidden" name="%1$s" value="%2$s">',
 				esc_attr( self::CAMPO_PARTENZA . '[' . $campo . ']' ),
-				esc_attr( (string) $partenze[ $campo ] )
+				Testo::esatto( (string) $partenze[ $campo ] ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Testo::esatto() fa escaping e ricodifica anche le entita gia scritte.
 			);
 		}
 
@@ -348,7 +348,7 @@ final class SchermataResponsabile {
 				$obbligatorio ? ' ' . esc_html__( '(obbligatorio)', 'trasparenza-pa' ) : '',
 				esc_attr( $tipo ),
 				esc_attr( self::CAMPO . '[' . $campo . ']' ),
-				esc_attr( (string) ( $valori[ $campo ] ?? '' ) ),
+				Testo::esatto( (string) ( $valori[ $campo ] ?? '' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Testo::esatto() fa escaping e ricodifica anche le entita gia scritte.
 				$obbligatorio ? ' required' : ''
 			);
 		}
