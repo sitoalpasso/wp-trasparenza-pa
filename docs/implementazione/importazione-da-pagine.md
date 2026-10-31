@@ -339,7 +339,7 @@ file, che il deposito controlla.
 | File serviti solo dalla cartella protetta del componente comune | regola di costruzione del progetto (consegna degli allegati) | istruzioni di sviluppo del repository; nessuna norma la prescrive in questa forma |
 | Nessun file aggiunto da qui a un contenuto pubblicato | nessuna norma: scelta di costruzione, prudente verso TRASP-09 | `docs/requisiti.md` |
 
-## 7-quinquies. I vecchi indirizzi (passo 3)
+## 7-quater. I vecchi indirizzi (passo 3)
 
 **In parole semplici.** Le pagine vecchie hanno indirizzi già in giro: nei collegamenti di altri
 siti, nei motori di ricerca, nei segnalibri. Quando l'ente toglie una pagina vecchia, chi apre il
@@ -424,6 +424,69 @@ pubblico: la voce di un contenuto è visibile nella pagina della sezione.
 | Il rinvio porta alla voce, mai al contenuto o ai file | d.lgs. 33/2013, art. 8 (TRASP-09) | `docs/requisiti.md` |
 | Rinvio permanente, perché gli indici dei motori di ricerca seguano la sezione | d.lgs. 33/2013, art. 9 (TRASP-03, indicizzazione della sezione) | `docs/requisiti.md`. Il legame è indiretto: la norma vieta di impedire l'indicizzazione, non prescrive i rinvii. È una scelta di costruzione |
 | Il rinvio scatta solo al posto di "pagina non trovata" | nessuna norma: scelta di costruzione, per non nascondere una pagina che l'ente tiene pubblicata | |
+
+## Com'è andata (passo 3)
+
+Costruito come scritto sopra. Tre cose venute dal lavoro:
+
+- il confronto dell'indirizzo nella banca dati di solito non distingue le maiuscole; il minuscolo
+  resta nel codice, perché il controllo dei doppioni avviene in PHP e perché non tutte le
+  installazioni usano la stessa collazione, e una prova lo verifica direttamente su `percorso()`;
+- un indirizzo registrato resta fra i registrati anche quando il contenuto va nel cestino: la
+  schermata lo segna "nessun rinvio", e il doppione si controlla contro tutti, così un contenuto
+  rimesso dal cestino non trova il suo indirizzo preso da un altro;
+- la scelta della pagina della sezione non ha una voce di registro sua: è un'impostazione, non un
+  cambio di un contenuto, e ogni registrazione che ne dipende ha la sua voce.
+
+Suite completa in locale: 361 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute (passo 3)**, una per volta, con le prove di `VecchiIndirizziTest`. Tutte rosse, salvo
+l'equivalenza dichiarata sotto. Tre erano verdi alla prima prova e hanno avuto la loro prova:
+percorso non in minuscolo, lettura fallita degli indirizzi registrati, motivo della pagina non
+portata.
+
+| Rottura | Prova rossa |
+|---|---|
+| Rinvio anche senza "pagina non trovata" | T-145 |
+| Percorso non in minuscolo | T-145 |
+| Barra finale non tolta | T-145 |
+| Contenuto nel cestino che rinvia | T-145 |
+| Voce che non c'è più usata come destinazione | T-145 |
+| Destinazione uguale all'indirizzo chiesto | T-145 |
+| Pagina della sezione non controllata alla lettura | T-145 |
+| Pagina della sezione senza codice breve accettata | T-143, T-145 |
+| Pagina della sezione in bozza accettata | T-143 |
+| Articolo accettato come pagina della sezione | T-143 |
+| Aggancio dopo le ipotesi di WordPress | T-146 |
+| Blocco della sezione non preso | T-144 |
+| Lettura fallita degli indirizzi registrati non fermata | T-144 |
+| Identificativo preso con `(int)` | T-143 |
+| Pagina non portata accettata | T-143 |
+| Pagina della sezione che registra sé stessa | T-143 |
+| Contenuto nel cestino che registra | T-143 |
+| Secondo indirizzo sullo stesso contenuto | T-144 |
+| Stesso indirizzo su due contenuti | T-144 |
+| Registro che rifiuta ignorato nella registrazione | T-144 |
+| Registro che rifiuta ignorato nella rimozione | T-144 |
+| Rimozione da un contenuto senza indirizzo | T-144 |
+| Pagina d'origine non scritta nel registro | T-144 |
+| Pagina della sezione non conservata | T-143 |
+| Modulo senza permesso della sezione o di creare contenuti | T-143 |
+| Nonce di un'altra azione accettato | T-143 |
+| Campo "togli" non controllato come elenco | T-143 |
+| Pagina della sezione non controllata nella forma | T-143 |
+| Pagina già registrata con la sua casella | T-147 |
+| Titolo senza escaping nel modulo | T-147 |
+| Pagina della sezione non valida senza avviso | T-147 |
+| Pagina della sezione non preselezionata | T-147 |
+| Pagine senza codice breve fra le scelte | T-147 |
+| Modulo a chi non può creare contenuti | T-147 |
+| Modulo senza aggancio | T-147 |
+
+Equivalenza: togliere, nel rinvio, il controllo dell'errore di lettura non fa diventare rossa
+nessuna prova, perché una lettura fallita restituisce comunque "nessun contenuto" e quindi nessun
+rinvio. Il controllo resta come difesa esplicita.
 
 ## Com'è andata (passo 2b)
 
