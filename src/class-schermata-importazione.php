@@ -63,6 +63,26 @@ final class SchermataImportazione {
 	const CAMPO_VERIFICATA = 'copia_verificata';
 
 	/**
+	 * Azione del modulo dei vecchi indirizzi, e del suo nonce.
+	 */
+	const AZIONE_INDIRIZZI = 'trasparenza_pa_importazione_indirizzi';
+
+	/**
+	 * Nome del campo con la pagina della sezione.
+	 */
+	const CAMPO_SEZIONE = 'sezione';
+
+	/**
+	 * Nome del campo con le pagine di cui registrare l'indirizzo.
+	 */
+	const CAMPO_REGISTRA = 'registra';
+
+	/**
+	 * Nome del campo con i contenuti da cui togliere l'indirizzo.
+	 */
+	const CAMPO_TOGLI_INDIRIZZO = 'togli_indirizzo';
+
+	/**
 	 * Prefisso del dato temporaneo che porta l'esito alla schermata.
 	 */
 	const ESITO = 'trasparenza_pa_esito_importazione_';
@@ -75,6 +95,7 @@ final class SchermataImportazione {
 		add_action( 'admin_menu', array( self::class, 'da_admin_menu' ), 15 );
 		add_action( 'admin_post_' . self::AZIONE_BOZZE, array( self::class, 'da_admin_post' ) );
 		add_action( 'admin_post_' . self::AZIONE_FILE, array( self::class, 'da_admin_post' ) );
+		add_action( 'admin_post_' . self::AZIONE_INDIRIZZI, array( self::class, 'da_admin_post' ) );
 	}
 
 	/**
@@ -95,7 +116,8 @@ final class SchermataImportazione {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- il nonce lo verifica salva(), prima di leggere qualunque altro campo.
 		$richiesta = wp_unslash( $_POST );
 		$richiesta = is_array( $richiesta ) ? $richiesta : array();
-		$esito     = self::AZIONE_FILE === ( $richiesta['action'] ?? '' ) ? self::salva_file( $richiesta ) : self::salva( $richiesta );
+		$azione    = $richiesta['action'] ?? '';
+		$esito     = self::AZIONE_FILE === $azione ? self::salva_file( $richiesta ) : ( self::AZIONE_INDIRIZZI === $azione ? self::salva_indirizzi( $richiesta ) : self::salva( $richiesta ) );
 
 		if ( in_array( $esito['codice'], array( 'permesso', 'nonce' ), true ) ) {
 			wp_die( esc_html( $esito['messaggio'] ), '', array( 'response' => 403 ) );
@@ -227,6 +249,66 @@ final class SchermataImportazione {
 	}
 
 	/**
+	 * Registra i vecchi indirizzi scelti e toglie quelli chiesti.
+	 *
+	 * @param array<string, mixed> $richiesta Campi del modulo, gia senza barre inverse.
+	 * @return array{codice: string, messaggio: string, righe: array<int, array<string, mixed>>}
+	 */
+	public static function salva_indirizzi( array $richiesta ): array {
+		if ( ! self::puo_portare() ) {
+			return self::esito( 'permesso', __( 'Non avete il permesso di registrare indirizzi della sezione: servono il permesso della sezione e quello di creare contenuti.', 'trasparenza-pa' ) );
+		}
+
+		$nonce = $richiesta['_wpnonce'] ?? '';
+
+		if ( ! is_string( $nonce ) || ! wp_verify_nonce( $nonce, self::AZIONE_INDIRIZZI ) ) {
+			return self::esito( 'nonce', __( 'La richiesta è scaduta o non viene da questa schermata: niente registrato. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
+		}
+
+		$radice = $richiesta[ self::CAMPO_RADICE ] ?? null;
+
+		if ( ! is_string( $radice ) || 1 !== preg_match( '/\A[1-9][0-9]{0,18}\z/', $radice ) ) {
+			return self::esito( 'radice', __( 'Niente registrato: la pagina d\'ingresso indicata non è una pagina pubblicata senza password.', 'trasparenza-pa' ) );
+		}
+
+		$registra = $richiesta[ self::CAMPO_REGISTRA ] ?? array();
+		$togli    = $richiesta[ self::CAMPO_TOGLI_INDIRIZZO ] ?? array();
+
+		if ( ! is_array( $registra ) || ! is_array( $togli ) ) {
+			return self::esito( 'dati', __( 'Niente registrato: la richiesta non conteneva le pagine scelte.', 'trasparenza-pa' ) );
+		}
+
+		$sezione = $richiesta[ self::CAMPO_SEZIONE ] ?? null;
+
+		if ( ! is_string( $sezione ) || 1 !== preg_match( '/\A[1-9][0-9]{0,18}\z/', $sezione ) || ! VecchiIndirizzi::sezione_valida( (int) $sezione ) ) {
+			return self::esito( 'sezione', __( 'Niente registrato: la pagina della sezione scelta non è una pagina pubblicata che contiene il codice breve della sezione.', 'trasparenza-pa' ) );
+		}
+
+		$albero = PaginaPubblica::albero();
+
+		if ( null === $albero ) {
+			return self::esito( 'albero', __( 'Niente registrato: l\'albero della sezione non è caricato.', 'trasparenza-pa' ) );
+		}
+
+		$righe = VecchiIndirizzi::registra( (int) $radice, (int) $sezione, $registra, $togli, $albero, RegistroAccessi::oggi() );
+
+		if ( is_wp_error( $righe ) ) {
+			$codici = array(
+				'trasparenza_importazione_radice'   => 'radice',
+				'trasparenza_importazione_occupato' => 'occupato',
+			);
+
+			return self::esito( $codici[ $righe->get_error_code() ] ?? 'lettura', __( 'Niente registrato.', 'trasparenza-pa' ) . ' ' . $righe->get_error_message() );
+		}
+
+		$registrati = count( array_filter( $righe, static fn( $riga ) => 'registrato' === $riga['esito'] ) );
+		$tolti      = count( array_filter( $righe, static fn( $riga ) => 'tolto' === $riga['esito'] ) );
+
+		/* translators: 1: indirizzi registrati, 2: indirizzi tolti. */
+		return self::esito( 'registrato', sprintf( __( 'Indirizzi registrati: %1$d; tolti: %2$d.', 'trasparenza-pa' ), $registrati, $tolti ), $righe );
+	}
+
+	/**
 	 * Un esito.
 	 *
 	 * @param string                           $codice    Codice.
@@ -266,23 +348,30 @@ final class SchermataImportazione {
 
 		delete_transient( $chiave );
 
-		$html = '<div class="notice ' . ( in_array( $esito['codice'], array( 'portato', 'copiato' ), true ) ? 'notice-success' : 'notice-error' ) . '"><p>' . esc_html( (string) $esito['messaggio'] ) . '</p>';
+		$html = '<div class="notice ' . ( in_array( $esito['codice'], array( 'portato', 'copiato', 'registrato' ), true ) ? 'notice-success' : 'notice-error' ) . '"><p>' . esc_html( (string) $esito['messaggio'] ) . '</p>';
 
 		if ( isset( $esito['righe'] ) && is_array( $esito['righe'] ) && array() !== $esito['righe'] ) {
 			$nomi  = array(
-				'portata'     => __( 'portata in bozza', 'trasparenza-pa' ),
-				'gia_portata' => __( 'già portata', 'trasparenza-pa' ),
-				'scartata'    => __( 'scartata', 'trasparenza-pa' ),
-				'errore'      => 'copiato' === $esito['codice'] ? __( 'non copiato', 'trasparenza-pa' ) : __( 'non portata', 'trasparenza-pa' ),
-				'copiato'     => __( 'copiato', 'trasparenza-pa' ),
-				'gia_copiato' => __( 'già copiato', 'trasparenza-pa' ),
-				'scartato'    => __( 'scartato', 'trasparenza-pa' ),
+				'portata'        => __( 'portata in bozza', 'trasparenza-pa' ),
+				'gia_portata'    => __( 'già portata', 'trasparenza-pa' ),
+				'scartata'       => __( 'scartata', 'trasparenza-pa' ),
+				'errore'         => array(
+					'copiato'    => __( 'non copiato', 'trasparenza-pa' ),
+					'registrato' => __( 'non registrato o non tolto', 'trasparenza-pa' ),
+				)[ $esito['codice'] ] ?? __( 'non portata', 'trasparenza-pa' ),
+				'registrato'     => __( 'indirizzo registrato', 'trasparenza-pa' ),
+				'gia_registrato' => __( 'indirizzo già registrato', 'trasparenza-pa' ),
+				'tolto'          => __( 'indirizzo tolto', 'trasparenza-pa' ),
+				'copiato'        => __( 'copiato', 'trasparenza-pa' ),
+				'gia_copiato'    => __( 'già copiato', 'trasparenza-pa' ),
+				'scartato'       => __( 'scartato', 'trasparenza-pa' ),
 			);
 			$html .= '<ul>';
 
 			foreach ( $esito['righe'] as $riga ) {
 				$titolo = '' === (string) $riga['titolo'] ? sprintf( '#%d', (int) $riga['pagina'] ) : (string) $riga['titolo'];
 				$titolo = isset( $riga['percorso'] ) ? $titolo . ', ' . (string) $riga['percorso'] : $titolo;
+				$titolo = isset( $riga['indirizzo'] ) && '' !== $riga['indirizzo'] ? $titolo . ', /' . (string) $riga['indirizzo'] : $titolo;
 				$html  .= '<li>' . esc_html( $titolo . ': ' . ( $nomi[ $riga['esito'] ] ?? '' ) . ( '' === (string) $riga['motivo'] ? '' : '. ' . $riga['motivo'] ) ) . '</li>';
 			}
 
@@ -369,7 +458,7 @@ final class SchermataImportazione {
 			return $html . self::avviso( $rapporto->get_error_message() ) . $modulo . '</div>';
 		}
 
-		$bozze = self::puo_portare() ? self::modulo_bozze( $rapporto, $albero ) . self::modulo_file( $rapporto ) : '';
+		$bozze = self::puo_portare() ? self::modulo_bozze( $rapporto, $albero ) . self::modulo_file( $rapporto ) . self::modulo_indirizzi( $rapporto, $albero ) : '';
 
 		return $html . self::modulo( $radice ) . self::rapporto( $rapporto, $albero, $oggi ) . $bozze . '</div>';
 	}
@@ -503,6 +592,84 @@ final class SchermataImportazione {
 
 		return '<label><input type="checkbox" name="' . esc_attr( self::CAMPO_VERIFICATA . '[' . $pagina . '][]' ) . '" value="' . Testo::esatto( $file['percorso'] ) . '"> ' . $nome . ' '
 			. esc_html( true === $file['finita'] ? self::etichetta_oltre() : __( 'data non nota: da verificare come un file oltre il termine ordinario', 'trasparenza-pa' ) ) . '</label>';
+	}
+
+	/**
+	 * Il modulo "vecchi indirizzi".
+	 *
+	 * @param array<string, mixed> $rapporto Rapporto.
+	 * @param Alberatura           $albero   Albero.
+	 * @return string
+	 */
+	private static function modulo_indirizzi( array $rapporto, Alberatura $albero ): string {
+		$html       = '<h2>' . esc_html__( 'Vecchi indirizzi', 'trasparenza-pa' ) . '</h2>';
+		$html      .= '<p>' . esc_html__( 'L\'indirizzo registrato di una pagina portata, quando la pagina vecchia non risponde più, porta con un rinvio permanente alla voce del contenuto nella pagina della sezione. Finché la pagina vecchia è pubblicata non cambia niente.', 'trasparenza-pa' ) . '</p>';
+		$scelta     = get_option( VecchiIndirizzi::OPZIONE_SEZIONE );
+		$valida     = VecchiIndirizzi::sezione();
+		$possibili  = VecchiIndirizzi::sezioni_possibili();
+		$registrati = VecchiIndirizzi::registrati();
+
+		if ( false !== $scelta && null === $valida ) {
+			$html .= self::avviso( __( 'La pagina della sezione scelta non è più una pagina pubblicata con il codice breve: nessun vecchio indirizzo porta alla sezione finché non se ne sceglie un\'altra.', 'trasparenza-pa' ) );
+		}
+
+		if ( array() === $possibili ) {
+			/* translators: %s: codice breve della sezione. */
+			return $html . '<p>' . esc_html( sprintf( __( 'Nessuna pagina pubblicata contiene il codice breve [%s]: crearla prima di registrare i vecchi indirizzi.', 'trasparenza-pa' ), PaginaPubblica::CODICE_BREVE ) ) . '</p>';
+		}
+
+		if ( is_wp_error( $registrati ) ) {
+			return $html . self::avviso( $registrati->get_error_message() );
+		}
+
+		$html .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">'
+			. '<input type="hidden" name="action" value="' . esc_attr( self::AZIONE_INDIRIZZI ) . '">'
+			. '<input type="hidden" name="' . esc_attr( self::CAMPO_RADICE ) . '" value="' . esc_attr( (string) $rapporto['radice'] ) . '">'
+			. wp_nonce_field( self::AZIONE_INDIRIZZI, '_wpnonce', false, false );
+		$html .= '<p><label for="trasparenza-pa-sezione">' . esc_html__( 'Pagina della sezione', 'trasparenza-pa' ) . '</label> <select name="' . esc_attr( self::CAMPO_SEZIONE ) . '" id="trasparenza-pa-sezione">';
+
+		foreach ( $possibili as $pagina ) {
+			$html .= '<option value="' . esc_attr( (string) $pagina ) . '"' . selected( $valida, $pagina, false ) . '>' . esc_html( get_the_title( $pagina ) . ' (/' . VecchiIndirizzi::percorso( (string) get_permalink( $pagina ) ) . ')' ) . '</option>';
+		}
+
+		$html .= '</select></p>';
+		$righe = '';
+
+		foreach ( $rapporto['pagine'] as $pagina ) {
+			$contenuto = $pagina['portata'];
+
+			if ( null === $contenuto || isset( $registrati[ $contenuto ] ) || $pagina['id'] === $valida || in_array( get_post_status( (int) $contenuto ), array( false, 'trash' ), true ) ) {
+				continue;
+			}
+
+			$voce   = get_post_meta( (int) $contenuto, SchedaContenuto::META_COLLOCAZIONE, true );
+			$nome   = is_string( $voce ) && null !== $albero->voce( $voce ) ? (string) $albero->voce( $voce )['nome'] : '';
+			$righe .= '<tr><td><label><input type="checkbox" name="' . esc_attr( self::CAMPO_REGISTRA . '[]' ) . '" value="' . esc_attr( (string) $pagina['id'] ) . '" checked> ' . esc_html( $pagina['titolo'] ) . '</label></td>'
+				. '<td><code>' . esc_html( '/' . VecchiIndirizzi::percorso( (string) $pagina['indirizzo'] ) ) . '</code></td>'
+				. '<td>' . esc_html( $nome ) . '</td></tr>';
+		}
+
+		$testata = '<thead><tr><th scope="col">' . esc_html__( 'Pagina', 'trasparenza-pa' ) . '</th><th scope="col">' . esc_html__( 'Indirizzo vecchio', 'trasparenza-pa' ) . '</th><th scope="col">' . esc_html__( 'Voce di destinazione', 'trasparenza-pa' ) . '</th></tr></thead>';
+
+		if ( '' !== $righe ) {
+			$html .= '<h3>' . esc_html__( 'Da registrare', 'trasparenza-pa' ) . '</h3><table class="widefat striped">' . $testata . '<tbody>' . $righe . '</tbody></table>';
+		}
+
+		if ( array() !== $registrati ) {
+			$html .= '<h3>' . esc_html__( 'Già registrati', 'trasparenza-pa' ) . '</h3><table class="widefat striped">' . $testata . '<tbody>';
+
+			foreach ( $registrati as $contenuto => $dati ) {
+				$voce  = get_post_meta( $contenuto, SchedaContenuto::META_COLLOCAZIONE, true );
+				$nome  = is_string( $voce ) && null !== $albero->voce( $voce ) ? (string) $albero->voce( $voce )['nome'] : '';
+				$html .= '<tr><td><label><input type="checkbox" name="' . esc_attr( self::CAMPO_TOGLI_INDIRIZZO . '[]' ) . '" value="' . esc_attr( (string) $contenuto ) . '"> ' . esc_html__( 'Togli:', 'trasparenza-pa' ) . ' ' . esc_html( get_the_title( $contenuto ) ) . ( 'trash' === $dati['stato'] ? ' ' . esc_html__( '(contenuto nel cestino: nessun rinvio)', 'trasparenza-pa' ) : '' ) . '</label></td>'
+					. '<td><code>' . esc_html( '/' . $dati['indirizzo'] ) . '</code></td>'
+					. '<td>' . esc_html( $nome ) . '</td></tr>';
+			}
+
+			$html .= '</tbody></table>';
+		}
+
+		return $html . '<p><button type="submit" class="button button-primary">' . esc_html__( 'Registra i vecchi indirizzi', 'trasparenza-pa' ) . '</button></p></form>';
 	}
 
 	/**
