@@ -74,7 +74,12 @@ final class VecchiIndirizzi {
 			return null;
 		}
 
-		$chiesto = sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+		/*
+		 * Niente sanitize_text_field(): toglierebbe le sequenze %xx, con cui e
+		 * scritto il permalink registrato di uno slug codificato. Il percorso va
+		 * solo come parametro di un'interrogazione preparata e non si stampa.
+		 */
+		$chiesto = (string) wp_unslash( $_SERVER['REQUEST_URI'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- vedi sopra.
 
 		return self::destinazione( self::percorso( $chiesto ) );
 	}
@@ -105,10 +110,19 @@ final class VecchiIndirizzi {
 	public static function destinazione( string $percorso ): ?string {
 		global $wpdb;
 
-		$sezione = self::sezione();
-		$albero  = PaginaPubblica::albero();
+		if ( '' === $percorso ) {
+			return null;
+		}
 
-		if ( '' === $percorso || null === $sezione || null === $albero ) {
+		$sezione = self::sezione();
+
+		if ( null === $sezione ) {
+			return null;
+		}
+
+		$albero = PaginaPubblica::albero();
+
+		if ( null === $albero ) {
 			return null;
 		}
 
