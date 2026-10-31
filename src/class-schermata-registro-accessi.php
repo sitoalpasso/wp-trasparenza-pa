@@ -271,8 +271,9 @@ final class SchermataRegistroAccessi {
 		}
 
 		$nuovo = array(
-			'ultimo' => max( $conservato['ultimo'], $numero ),
-			'righe'  => $righe,
+			'ultimo'     => max( $conservato['ultimo'], $numero ),
+			'aggiornato' => time(),
+			'righe'      => $righe,
 		);
 
 		update_option( RegistroAccessi::OPZIONE, $nuovo, false );
