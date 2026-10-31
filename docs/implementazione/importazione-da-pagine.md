@@ -396,8 +396,9 @@ e solo quando la richiesta finisce in "pagina non trovata":
    pulizia del testo, che toglierebbe le sequenze `%xx`: va solo come parametro di
    un'interrogazione preparata, e non si stampa mai (T-145);
 2. la destinazione è la voce del contenuto **adesso**, non quella del momento del passaggio: se un
-   addetto sposta il contenuto, il rinvio lo segue. Una voce che non c'è più nell'albero porta alla
-   pagina della sezione;
+   addetto sposta il contenuto, il rinvio lo segue. Una voce assente o che non c'è più nell'albero
+   porta alla pagina della sezione; una voce che non si è potuta leggere non porta da nessuna parte,
+   perché il 301 verso la pagina della sezione resterebbe nei browser anche dopo;
 3. il rinvio è permanente (301), perché la pagina vecchia non tornerà e i motori di ricerca devono
    aggiornare il loro indice;
 4. nessun rinvio se la pagina della sezione non vale, se la lettura fallisce, o se la destinazione
@@ -418,7 +419,7 @@ pubblico: la voce di un contenuto è visibile nella pagina della sezione.
 | Lettura delle pagine con il codice breve fallita, nella schermata | avviso d'errore, nessun modulo, nessun invito a creare la pagina |
 | Blocco della sezione occupato | niente registrato, riprovare fra qualche secondo |
 | Registro che rifiuta | quell'indirizzo non registrato, o non tolto |
-| Lettura degli indirizzi fallita, nel rinvio | nessun rinvio: resta "pagina non trovata" |
+| Lettura degli indirizzi o della voce del contenuto fallita, nel rinvio | nessun rinvio: resta "pagina non trovata" |
 | Pagina della sezione tolta o senza codice breve | nessun rinvio; la schermata lo dice |
 
 **Cosa deliberatamente non fa (passo 3).**
@@ -463,7 +464,11 @@ Costruito come scritto sopra. Tre cose venute dal lavoro:
   una lettura fallita delle pagine con il codice breve diventava "nessuna pagina, crearla"; e,
   soprattutto, togliere un indirizzo o cambiare la pagina della sezione chiedeva il rapporto, che
   non si fa più quando l'ente ritira la pagina d'ingresso vecchia, cioè proprio quando i rinvii
-  lavorano. Ora il rapporto serve solo per registrare, e il modulo resta senza pagina d'ingresso.
+  lavorano. Ora il rapporto serve solo per registrare, e il modulo resta senza pagina d'ingresso;
+- la terza rilettura ha trovato che la voce del contenuto, nel rinvio, si leggeva con
+  `get_post_meta()`: una lettura fallita diventava "voce assente" e mandava alla pagina della
+  sezione con un 301 che i browser conservano. Ora si legge con `Metadato::leggi()` e, se fallisce,
+  nessun rinvio.
 
 Suite completa in locale: 366 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
@@ -482,6 +487,7 @@ può creare contenuti, ha avuto la sua prova.
 | Barra finale non tolta | T-145 |
 | Contenuto nel cestino che rinvia | T-145 |
 | Voce che non c'è più usata come destinazione | T-145 |
+| Voce non letta trattata come assente | T-145 |
 | Destinazione uguale all'indirizzo chiesto | T-145 |
 | Pagina della sezione non controllata alla lettura | T-145 |
 | Pagina della sezione senza codice breve accettata | T-143, T-145 |
