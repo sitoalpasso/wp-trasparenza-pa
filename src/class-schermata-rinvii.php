@@ -327,7 +327,7 @@ final class SchermataRinvii {
 		$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_VOCE ) . '" value="' . esc_attr( $voce ) . '">';
 
 		foreach ( Rinvii::CAMPI as $campo ) {
-			$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA . '[' . $campo . ']' ) . '" value="' . esc_attr( $partenza[ $campo ] ) . '">';
+			$html .= '<input type="hidden" name="' . esc_attr( self::CAMPO_PARTENZA . '[' . $campo . ']' ) . '" value="' . Testo::esatto( $partenza[ $campo ] ) . '">';
 		}
 
 		$html .= '<table class="form-table" role="presentation"><tbody>';
@@ -361,7 +361,7 @@ final class SchermataRinvii {
 
 		foreach ( $campi as $campo => list( $etichetta, $tipo ) ) {
 			$html .= '<tr><th scope="row"><label for="' . esc_attr( $id . '-' . $campo ) . '">' . esc_html( $etichetta ) . '</label></th>';
-			$html .= '<td><input type="' . esc_attr( $tipo ) . '" id="' . esc_attr( $id . '-' . $campo ) . '" name="' . esc_attr( self::CAMPO . '[' . $campo . ']' ) . '" value="' . esc_attr( $valori[ $campo ] ) . '" class="regular-text"></td></tr>';
+			$html .= '<td><input type="' . esc_attr( $tipo ) . '" id="' . esc_attr( $id . '-' . $campo ) . '" name="' . esc_attr( self::CAMPO . '[' . $campo . ']' ) . '" value="' . Testo::esatto( $valori[ $campo ] ) . '" class="regular-text"></td></tr>';
 		}
 
 		$html .= '</tbody></table>';

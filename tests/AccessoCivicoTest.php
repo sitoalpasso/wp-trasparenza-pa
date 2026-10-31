@@ -696,4 +696,32 @@ class AccessoCivicoTest extends WP_UnitTestCase {
 
 		$this->assertSame( $prima, $ora, 'La versione nuova aggiunge la collocazione e la sua fonte e non cambia altro.' );
 	}
+
+	/**
+	 * T-116: [attacco] un testo con entita HTML scritte come testo torna dal modulo identico, e il modulo rimandato com'e si salva.
+	 */
+	public function test_t116_entita_scritte_come_testo(): void {
+		wp_set_current_user( $this->responsabile );
+
+		$dati = array_merge(
+			$this->validi(),
+			array(
+				'ufficio'   => 'Ufficio &amp; protocollo',
+				'sostituto' => 'Paolo Verdi &lt;segretario&gt;',
+			)
+		);
+
+		$this->assertSame( 'salvato', SchermataAccessoCivico::salva( $this->richiesta( $dati ) )['codice'] );
+
+		$campi = $this->campi_del_modulo( $this->schermata() );
+
+		$this->assertEquals( $dati, $campi[ SchermataAccessoCivico::CAMPO_PARTENZA ], 'Le partenze tornano identiche.' );
+		$this->assertEquals( $dati, $campi[ SchermataAccessoCivico::CAMPO ], 'I campi tornano identici.' );
+
+		$campi[ SchermataAccessoCivico::CAMPO ]['ufficio_email'] = 'altra@example.org';
+		$esito = SchermataAccessoCivico::salva( $this->richiesta( $campi[ SchermataAccessoCivico::CAMPO ], $campi[ SchermataAccessoCivico::CAMPO_PARTENZA ] ) );
+
+		$this->assertSame( 'salvato', $esito['codice'], $esito['messaggio'] );
+		$this->assertEquals( array_merge( $dati, array( 'ufficio_email' => 'altra@example.org' ) ), AccessoCivico::dati() );
+	}
 }
