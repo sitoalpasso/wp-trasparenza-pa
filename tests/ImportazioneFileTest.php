@@ -502,6 +502,34 @@ class ImportazioneFileTest extends WP_UnitTestCase {
 		$this->assertSame( $this->pagine['Bandi di concorso'], (int) $righe[0]['dettagli']['pagina'] );
 		$this->assertSame( $this->percorsi['entro'], $righe[0]['dettagli']['percorso'] );
 		$this->assertSame( $this->amministratore, (int) $righe[0]['utente'] );
+
+		// I dettagli aggiunti non sostituiscono quelli di base.
+		$this->assertTrue( Blocco::prendi() );
+
+		try {
+			$altro = SchedaDocumenti::deposita_nel_blocco(
+				$id,
+				$this->file_temporaneo( 'aggiunto.pdf' ),
+				'percorso_locale',
+				array(
+					'operazione' => 'tolto',
+					'impronta'   => 'sha256:falsa',
+				)
+			);
+		} finally {
+			Blocco::rilascia();
+		}
+
+		$this->assertSame( 'salvato', $altro['codice'] );
+		$righe  = conformita_core_voci_registro(
+			array(
+				'contenuto' => $id,
+				'azione'    => SchedaDocumenti::AZIONE_REGISTRO,
+			)
+		);
+		$ultima = end( $righe );
+		$this->assertSame( 'aggiunto', $ultima['dettagli']['operazione'] );
+		$this->assertSame( 'sha256:' . conformita_core_impronta_allegato( $altro['allegato'] )['valore'], $ultima['dettagli']['impronta'] );
 	}
 
 	/**
@@ -670,6 +698,8 @@ class ImportazioneFileTest extends WP_UnitTestCase {
 			SchermataImportazione::CAMPO_RADICE => (string) $this->radice,
 			'_wpnonce'                          => wp_create_nonce( SchermataImportazione::AZIONE ),
 		);
+
+		$this->assertSame( 10, has_action( 'admin_post_' . SchermataImportazione::AZIONE_FILE, array( SchermataImportazione::class, 'da_admin_post' ) ) );
 
 		$html = SchermataImportazione::html( $get );
 		$this->assertStringContainsString( 'name="action" value="' . SchermataImportazione::AZIONE_FILE . '"', $html );
