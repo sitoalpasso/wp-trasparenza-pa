@@ -171,15 +171,19 @@ final class VecchiIndirizzi {
 	/**
 	 * Le pagine che possono fare da pagina della sezione.
 	 *
-	 * @return array<int, int>
+	 * @return array<int, int>|WP_Error
 	 */
-	public static function sezioni_possibili(): array {
+	public static function sezioni_possibili() {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- ricerca del codice breve nel testo, che get_posts() non offre.
 		$righe = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND post_content LIKE %s ORDER BY post_title ASC, ID ASC", 'page', 'publish', '%' . $wpdb->esc_like( '[' . PaginaPubblica::CODICE_BREVE ) . '%' ) );
 
-		return array_values( array_filter( array_map( 'intval', is_array( $righe ) ? $righe : array() ), array( self::class, 'sezione_valida' ) ) );
+		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
+			return new WP_Error( 'trasparenza_importazione_sezioni', __( 'Le pagine con il codice breve non si sono potute leggere dalla banca dati.', 'trasparenza-pa' ) );
+		}
+
+		return array_values( array_filter( array_map( 'intval', $righe ), array( self::class, 'sezione_valida' ) ) );
 	}
 
 	/**
@@ -214,7 +218,10 @@ final class VecchiIndirizzi {
 	 *
 	 * Le scelte non si prendono per buone: con il blocco della sezione preso il
 	 * rapporto si rifa adesso, e l'indirizzo si ricava dalla pagina, mai dal
-	 * modulo. Chi chiama controlla permessi, nonce e pagina della sezione.
+	 * modulo. Il rapporto serve solo per registrare: togliere un indirizzo e
+	 * cambiare la pagina della sezione si fanno anche dopo che la pagina
+	 * d'ingresso vecchia e stata ritirata, quando i rinvii servono davvero.
+	 * Chi chiama controlla permessi, nonce e pagina della sezione.
 	 *
 	 * @param int        $radice  Pagina d'ingresso.
 	 * @param int        $sezione Pagina della sezione, gia controllata.
@@ -230,10 +237,14 @@ final class VecchiIndirizzi {
 		}
 
 		try {
-			$rapporto = ImportazionePagine::rapporto( $radice, $albero, $oggi );
+			$rapporto = array( 'pagine' => array() );
 
-			if ( is_wp_error( $rapporto ) ) {
-				return $rapporto;
+			if ( array() !== $pagine ) {
+				$rapporto = ImportazionePagine::rapporto( $radice, $albero, $oggi );
+
+				if ( is_wp_error( $rapporto ) ) {
+					return $rapporto;
+				}
 			}
 
 			$registrati = self::registrati();
@@ -242,7 +253,12 @@ final class VecchiIndirizzi {
 				return $registrati;
 			}
 
+			/* Si rilegge: update_option() dice false sia se non scrive sia se il valore era gia quello. */
 			update_option( self::OPZIONE_SEZIONE, (string) $sezione, false );
+
+			if ( Opzione::leggi( self::OPZIONE_SEZIONE ) !== (string) $sezione ) {
+				return new WP_Error( 'trasparenza_importazione_sezione_scritta', __( 'La pagina della sezione scelta non si è potuta salvare nella banca dati.', 'trasparenza-pa' ) );
+			}
 
 			$righe = array();
 

@@ -265,9 +265,10 @@ final class SchermataImportazione {
 			return self::esito( 'nonce', __( 'La richiesta è scaduta o non viene da questa schermata: niente registrato. Ricaricare la schermata e riprovare.', 'trasparenza-pa' ) );
 		}
 
-		$radice = $richiesta[ self::CAMPO_RADICE ] ?? null;
+		/* La pagina d'ingresso serve solo per registrare: dalla schermata iniziale non c'e. */
+		$radice = $richiesta[ self::CAMPO_RADICE ] ?? '0';
 
-		if ( ! is_string( $radice ) || 1 !== preg_match( '/\A[1-9][0-9]{0,18}\z/', $radice ) ) {
+		if ( ! is_string( $radice ) || 1 !== preg_match( '/\A(0|[1-9][0-9]{0,18})\z/', $radice ) ) {
 			return self::esito( 'radice', __( 'Niente registrato: la pagina d\'ingresso indicata non è una pagina pubblicata senza password.', 'trasparenza-pa' ) );
 		}
 
@@ -426,7 +427,7 @@ final class SchermataImportazione {
 		$html .= self::esito_mostrato();
 
 		if ( ! array_key_exists( self::CAMPO_RADICE, $richiesta ) ) {
-			return $html . self::spiegazione() . self::modulo( 0 ) . '</div>';
+			return $html . self::spiegazione() . self::modulo( 0 ) . self::senza_rapporto( 0 ) . '</div>';
 		}
 
 		$nonce = $richiesta['_wpnonce'] ?? '';
@@ -453,7 +454,7 @@ final class SchermataImportazione {
 		$rapporto = ImportazionePagine::rapporto( $radice, $albero, $oggi );
 
 		if ( is_wp_error( $rapporto ) ) {
-			$modulo = 'trasparenza_importazione_radice' === $rapporto->get_error_code() ? self::modulo( 0 ) : '';
+			$modulo = 'trasparenza_importazione_radice' === $rapporto->get_error_code() ? self::modulo( 0 ) . self::senza_rapporto( $radice ) : '';
 
 			return $html . self::avviso( $rapporto->get_error_message() ) . $modulo . '</div>';
 		}
@@ -595,6 +596,31 @@ final class SchermataImportazione {
 	}
 
 	/**
+	 * Il modulo "vecchi indirizzi" senza rapporto: togliere e cambiare sezione.
+	 *
+	 * Resta anche quando la pagina d'ingresso vecchia e stata ritirata, perche
+	 * proprio allora i rinvii lavorano.
+	 *
+	 * @param int $radice Pagina d'ingresso chiesta, o zero.
+	 * @return string
+	 */
+	private static function senza_rapporto( int $radice ): string {
+		$albero = PaginaPubblica::albero();
+
+		if ( null === $albero || ! self::puo_portare() ) {
+			return '';
+		}
+
+		return self::modulo_indirizzi(
+			array(
+				'radice' => $radice,
+				'pagine' => array(),
+			),
+			$albero
+		);
+	}
+
+	/**
 	 * Il modulo "vecchi indirizzi".
 	 *
 	 * @param array<string, mixed> $rapporto Rapporto.
@@ -611,6 +637,10 @@ final class SchermataImportazione {
 
 		if ( false !== $scelta && null === $valida ) {
 			$html .= self::avviso( __( 'La pagina della sezione scelta non è più una pagina pubblicata con il codice breve: nessun vecchio indirizzo porta alla sezione finché non se ne sceglie un\'altra.', 'trasparenza-pa' ) );
+		}
+
+		if ( is_wp_error( $possibili ) ) {
+			return $html . self::avviso( $possibili->get_error_message() );
 		}
 
 		if ( array() === $possibili ) {
