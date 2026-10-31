@@ -277,6 +277,7 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 		$esiti = $this->esiti( $esito );
 		$this->assertSame( 'registrato', $esiti[ $bandi ] );
 		$this->assertSame( 'scartato', $esiti[ $this->pagine['Organizzazione'] ] );
+		$this->assertStringContainsString( 'non è ancora stata portata', array_column( $esito['righe'], 'motivo', 'pagina' )[ $this->pagine['Organizzazione'] ] );
 		$this->assertSame( 'scartato', $esiti[ $this->pagine['Varie'] ] );
 		$this->assertSame( 'scartato', $esiti[999999] );
 		$this->assertSame( 'scartato', $esiti[0] );
@@ -376,6 +377,20 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 		$this->assertSame( array(), $this->indirizzo( $this->contenuti['Telefono'] ) );
 		$this->assertCount( 1, $this->indirizzo( $this->contenuti['Varie'] ) );
 
+		// Indirizzi registrati non leggibili: niente registrato.
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				return false !== strpos( (string) $sql, 'SELECT m.post_id, m.meta_value, p.post_status' ) ? 'SELECT ID FROM ' . $wpdb->posts . '_inesistente' : $sql;
+			}
+		);
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $telefono ) ) );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+		$this->assertSame( 'lettura', $esito['codice'] );
+		$this->assertSame( array(), $this->indirizzo( $this->contenuti['Telefono'] ) );
+
 		// Blocco occupato: niente registrato.
 		list( $host, $porta, $socket ) = $wpdb->parse_db_host( DB_HOST );
 		$altra                         = mysqli_init(); // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_init -- serve una seconda connessione, che $wpdb non offre.
@@ -468,6 +483,18 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 			)
 		);
 		$this->assertNull( $this->rinvio( '/amministrazione-trasparente/bandi-di-concorso/' ) );
+	}
+
+	/**
+	 * T-145. Il percorso: senza la parte del sito, senza barre ai lati, in minuscolo.
+	 *
+	 * Il confronto nella banca dati puo non distinguere le maiuscole: il minuscolo
+	 * si prova qui, perche non dipenda dalla collazione.
+	 */
+	public function test_t145_percorso() {
+		$this->assertSame( 'amministrazione-trasparente/bandi', VecchiIndirizzi::percorso( '/Amministrazione-Trasparente/Bandi/' ) );
+		$this->assertSame( 'amministrazione-trasparente/bandi', VecchiIndirizzi::percorso( home_url( '/amministrazione-trasparente/bandi/?utm=x' ) ) );
+		$this->assertSame( '', VecchiIndirizzi::percorso( home_url( '/' ) ) );
 	}
 
 	/**
