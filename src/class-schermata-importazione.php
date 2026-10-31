@@ -323,7 +323,7 @@ final class SchermataImportazione {
 		$html .= '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Pagina', 'trasparenza-pa' ) . '</th><th scope="col">' . esc_html__( 'Voce nuova', 'trasparenza-pa' ) . '</th></tr></thead><tbody>';
 
 		foreach ( $rapporto['pagine'] as $pagina ) {
-			$html .= '<tr><td>' . str_repeat( '&mdash; ', (int) $pagina['profondita'] ) . esc_html( $pagina['titolo'] ) . '</td><td>';
+			$html .= '<tr><td>' . self::rientro( (int) $pagina['profondita'] ) . esc_html( $pagina['titolo'] ) . '</td><td>';
 
 			if ( null !== $pagina['portata'] ) {
 				$collegamento = get_edit_post_link( (int) $pagina['portata'], 'raw' );
@@ -462,7 +462,7 @@ final class SchermataImportazione {
 
 		foreach ( $rapporto['pagine'] as $pagina ) {
 			$html .= '<tr>'
-				. '<td>' . str_repeat( '&mdash; ', (int) $pagina['profondita'] ) . '<a href="' . esc_url( $pagina['indirizzo'] ) . '">' . esc_html( $pagina['titolo'] ) . '</a>'
+				. '<td>' . self::rientro( (int) $pagina['profondita'] ) . '<a href="' . esc_url( $pagina['indirizzo'] ) . '">' . esc_html( $pagina['titolo'] ) . '</a>'
 				. ( $pagina['vuota'] ? ' <strong>' . esc_html__( '(vuota)', 'trasparenza-pa' ) . '</strong>' : '' ) . '</td>'
 				. '<td>' . esc_html( self::voce( $pagina, $albero ) ) . '</td>'
 				/* translators: %d: numero di caratteri. */
@@ -621,5 +621,15 @@ final class SchermataImportazione {
 		}
 
 		return $html . '</ul>';
+	}
+
+	/**
+	 * Rientro di una pagina figlia: spazi non separabili e un trattino corto.
+	 *
+	 * @param int $profondita Profondita sotto la pagina d'ingresso.
+	 * @return string HTML.
+	 */
+	private static function rientro( int $profondita ): string {
+		return $profondita > 0 ? str_repeat( '&nbsp;&nbsp;', $profondita ) . '- ' : '';
 	}
 }

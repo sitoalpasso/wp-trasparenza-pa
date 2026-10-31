@@ -310,11 +310,12 @@ final class ImportazionePagine {
 	 * @return array{pagina: int, titolo: string, esito: string, contenuto: int|null, motivo: string}
 	 */
 	private static function crea( int $pagina, string $titolo, string $voce ): array {
+		// wp_insert_post() toglie le barre inverse: il titolo letto dalla banca dati non ne ha di aggiunte.
 		$id = wp_insert_post(
 			array(
 				'post_type'    => TIPO_CONTENUTO,
 				'post_status'  => 'draft',
-				'post_title'   => $titolo,
+				'post_title'   => wp_slash( $titolo ),
 				'post_content' => '',
 				'post_author'  => get_current_user_id(),
 			),
