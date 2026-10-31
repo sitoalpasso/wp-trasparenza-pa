@@ -214,6 +214,7 @@ final class SchermataImportazione {
 			$codici = array(
 				'trasparenza_importazione_radice'   => 'radice',
 				'trasparenza_importazione_occupato' => 'occupato',
+				'trasparenza_importazione_protetta' => 'protetta',
 			);
 
 			return self::esito( $codici[ $righe->get_error_code() ] ?? 'lettura', __( 'Niente copiato.', 'trasparenza-pa' ) . ' ' . $righe->get_error_message() );

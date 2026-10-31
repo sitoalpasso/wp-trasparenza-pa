@@ -315,6 +315,7 @@ file, che il deposito controlla.
 | Copia nel temporaneo fallita | quel file non copiato |
 | Deposito rifiutato (tipo non ammesso, protezione non verificata) | quel file non copiato, con il motivo del componente comune; temporaneo cancellato |
 | Registro che rifiuta | come nel riquadro "Documenti": allegato tolto, quel file non copiato |
+| La cartella protetta del componente comune non si può chiedere | niente copiato: senza la cartella non si sa quali file sono già protetti, e nel dubbio si chiude (T-142) |
 
 **Cosa deliberatamente non fa (passo 2b).**
 
@@ -356,7 +357,10 @@ percorsi reali di tutti gli allegati del sito, perché ogni file depositato dal 
 nella sua cartella e la verifica sulla cartella lo copre già, senza una lettura del disco per
 allegato.
 
-Suite completa in locale: 354 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+Poi T-142: se il componente comune non dice dov'è la sua cartella protetta, il passaggio dei file
+si ferma invece di trattare la cartella come vuota.
+
+Suite completa in locale: 355 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
 
 **Rotture volute (passo 2b)**, una per volta, con le prove di `ImportazioneFileTest`. Tutte rosse,
@@ -398,6 +402,8 @@ salvo l'equivalenza dichiarata sotto.
 | Cartella protetta non confrontata sul percorso reale | T-140 |
 | Cartella protetta non trovata | T-140 |
 | Valore della casella con `esc_attr()` | T-141 |
+| Cartella protetta non disponibile trattata come vuota | T-142 |
+| Passaggio dei file senza il controllo sulla cartella protetta | T-142 |
 
 Equivalenza: chiamare il deposito che prende il blocco, invece di quello che lavora dentro il
 blocco già preso, fa diventare rossa T-136 solo perché quel deposito non porta la pagina d'origine
