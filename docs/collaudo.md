@@ -375,6 +375,7 @@ nuovo: proteggono TRASP-09 e TRASP-19 durante il passaggio. Scheda:
 | T-131 | fatto | Registro: passaggio riuscito; [guasto] registro che rifiuta | una riga `importazione_pagina` per contenuto, con pagina e voce; con il registro che rifiuta nessun contenuto resta e nessun metadato è scritto |
 | T-132 | fatto | Pagine già portate: secondo passaggio, contenuto nel cestino; il rapporto le mostra; [guasto] lettura delle pagine già portate fallita; blocco occupato | nessun doppione, anche dal cestino; il rapporto mostra il contenuto che l'ha portata; con la lettura fallita o il blocco occupato niente creato |
 | T-133 | fatto | Schermata: modulo sotto il rapporto, una scelta per pagina, voce proposta preselezionata, pagina già portata senza scelta; esito dopo il passaggio; chi ha solo il permesso della sezione; [attacco] valori con codice | il modulo per POST con nonce; la voce proposta selezionata, "non portare" per le altre; esito con le righe portate e scartate; senza permesso di creare contenuti nessun modulo; ogni valore con escaping |
+| T-134 | da fare | Titoli con caratteri particolari: barra inversa, virgolette, apostrofo, e commerciale; rientro delle pagine figlie nella schermata | il contenuto portato ha il titolo identico a quello della pagina, carattere per carattere; il rientro non usa trattini lunghi |
 
 ## Collaudo congiunto con l'albo pretorio
 

@@ -178,13 +178,20 @@ copia i file.
 del rapporto un elenco con le voci senza sottovoci, già posizionato sulla voce proposta quando
 c'è, e la scelta "non portare", che è quella di partenza per le altre. Una pagina già portata non
 ha elenco: mostra il contenuto che l'ha portata, con il collegamento alla sua schermata. Il
-pulsante "Porta in bozza le pagine scelte" manda il modulo per POST, con il suo nonce.
+pulsante "Porta in bozza le pagine scelte" manda il modulo per POST, con il suo nonce. Il rientro
+delle pagine figlie, qui e nel rapporto, è fatto di spazi non separabili e di un trattino
+corto (T-134).
 
 **Cosa succede.** Per ogni pagina con una voce scelta nasce un contenuto della sezione:
 
 - in **bozza**, mai pubblicato da questo passo;
 - con il **titolo** della pagina e nessun testo: il testo dei costruttori di pagine è mescolato
   alla grafica e va riscritto a mano, come dice il rapporto;
+  il titolo passa a `wp_insert_post()` con `wp_slash()`, perché quella funzione toglie le barre
+  inverse a quello che riceve e il titolo letto dalla banca dati non ne ha di aggiunte: senza,
+  "Documenti A\B" diventerebbe "Documenti AB" (T-134). I due metadati non ne hanno bisogno: la
+  pagina d'origine è un numero e la voce è un identificativo dell'albero, che accetta solo
+  lettere, cifre e trattino basso;
 - con la **voce** scelta e il ricordo della **pagina d'origine** (metadato
   `_trasparenza_pa_pagina_origine`);
 - **senza decorrenza**: la data da cui decorre l'obbligo la scrive un addetto nel riquadro
