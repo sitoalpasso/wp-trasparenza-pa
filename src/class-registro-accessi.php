@@ -68,9 +68,11 @@ final class RegistroAccessi {
 	 * Un campo che la pulizia cambierebbe si rifiuta invece di salvarlo cambiato.
 	 *
 	 * @param array<string, mixed> $inviati Campi inviati.
+	 * @param string|null          $oggi    Giorno rispetto a cui una data e futura, AAAA-MM-GG; nullo per oggi nel fuso del sito.
 	 * @return array<string, string>|WP_Error
 	 */
-	public static function controlla( array $inviati ) {
+	public static function controlla( array $inviati, ?string $oggi = null ) {
+		$oggi   = $oggi ?? self::oggi();
 		$valori = array();
 
 		foreach ( self::CAMPI as $campo ) {
@@ -89,7 +91,7 @@ final class RegistroAccessi {
 			return self::errore( __( 'L\'argomento della richiesta è obbligatorio: su una riga, senza codice, senza spazi ai bordi e al massimo di 300 caratteri.', 'trasparenza-pa' ) );
 		}
 
-		if ( ! self::giorno( $valori['richiesta'] ) || strcmp( $valori['richiesta'], self::oggi() ) > 0 ) {
+		if ( ! self::giorno( $valori['richiesta'] ) || strcmp( $valori['richiesta'], $oggi ) > 0 ) {
 			return self::errore( __( 'La data della richiesta è obbligatoria, nella forma AAAA-MM-GG, esistente e non dopo oggi.', 'trasparenza-pa' ) );
 		}
 
@@ -105,7 +107,7 @@ final class RegistroAccessi {
 			return $valori;
 		}
 
-		if ( ! self::giorno( $valori['decisione'] ) || strcmp( $valori['decisione'], $valori['richiesta'] ) < 0 || strcmp( $valori['decisione'], self::oggi() ) > 0 ) {
+		if ( ! self::giorno( $valori['decisione'] ) || strcmp( $valori['decisione'], $valori['richiesta'] ) < 0 || strcmp( $valori['decisione'], $oggi ) > 0 ) {
 			return self::errore( __( 'Con l\'esito serve la data della decisione, nella forma AAAA-MM-GG, esistente, non prima della richiesta e non dopo oggi.', 'trasparenza-pa' ) );
 		}
 
@@ -152,6 +154,88 @@ final class RegistroAccessi {
 		}
 
 		return $esito;
+	}
+
+	/**
+	 * Le righe da mostrare al pubblico nel giorno dato, per numero, prima le piu recenti.
+	 *
+	 * Una riga decisa si mostra per cinque anni dal 1 gennaio che segue la decisione (art. 8,
+	 * c. 3, del d.lgs. 33/2013); una richiesta in corso finche non e decisa.
+	 * Si calcola a ogni lettura: nessun compito pianificato toglie le righe scadute.
+	 *
+	 * Errore se la lettura e fallita: il pubblico non deve leggere un registro vuoto che non lo e.
+	 *
+	 * @param string $oggi Giorno, AAAA-MM-GG.
+	 * @return array<int, array<string, string>>|WP_Error
+	 */
+	public static function pubblicabili( string $oggi ) {
+		$conservato = self::conservato();
+
+		if ( is_wp_error( $conservato ) ) {
+			return $conservato;
+		}
+
+		$ultimo_anno = (int) substr( $oggi, 0, 4 ) - 5;
+		$righe       = array();
+
+		foreach ( $conservato['righe'] as $numero => $riga ) {
+			if ( is_wp_error( self::controlla( $riga, $oggi ) ) ) {
+				continue;
+			}
+
+			if ( '' !== $riga['decisione'] && (int) substr( $riga['decisione'], 0, 4 ) < $ultimo_anno ) {
+				continue;
+			}
+
+			$righe[ $numero ] = $riga;
+		}
+
+		uksort(
+			$righe,
+			static function ( int $a, int $b ) use ( $righe ): int {
+				$ordine = strcmp( $righe[ $b ]['richiesta'], $righe[ $a ]['richiesta'] );
+				return 0 !== $ordine ? $ordine : $b <=> $a;
+			}
+		);
+
+		return $righe;
+	}
+
+	/**
+	 * Il registro per la pagina pubblica: una tabella, o la frase del registro vuoto.
+	 *
+	 * @return string
+	 */
+	public static function html(): string {
+		$righe = self::pubblicabili( self::oggi() );
+		$html  = '<div class="trasparenza-pa-registro-accessi"><h3>' . esc_html__( 'Registro degli accessi', 'trasparenza-pa' ) . '</h3>';
+
+		if ( is_wp_error( $righe ) ) {
+			return $html . '<p>' . esc_html__( 'Il registro non è disponibile in questo momento.', 'trasparenza-pa' ) . '</p></div>';
+		}
+
+		if ( array() === $righe ) {
+			return $html . '<p>' . esc_html__( 'Il registro non contiene richieste negli ultimi cinque anni.', 'trasparenza-pa' ) . '</p></div>';
+		}
+
+		$html .= '<table><thead><tr>';
+
+		foreach ( array( __( 'Tipo', 'trasparenza-pa' ), __( 'Argomento', 'trasparenza-pa' ), __( 'Data della richiesta', 'trasparenza-pa' ), __( 'Esito', 'trasparenza-pa' ), __( 'Data della decisione', 'trasparenza-pa' ) ) as $titolo ) {
+			$html .= '<th scope="col">' . esc_html( $titolo ) . '</th>';
+		}
+
+		$html .= '</tr></thead><tbody>';
+
+		foreach ( $righe as $riga ) {
+			$html .= '<tr><td>' . esc_html( self::etichetta_tipo( $riga['tipo'] ) ) . '</td>';
+			// L'argomento come e stato scritto: esc_html() lascerebbe com'e un'entita gia scritta.
+			$html .= '<td>' . htmlspecialchars( $riga['argomento'], ENT_QUOTES, 'UTF-8', true ) . '</td>';
+			$html .= '<td>' . esc_html( self::data( $riga['richiesta'] ) ) . '</td>';
+			$html .= '<td>' . esc_html( self::etichetta_esito( $riga['esito'] ) ) . '</td>';
+			$html .= '<td>' . esc_html( self::data( $riga['decisione'] ) ) . '</td></tr>';
+		}
+
+		return $html . '</tbody></table></div>';
 	}
 
 	/**
@@ -250,6 +334,16 @@ final class RegistroAccessi {
 	 */
 	private static function giorno( string $valore ): bool {
 		return 1 === preg_match( '/\A(\d{4})-(\d{2})-(\d{2})\z/', $valore, $parti ) && checkdate( (int) $parti[2], (int) $parti[3], (int) $parti[1] );
+	}
+
+	/**
+	 * Una data AAAA-MM-GG nella forma GG/MM/AAAA; vuota resta vuota.
+	 *
+	 * @param string $giorno Data.
+	 * @return string
+	 */
+	private static function data( string $giorno ): string {
+		return '' === $giorno ? '' : substr( $giorno, 8, 2 ) . '/' . substr( $giorno, 5, 2 ) . '/' . substr( $giorno, 0, 4 );
 	}
 
 	/**

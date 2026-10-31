@@ -55,14 +55,17 @@ prova, elencata in fondo a lavoro finito.
 | 2 | `tests/AccessoCivicoPubblicoTest.php` | Nuovo. Righe T-103 e T-104 |
 | 3 | `src/class-registro-accessi.php`, `src/class-schermata-registro-accessi.php` | Nuovi. Le righe del registro e la schermata |
 | 3 | `tests/RegistroAccessiTest.php` | Nuovo. Righe T-105..T-110 |
-| 4 | `src/class-registro-accessi.php` | Il registro nella voce, per cinque anni |
+| 4 | `src/class-registro-accessi.php`, `src/class-pagina-pubblica.php` | Il registro nella voce, per cinque anni |
+| 4 | `tests/RegistroAccessiPubblicoTest.php` | Nuovo. Righe T-111..T-113 |
 | tutti | `docs/` | Collaudo, requisiti, dati, architettura |
 
 ## 2. Requisito servito
 
 TRASP-12 (art. 5, d.lgs. 33/2013; art. 2, c. 9-bis, l. 241/1990; delibera ANAC 1310/2016,
-Allegato 1, voce "Accesso civico"). La parte del registro delle richieste resta aperta finché
-la scelta sul modo di presentarle non è presa: fino ad allora TRASP-12 resta "in corso".
+Allegato 1, voce "Accesso civico"). Scelta presa il 30 ottobre 2026: la sezione dà istruzioni e
+recapiti, con il collegamento al modulo dell'ente se indicato, e le richieste si annotano in un
+registro tenuto dagli addetti e pubblicato; nessun modulo da compilare sul sito. Con il passo 4
+TRASP-12 è fatto.
 
 ## 3. Flusso per chi usa il sito
 
@@ -212,6 +215,42 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
 | Registro delle modifiche che rifiuta la voce | niente scritto, messaggio |
 | Dato non scritto | messaggio che lo dice: il registro delle modifiche contiene un cambio non avvenuto |
 
+## 7-sexies. Il registro sulla pagina pubblica (passo 4)
+
+**Dove.** Nella voce che il file dell'albero indica per i dati dell'accesso civico, sotto il
+riquadro "Come si chiede l'accesso civico": l'Allegato 1 mette il registro nella stessa
+sottosezione. Il registro si mostra anche se i dati dell'accesso civico non sono stati ancora
+indicati. Nessuna versione nuova dell'albero.
+
+**Cosa.** Un titolo "Registro degli accessi" e una tabella con una riga per richiesta: tipo,
+argomento, data della richiesta, esito e data della decisione, con le date nella forma
+GG/MM/AAAA. Prima le richieste più recenti, a pari data il numero più alto, come nella
+schermata. Una riga conservata che non supera il controllo non si mostra. Se non resta nessuna
+riga, una frase lo dice: "Il registro non contiene richieste negli ultimi cinque anni."
+
+**Per quanto tempo.** Cinque anni, contati dal 1° gennaio dell'anno successivo a quello
+dell'ultima data della riga (art. 8, c. 3, del d.lgs. 33/2013): la data della decisione, o
+quella della richiesta finché la richiesta è in corso. Una riga decisa nel 2026 si vede fino al
+31 dicembre 2031 e non più dal 1° gennaio 2032, nel fuso del sito. Una richiesta in corso resta
+visibile finché non è decisa, qualunque sia la sua data: la sua pubblicazione non è ancora
+cominciata a scadere. Contare dalla decisione invece che dalla richiesta è la lettura più
+prudente: la riga cambia l'ultima volta con l'esito, e da lì decorre l'obbligo del dato
+aggiornato.
+
+**Scadenza in lettura.** La finestra si calcola a ogni lettura dal giorno di oggi nel fuso del
+sito, e con lo stesso giorno si controlla che nessuna data della riga sia futura. Nessun compito pianificato: una riga scaduta esce dalla pagina e resta nella schermata
+degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TRASP-09).
+
+## 7-septies. Modi di guasto (passo 4)
+
+| Caso | Esito |
+|---|---|
+| Lettura del registro fallita | nessuna tabella: "Il registro non è disponibile in questo momento." (T-114) |
+| Registro conservato di forma strana | nessuna riga, la frase del registro vuoto |
+| Riga che non supera il controllo | non si mostra |
+| Argomento con codice o entità | scritto con escaping, mai interpretato |
+| Data sull'orlo dei cinque anni | decide il giorno di oggi nel fuso del sito |
+
 ## 8. Cosa deliberatamente NON fa
 
 - Non riceve richieste dal sito: è la scelta del 30 ottobre 2026.
@@ -239,6 +278,10 @@ dedicato a chi gestisce le richieste è un'unità a parte, se l'ente lo chieder�
   riga tolta, che si ricostruisce dal protocollo dell'ente. È voluto: un nome scritto per
   sbaglio nell'argomento non deve restare nel registro, che non si cancella. Se l'ente preferisce
   poter ricostruire anche l'argomento, si aggiunge.
+
+- **Data di ultimo aggiornamento del registro (TRASP-10).** Il passo 4 non la mostra: il dato
+  conservato non la tiene. Si può ricavare dall'ultima voce del registro delle modifiche, in
+  un'unità a parte.
 
 ## Rotture volute, a lavoro finito
 
@@ -330,3 +373,25 @@ piatte di nome e valore.
 Dopo il rilievo di Codex sulle entità HTML scritte come testo (T-110), quattro rotture, tutte
 rosse: partenza o campo scritti di nuovo con `esc_attr()`, codifica senza la ricodifica delle
 entità già scritte, codifica che lascia le virgolette.
+
+### Passo 4: il registro sulla pagina pubblica
+
+Ventuno rotture, una per volta e poi tolte. Venti fanno diventare rossa almeno una prova:
+registro tolto dalla pagina, mostrato in ogni voce o sopra il riquadro, righe mostrate senza
+controllo, finestra di sei o di quattro anni, orlo dell'ultimo anno escluso, finestra contata
+dalla richiesta invece che dalla decisione, richiesta in corso che scade, nessuna scadenza,
+ordine per numero invece che per data, pari data con il numero più basso prima, argomento con
+`esc_html()` (che lascia com'è un'entità già scritta) o senza escaping, date non girate in
+GG/MM/AAAA, tipo ed esito con il codice invece del nome, frase del registro vuoto tolta,
+intestazioni della tabella tolte.
+
+Il giorno di oggi in UTC invece che nel fuso del sito era verde al primo giro, perché la
+finestra dipende solo dall'anno. Dopo la rilettura il controllo delle date future usa lo stesso
+giorno della finestra, e una prova con un fuso lontano da UTC (Pacific/Kiritimati o
+Pacific/Pago_Pago, l'attesa calcolata a parte) guarda che la riga di oggi si veda e quella di
+domani no: ora è rossa.
+
+Dopo la rilettura, sette rotture in più, tutte rosse: oggi in UTC, controllo delle righe con il
+giorno reale invece di quello dato, data della richiesta o della decisione confrontata con il
+giorno reale, lettura fallita taciuta come registro vuoto, lettura con `get_option`, frase della
+lettura fallita tolta. Le ventuno rotture di prima rigirate sul codice nuovo: tutte rosse.
