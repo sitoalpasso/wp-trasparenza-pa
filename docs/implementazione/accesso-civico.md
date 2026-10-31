@@ -251,6 +251,30 @@ degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TR
 | Argomento con codice o entità | scritto con escaping, mai interpretato |
 | Data sull'orlo dei cinque anni | decide il giorno di oggi nel fuso del sito |
 
+## 7-octies. La data di ultimo aggiornamento del registro (passo 5)
+
+**Cosa chiede la norma.** Ogni dato della sezione espone la data del suo ultimo aggiornamento
+(art. 6 del d.lgs. 33/2013, TRASP-10), e l'Allegato 1 chiede di aggiornare il registro ogni sei
+mesi: chi consulta deve poter vedere quanto è recente.
+
+**Come.** Ogni salvataggio che cambia il registro, cioè un'aggiunta, una correzione con almeno un
+campo cambiato o una rimozione, conserva l'istante in cui avviene accanto alle righe. La pagina
+pubblica lo mostra sotto il titolo, "Ultimo aggiornamento: ...", nel formato delle date del sito e
+nel suo fuso, come le altre voci della sezione. Lo mostra anche quando non resta nessuna riga dei
+cinque anni: il registro è stato tenuto, e la data lo dice. Una correzione senza cambi non lo
+sposta.
+
+**Il dato conservato.** L'opzione `trasparenza_pa_registro_accessi` prende una chiave in più,
+`aggiornato`, in secondi dall'epoca. Un registro scritto prima di questo passo non ce l'ha: la
+pagina non mostra la data finché il primo salvataggio non la scrive. Un valore che non è un intero
+positivo vale come assente.
+
+| Caso | Esito |
+|---|---|
+| Registro senza la data, o con una data non valida | nessuna riga di aggiornamento; il resto come prima |
+| Salvataggio rifiutato o correzione senza cambi | la data non si sposta |
+| Lettura fallita | come al passo 4: "non disponibile", nessuna data |
+
 ## 8. Cosa deliberatamente NON fa
 
 - Non riceve richieste dal sito: è la scelta del 30 ottobre 2026.
@@ -279,9 +303,10 @@ degli addetti, e quindi nel dato conservato, ottenibile con l'accesso civico (TR
   sbaglio nell'argomento non deve restare nel registro, che non si cancella. Se l'ente preferisce
   poter ricostruire anche l'argomento, si aggiunge.
 
-- **Data di ultimo aggiornamento del registro (TRASP-10).** Il passo 4 non la mostra: il dato
-  conservato non la tiene. Si può ricavare dall'ultima voce del registro delle modifiche, in
-  un'unità a parte.
+- **Aggiornamento senza richieste nuove.** Se in sei mesi non arriva nessuna richiesta, la data
+  resta quella dell'ultimo cambio: è vera, ma non dice che gli addetti hanno controllato. Un
+  pulsante "registro verificato" che sposti la data senza cambiare righe è un'aggiunta possibile,
+  se l'ente la chiederà.
 
 ## Rotture volute, a lavoro finito
 

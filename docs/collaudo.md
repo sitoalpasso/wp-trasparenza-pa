@@ -346,6 +346,8 @@ delibera ANAC 1310/2016, Allegato 1 (TRASP-12). Scheda: `docs/implementazione/ac
 | T-112 | fatto | Cinque anni dall'ultima data della riga: riga decisa, riga in corso, orli dell'anno | la riga decisa nell'anno A si vede fino al 31/12 di A+5 e non dal 1/1 di A+6; conta la decisione, non la richiesta; la riga in corso si vede sempre; il giorno di oggi è quello del fuso del sito, anche per dire se una data è futura: con un fuso lontano da UTC la riga di oggi si vede e quella di domani no |
 | T-113 | fatto | Dove si mostra: voce dell'accesso civico con e senza i dati dell'accesso civico, altre voci | il registro solo nella voce indicata dall'albero, sotto il riquadro, anche senza i dati; nelle altre voci no |
 | T-114 | fatto | [guasto] Lettura del registro fallita sulla pagina pubblica | nessuna tabella e nessuna frase di registro vuoto: "Il registro non è disponibile in questo momento." |
+| T-119 | da fare | Data di ultimo aggiornamento del registro: aggiunta, correzione, rimozione, correzione senza cambi, salvataggio rifiutato | ogni cambio conserva l'istante del salvataggio, che la rilettura ritrova; correzione senza cambi e rifiuti non lo spostano |
+| T-120 | da fare | La data sulla pagina pubblica: con righe, senza righe dei cinque anni, registro senza data; [attacco] data conservata non valida | "Ultimo aggiornamento" sotto il titolo nel formato e nel fuso del sito, anche senza righe; senza data valida nessuna riga di aggiornamento |
 
 ## Collaudo congiunto con l'albo pretorio
 
