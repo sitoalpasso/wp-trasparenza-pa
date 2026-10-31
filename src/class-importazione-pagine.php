@@ -35,6 +35,24 @@ final class ImportazionePagine {
 	const AZIONE_REGISTRO = 'importazione_pagina';
 
 	/**
+	 * La funzione del componente comune che dice dov'e la sua cartella protetta.
+	 *
+	 * @var array{0: string, 1: string}
+	 */
+	private static $cartella_protetta = array( '\\Conformita_Core_Allegati', 'cartella' );
+
+	/**
+	 * Sceglie la funzione che dice dov'e la cartella protetta.
+	 *
+	 * @internal Le prove la puntano su una funzione assente, per il guasto di T-142.
+	 *
+	 * @param array{0: string, 1: string} $chiamata Classe e funzione.
+	 */
+	public static function fissa_cartella_protetta( array $chiamata ): void {
+		self::$cartella_protetta = $chiamata;
+	}
+
+	/**
 	 * Il rapporto.
 	 *
 	 * @param int        $radice Pagina d'ingresso.
@@ -324,6 +342,10 @@ final class ImportazionePagine {
 		}
 
 		try {
+			if ( null === self::base()['protetta'] ) {
+				return new WP_Error( 'trasparenza_importazione_protetta', __( 'Il componente comune non dice dov\'è la sua cartella protetta, quindi non si sa quali file sono già protetti per altri contenuti.', 'trasparenza-pa' ) );
+			}
+
 			$rapporto = self::rapporto( $radice, $albero, $oggi );
 
 			if ( is_wp_error( $rapporto ) ) {
@@ -750,9 +772,10 @@ final class ImportazionePagine {
 	/**
 	 * La cartella dei caricamenti: dominio, percorso nell'indirizzo, cartella sul disco.
 	 *
-	 * Piu la cartella protetta del componente comune, risolta, o vuota se non c'e.
+	 * Piu la cartella protetta del componente comune: risolta; vuota se non c'e
+	 * ancora; nulla se il componente comune non dice dov'e.
 	 *
-	 * @return array{dominio: string, percorso: string, cartella: string, protetta: string}
+	 * @return array{dominio: string, percorso: string, cartella: string, protetta: string|null}
 	 */
 	private static function base(): array {
 		$caricamenti = wp_upload_dir( null, false );
@@ -760,7 +783,7 @@ final class ImportazionePagine {
 		$dominio     = (string) wp_parse_url( $indirizzo, PHP_URL_HOST );
 		$porta       = wp_parse_url( $indirizzo, PHP_URL_PORT );
 
-		$protetta = is_callable( array( '\\Conformita_Core_Allegati', 'cartella' ) ) ? realpath( (string) \Conformita_Core_Allegati::cartella() ) : false;
+		$protetta = is_callable( self::$cartella_protetta ) ? realpath( (string) call_user_func( self::$cartella_protetta ) ) : null;
 
 		return array(
 			'dominio'  => strtolower( $dominio . ( null !== $porta ? ':' . $porta : '' ) ),
@@ -863,7 +886,7 @@ final class ImportazionePagine {
 	private static function nella_protetta( string $percorso, array $base ): bool {
 		$reale = self::reale( $percorso, $base['cartella'] );
 
-		return '' !== $base['protetta'] && null !== $reale && 'fuori' !== $reale && str_starts_with( $reale, trailingslashit( $base['protetta'] ) );
+		return is_string( $base['protetta'] ) && '' !== $base['protetta'] && null !== $reale && 'fuori' !== $reale && str_starts_with( $reale, trailingslashit( $base['protetta'] ) );
 	}
 
 	/**
