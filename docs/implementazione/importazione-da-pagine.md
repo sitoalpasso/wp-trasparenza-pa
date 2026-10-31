@@ -383,7 +383,11 @@ pagina d'origine e l'indirizzo. Se il registro rifiuta, il metadato non si scriv
 e solo quando la richiesta finisce in "pagina non trovata":
 
 1. il percorso chiesto, senza parametri e senza la parte dell'indirizzo del sito, in minuscolo, si
-   cerca fra gli indirizzi registrati, sui contenuti della sezione fuori dal cestino;
+   cerca fra gli indirizzi registrati, sui contenuti della sezione fuori dal cestino. Il percorso
+   resta com'è arrivato, caratteri codificati (`%xx`) compresi, perché così è scritto nel permalink
+   registrato; il minuscolo rende uguali anche `%C3%A0` e `%c3%a0`. Non passa da una funzione di
+   pulizia del testo, che toglierebbe le sequenze `%xx`: va solo come parametro di
+   un'interrogazione preparata, e non si stampa mai (T-145);
 2. la destinazione è la voce del contenuto **adesso**, non quella del momento del passaggio: se un
    addetto sposta il contenuto, il rinvio lo segue. Una voce che non c'è più nell'albero porta alla
    pagina della sezione;
@@ -415,6 +419,10 @@ pubblico: la voce di un contenuto è visibile nella pagina della sezione.
 - Non rinvia gli indirizzi dei file: il file nuovo si consegna dal componente comune con un indirizzo
   suo, e un file vecchio scaduto non deve tornare raggiungibile.
 - Non registra indirizzi scritti a mano: solo quelli delle pagine del rapporto.
+- Non può richiamare un rinvio già seguito: i browser conservano un rinvio permanente, quindi chi
+  lo ha già seguito continua ad andare alla vecchia destinazione anche dopo un "togli" o uno
+  spostamento di voce, finché non svuota la memoria del browser. È il prezzo del 301; con un rinvio
+  temporaneo (302) non ci sarebbe, ma i motori di ricerca terrebbero l'indirizzo vecchio.
 
 **Norme e fonti (passo 3).**
 
