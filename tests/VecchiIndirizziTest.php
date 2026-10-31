@@ -408,6 +408,72 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-144. La pagina della sezione che non resta scritta ferma tutto.
+	 */
+	public function test_t144_sezione_non_scritta() {
+		global $wpdb;
+
+		delete_option( VecchiIndirizzi::OPZIONE_SEZIONE );
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				$sql = (string) $sql;
+
+				return 1 === preg_match( '/\A\s*(INSERT|UPDATE)\b/i', $sql ) && false !== strpos( $sql, $wpdb->options ) && false !== strpos( $sql, VecchiIndirizzi::OPZIONE_SEZIONE ) ? 'INSERT INTO ' . $wpdb->options . '_inesistente VALUES (1)' : $sql;
+			}
+		);
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $this->pagine['Telefono'] ) ) );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+
+		$this->assertSame( 'lettura', $esito['codice'] );
+		$this->assertSame( array(), $esito['righe'] );
+		$this->assertSame( array(), $this->indirizzo( $this->contenuti['Telefono'] ) );
+
+		// Valore gia uguale: update_option() dice false, ma la scrittura c'e.
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $this->pagine['Telefono'] ) ) );
+		$this->assertSame( 'registrato', $esito['codice'] );
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $this->pagine['Varie'] ) ) );
+		$this->assertSame( 'registrato', $esito['codice'] );
+		$this->assertSame( 'registrato', $this->esiti( $esito )[ $this->pagine['Varie'] ] );
+	}
+
+	/**
+	 * T-144. Con la pagina d'ingresso ritirata si toglie e si cambia sezione.
+	 */
+	public function test_t144_radice_ritirata() {
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $this->pagine['Telefono'], (string) $this->pagine['Bandi di concorso'] ) ) );
+		$this->assertSame( 'registrato', $esito['codice'] );
+
+		wp_update_post(
+			array(
+				'ID'          => $this->radice,
+				'post_status' => 'draft',
+			)
+		);
+		$altra = $this->pagina( 'Sezione nuova', 0, '[' . PaginaPubblica::CODICE_BREVE . ']' );
+
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array(), array( (string) $this->contenuti['Telefono'] ), (string) $altra ) );
+		$this->assertSame( 'registrato', $esito['codice'] );
+		$this->assertSame( 'tolto', array_column( $esito['righe'], 'esito', 'contenuto' )[ $this->contenuti['Telefono'] ] );
+		$this->assertSame( array(), $this->indirizzo( $this->contenuti['Telefono'] ) );
+		$this->assertSame( (string) $altra, (string) get_option( VecchiIndirizzi::OPZIONE_SEZIONE ) );
+
+		// Senza pagina d'ingresso nella richiesta, come dalla schermata iniziale.
+		$richiesta = $this->richiesta( array(), array( (string) $this->contenuti['Bandi di concorso'] ) );
+		unset( $richiesta[ SchermataImportazione::CAMPO_RADICE ] );
+		$esito = SchermataImportazione::salva_indirizzi( $richiesta );
+		$this->assertSame( 'registrato', $esito['codice'] );
+		$this->assertSame( array(), $this->indirizzo( $this->contenuti['Bandi di concorso'] ) );
+
+		// Registrare chiede il rapporto: con la pagina d'ingresso ritirata niente, nemmeno la rimozione.
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $this->pagine['Varie'] ) ) );
+		$this->assertSame( 'radice', $esito['codice'] );
+		$this->assertSame( array(), $this->indirizzo( $this->contenuti['Varie'] ) );
+	}
+
+	/**
 	 * T-145. Il rinvio, e quando non c'e.
 	 */
 	public function test_t145_rinvio() {
@@ -585,5 +651,66 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 		wp_set_current_user( $solo_sezione );
 		$get['_wpnonce'] = wp_create_nonce( SchermataImportazione::AZIONE );
 		$this->assertStringNotContainsString( SchermataImportazione::AZIONE_INDIRIZZI, SchermataImportazione::html( $get ) );
+	}
+
+	/**
+	 * T-147. Senza pagina d'ingresso valida il modulo dei vecchi indirizzi resta.
+	 */
+	public function test_t147_senza_radice() {
+		SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $this->pagine['Bandi di concorso'] ) ) );
+		$togli = '<input type="checkbox" name="' . SchermataImportazione::CAMPO_TOGLI_INDIRIZZO . '[]" value="' . $this->contenuti['Bandi di concorso'] . '">';
+
+		// Schermata iniziale.
+		$html = SchermataImportazione::html( array( 'page' => SchermataImportazione::PAGINA ) );
+		$this->assertStringContainsString( 'name="action" value="' . SchermataImportazione::AZIONE_INDIRIZZI . '"', $html );
+		$this->assertStringContainsString( $togli, $html );
+		$this->assertMatchesRegularExpression( '/<option value="' . $this->sezione . '" selected/', $html );
+		$this->assertStringNotContainsString( 'name="' . SchermataImportazione::CAMPO_REGISTRA . '[]"', $html );
+
+		// Pagina d'ingresso ritirata.
+		wp_update_post(
+			array(
+				'ID'          => $this->radice,
+				'post_status' => 'draft',
+			)
+		);
+		$html = SchermataImportazione::html(
+			array(
+				'page'                              => SchermataImportazione::PAGINA,
+				SchermataImportazione::CAMPO_RADICE => (string) $this->radice,
+				'_wpnonce'                          => wp_create_nonce( SchermataImportazione::AZIONE ),
+			)
+		);
+		$this->assertStringContainsString( 'non è una pagina pubblicata senza password', $html );
+		$this->assertStringContainsString( $togli, $html );
+		$this->assertStringNotContainsString( 'name="' . SchermataImportazione::CAMPO_REGISTRA . '[]"', $html );
+	}
+
+	/**
+	 * T-147. Pagine con il codice breve non leggibili: avviso, non l'invito a crearla.
+	 */
+	public function test_t147_possibili_illeggibili() {
+		global $wpdb;
+
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				return false !== strpos( (string) $sql, 'post_content LIKE' ) ? 'SELECT ID FROM ' . $wpdb->posts . '_inesistente' : $sql;
+			}
+		);
+		$html = SchermataImportazione::html(
+			array(
+				'page'                              => SchermataImportazione::PAGINA,
+				SchermataImportazione::CAMPO_RADICE => (string) $this->radice,
+				'_wpnonce'                          => wp_create_nonce( SchermataImportazione::AZIONE ),
+			)
+		);
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+
+		$this->assertStringContainsString( 'Le pagine con il codice breve non si sono potute leggere', $html );
+		$this->assertStringNotContainsString( 'crearla prima', $html );
+		$this->assertStringNotContainsString( 'name="action" value="' . SchermataImportazione::AZIONE_INDIRIZZI . '"', $html );
 	}
 }
