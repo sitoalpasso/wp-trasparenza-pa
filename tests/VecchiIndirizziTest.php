@@ -684,6 +684,14 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'non è una pagina pubblicata senza password', $html );
 		$this->assertStringContainsString( $togli, $html );
 		$this->assertStringNotContainsString( 'name="' . SchermataImportazione::CAMPO_REGISTRA . '[]"', $html );
+
+		// Chi non può creare contenuti non lo vede nemmeno qui.
+		$solo_sezione = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		get_user_by( 'id', $solo_sezione )->add_cap( Permessi::AMMINISTRAZIONE );
+		wp_set_current_user( $solo_sezione );
+		$html = SchermataImportazione::html( array( 'page' => SchermataImportazione::PAGINA ) );
+		$this->assertStringContainsString( 'name="page"', $html );
+		$this->assertStringNotContainsString( '<h2>Vecchi indirizzi</h2>', $html );
 	}
 
 	/**
