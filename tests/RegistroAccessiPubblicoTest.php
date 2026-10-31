@@ -373,4 +373,63 @@ class RegistroAccessiPubblicoTest extends WP_UnitTestCase {
 			$this->assertStringNotContainsString( 'trasparenza-pa-registro-accessi', PaginaPubblica::disegna( $albero, $voce, 'https://example.org/sezione/' ), "Albero senza collocazione, voce {$voce}." );
 		}
 	}
+
+	/**
+	 * T-120: la data di ultimo aggiornamento sotto il titolo, nel formato e nel fuso del sito, anche senza righe.
+	 */
+	public function test_t120_data_sulla_pagina(): void {
+		update_option( 'timezone_string', 'Pacific/Kiritimati' );
+		update_option( 'date_format', 'j F Y' );
+
+		$anno    = $this->anno( 1 );
+		$istante = (int) gmmktime( 11, 0, 0, 3, 14, $anno );
+		$atteso  = wp_date( 'j F Y', $istante );
+
+		$this->assertSame( "15 March {$anno}", $atteso, 'Precondizione: nel fuso del sito e gia il giorno dopo.' );
+
+		update_option(
+			RegistroAccessi::OPZIONE,
+			array(
+				'ultimo'     => 1,
+				'aggiornato' => $istante,
+				'righe'      => array( 1 => $this->decisa( "{$anno}-01-10", "{$anno}-01-20" ) ),
+			)
+		);
+
+		$this->assertStringContainsString( '<h3>Registro degli accessi</h3><p class="trasparenza-pa-aggiornamento">Ultimo aggiornamento: ' . $atteso . '</p><table>', $this->pagina() );
+
+		update_option(
+			RegistroAccessi::OPZIONE,
+			array(
+				'ultimo'     => 1,
+				'aggiornato' => $istante,
+				'righe'      => array(),
+			)
+		);
+
+		$this->assertStringContainsString( '<h3>Registro degli accessi</h3><p class="trasparenza-pa-aggiornamento">Ultimo aggiornamento: ' . $atteso . '</p><p>Il registro non contiene richieste negli ultimi cinque anni.</p>', $this->pagina(), 'Anche senza righe.' );
+
+		foreach ( array(
+			'assente'  => null,
+			'testo'    => (string) $istante,
+			'zero'     => 0,
+			'negativo' => -5,
+		) as $caso => $valore ) {
+			$conservato = array(
+				'ultimo' => 1,
+				'righe'  => array( 1 => $this->decisa( "{$anno}-01-10", "{$anno}-01-20" ) ),
+			);
+
+			if ( null !== $valore ) {
+				$conservato['aggiornato'] = $valore;
+			}
+
+			update_option( RegistroAccessi::OPZIONE, $conservato );
+
+			$html = $this->pagina();
+
+			$this->assertStringNotContainsString( 'trasparenza-pa-aggiornamento', $html, $caso );
+			$this->assertStringContainsString( '<h3>Registro degli accessi</h3><table>', $html, $caso );
+		}
+	}
 }

@@ -812,4 +812,55 @@ class RegistroAccessiTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'value="Nuova &lt;i&gt;richiesta&lt;/i&gt;"', $html, 'Il modulo di aggiunta rimostra quanto inviato.' );
 		$this->assertSame( 1, substr_count( $html, 'Nuova &lt;i&gt;' ), 'Solo nel modulo di aggiunta.' );
 	}
+
+	/**
+	 * T-119: ogni cambio conserva l'istante del salvataggio; correzione senza cambi e rifiuti non lo spostano.
+	 */
+	public function test_t119_data_di_ultimo_aggiornamento(): void {
+		$istante = static function (): ?int {
+			$conservato = RegistroAccessi::conservato();
+			return is_wp_error( $conservato ) ? -1 : $conservato['aggiornato'];
+		};
+
+		$this->assertNull( $istante(), 'Registro mai scritto: nessuna data.' );
+
+		foreach ( array(
+			'aggiunta'   => fn() => $this->richiesta( 'aggiungi', $this->in_corso() ),
+			'correzione' => fn() => $this->richiesta( 'modifica', $this->decisa(), 1 ),
+			'rimozione'  => fn() => $this->richiesta( 'elimina', null, 1 ),
+		) as $nome => $richiesta ) {
+			update_option(
+				RegistroAccessi::OPZIONE,
+				array_merge( (array) get_option( RegistroAccessi::OPZIONE, array() ), array( 'aggiornato' => 1000 ) )
+			);
+
+			$prima = time();
+			$esito = SchermataRegistroAccessi::salva( $richiesta() );
+			$dopo  = time();
+
+			$this->assertSame( 'salvato', $esito['codice'], $nome . ': ' . $esito['messaggio'] );
+			$this->assertGreaterThanOrEqual( $prima, $istante(), $nome );
+			$this->assertLessThanOrEqual( $dopo, $istante(), $nome );
+			$this->assertSame( $istante(), get_option( RegistroAccessi::OPZIONE )['aggiornato'], $nome . ': la rilettura ritrova quanto scritto.' );
+		}
+
+		SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', $this->decisa() ) );
+		update_option( RegistroAccessi::OPZIONE, array_merge( get_option( RegistroAccessi::OPZIONE ), array( 'aggiornato' => 1000 ) ) );
+
+		$this->assertSame( 'salvato', SchermataRegistroAccessi::salva( $this->richiesta( 'modifica', $this->decisa(), 2 ) )['codice'] );
+		$this->assertSame( 1000, $istante(), 'Correzione senza cambi: la data non si sposta.' );
+
+		$this->assertSame( 'dati', SchermataRegistroAccessi::salva( $this->richiesta( 'aggiungi', array_merge( $this->decisa(), array( 'tipo' => 'altro' ) ) ) )['codice'] );
+		$this->assertSame( 1000, $istante(), 'Salvataggio rifiutato: la data non si sposta.' );
+
+		foreach ( array(
+			'testo'    => '1000',
+			'zero'     => 0,
+			'negativo' => -5,
+			'decimale' => 2.5,
+		) as $nome => $valore ) {
+			update_option( RegistroAccessi::OPZIONE, array_merge( get_option( RegistroAccessi::OPZIONE ), array( 'aggiornato' => $valore ) ) );
+			$this->assertNull( $istante(), 'Data conservata non valida: ' . $nome );
+		}
+	}
 }
