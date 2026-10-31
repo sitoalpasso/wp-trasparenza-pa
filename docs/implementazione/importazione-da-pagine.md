@@ -186,7 +186,7 @@ pulsante "Porta in bozza le pagine scelte" manda il modulo per POST, con il suo 
 - con il **titolo** della pagina e nessun testo: il testo dei costruttori di pagine è mescolato
   alla grafica e va riscritto a mano, come dice il rapporto;
 - con la **voce** scelta e il ricordo della **pagina d'origine** (metadato
-  `trasparenza_pa_pagina_origine`);
+  `_trasparenza_pa_pagina_origine`);
 - **senza decorrenza**: la data da cui decorre l'obbligo la scrive un addetto nel riquadro
   "Pubblicazione". Senza, il contenuto non compare al pubblico nemmeno se qualcuno lo pubblica;
 - con chi ha mandato il modulo come autore.
