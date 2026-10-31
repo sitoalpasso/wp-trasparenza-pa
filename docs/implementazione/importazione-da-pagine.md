@@ -52,10 +52,24 @@ elencata in fondo a lavoro finito.
 Nessun requisito nuovo. Il passo 1 prepara il passaggio e ne mostra i rischi; i requisiti
 protetti sono TRASP-09 e TRASP-19, e TRASP-04 per la corrispondenza con l'albero.
 
+## 2-bis. Norme e fonti
+
+| Regola del rapporto | Norma | Da dove viene, e se è verificata |
+|---|---|---|
+| Fine della pubblicazione al 31 dicembre dell'anno di decorrenza più la durata | d.lgs. 33/2013, art. 8, c. 3 | Dal file dell'albero in vigore, che porta la durata con la sua fonte (`fonte_durata`), già usata per TRASP-08 nella scheda `fine-pubblicazione.md`. Il testo della norma non è stato riletto per questo passo |
+| Gli atti che producono ancora effetti restano oltre i cinque anni | d.lgs. 33/2013, art. 8, c. 3 | Stessa fonte; il caso è già trattato nella scheda `effetti-oltre-cinque-anni.md`. Qui solo dichiarato, non calcolato |
+| Un documento scaduto non torna nella sezione | d.lgs. 33/2013, art. 8 (TRASP-09) | `docs/requisiti.md` di questo repository |
+| Minimizzazione dei dati personali nel passaggio | Regolamento (UE) 2016/679, art. 5 (TRASP-16) | `docs/requisiti.md` di questo repository. Il principio guida la scelta prudente sulla data, non c'è un obbligo che la prescriva così |
+| Ogni cosa portata dentro lascia traccia (passo 2) | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
+
+Il resto delle regole (quali pagine, come si propone la voce, quali file, i tre stati) è una
+scelta di costruzione, non viene da una norma.
+
 ## 3. Le regole del rapporto (passo 1)
 
-**Quali pagine.** Le pagine pubblicate che discendono dalla pagina d'ingresso, a qualunque
-profondità, ordinate come nell'albero delle pagine. Bozze, pagine private e cestino restano
+**Quali pagine.** La pagina d'ingresso, che spesso ha testo e file suoi, e le pagine pubblicate
+che ne discendono, a qualunque profondità, ordinate come nell'albero delle pagine (ordine del
+menu, poi titolo, poi identificativo). Bozze, pagine private e cestino restano
 fuori: il rapporto mostra solo ciò che è già pubblico, quindi non rivela nulla a chi ha il
 permesso della sezione e non quello delle pagine. La pagina d'ingresso deve essere una pagina
 pubblicata; un genitore che, risalendo, riporta alla pagina stessa non fa girare il rapporto

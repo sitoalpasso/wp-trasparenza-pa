@@ -1,0 +1,20 @@
+{
+	"formato": 1,
+	"versione": "prova-importazione",
+	"diciture": {
+		"non_applicabile": "L'obbligo di pubblicazione non è applicabile all'amministrazione",
+		"sospeso": "Obbligo di pubblicazione sospeso"
+	},
+	"durata_pubblicazione": { "anni": 5 },
+	"nodi": [
+		{ "id": "radice", "nome": "Amministrazione trasparente", "padre": null, "riferimento": "" },
+		{ "id": "organizzazione", "nome": "Organizzazione", "padre": "radice", "riferimento": "" },
+		{ "id": "articolazione", "nome": "Articolazione degli uffici", "padre": "organizzazione", "riferimento": "" },
+		{ "id": "telefono", "nome": "Telefono e posta elettronica", "padre": "organizzazione", "riferimento": "" },
+		{ "id": "atti_org", "nome": "Atti", "padre": "organizzazione", "riferimento": "" },
+		{ "id": "bandi", "nome": "Bandi di concorso", "padre": "radice", "riferimento": "" },
+		{ "id": "procedimenti", "nome": "Attività e procedimenti", "padre": "radice", "riferimento": "" },
+		{ "id": "altri", "nome": "Altri contenuti", "padre": "radice", "riferimento": "" },
+		{ "id": "atti_altri", "nome": "Atti", "padre": "altri", "riferimento": "" }
+	]
+}
