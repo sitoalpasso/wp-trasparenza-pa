@@ -486,6 +486,26 @@ class VecchiIndirizziTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-145. Rinvio da un percorso con caratteri codificati.
+	 */
+	public function test_t145_caratteri_codificati() {
+		$greca = $this->pagina( 'Δήλωση', $this->radice );
+		$righe = ImportazionePagine::porta( $this->radice, array( $greca => 'atti_altri' ), PaginaPubblica::albero(), RegistroAccessi::oggi() );
+		$this->assertSame( 'portata', $righe[0]['esito'] );
+
+		$slug = get_post_field( 'post_name', $greca );
+		$this->assertStringContainsString( '%', $slug, 'Precondizione: uno slug codificato.' );
+
+		$esito = SchermataImportazione::salva_indirizzi( $this->richiesta( array( (string) $greca ) ) );
+		$this->assertSame( 'registrato', $this->esiti( $esito )[ $greca ] );
+		$this->assertSame( array( 'amministrazione-trasparente/' . strtolower( $slug ) ), $this->indirizzo( (int) $righe[0]['contenuto'] ) );
+
+		wp_trash_post( $greca );
+		$this->assertSame( $this->voce( 'atti_altri' ), $this->rinvio( '/amministrazione-trasparente/' . $slug . '/' ) );
+		$this->assertSame( $this->voce( 'atti_altri' ), $this->rinvio( '/amministrazione-trasparente/' . strtoupper( $slug ) . '/' ) );
+	}
+
+	/**
 	 * T-145. Il percorso: senza la parte del sito, senza barre ai lati, in minuscolo.
 	 *
 	 * Il confronto nella banca dati puo non distinguere le maiuscole: il minuscolo
