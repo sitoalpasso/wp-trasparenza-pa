@@ -444,9 +444,14 @@ Costruito come scritto sopra. Tre cose venute dal lavoro:
   schermata lo segna "nessun rinvio", e il doppione si controlla contro tutti, così un contenuto
   rimesso dal cestino non trova il suo indirizzo preso da un altro;
 - la scelta della pagina della sezione non ha una voce di registro sua: è un'impostazione, non un
-  cambio di un contenuto, e ogni registrazione che ne dipende ha la sua voce.
+  cambio di un contenuto, e ogni registrazione che ne dipende ha la sua voce;
+- la rilettura ha trovato che il percorso chiesto passava da `sanitize_text_field()`, che toglie le
+  sequenze `%xx`: un vecchio indirizzo con caratteri codificati non sarebbe mai stato rinviato.
+  Ora il percorso si legge com'è arrivato (serve solo al confronto con gli indirizzi registrati),
+  con una prova in T-145 su uno slug codificato; la ricerca esce prima se manca la pagina della
+  sezione.
 
-Suite completa in locale: 361 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+Suite completa in locale: 362 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
 
 **Rotture volute (passo 3)**, una per volta, con le prove di `VecchiIndirizziTest`. Tutte rosse, salvo
@@ -458,6 +463,7 @@ portata.
 |---|---|
 | Rinvio anche senza "pagina non trovata" | T-145 |
 | Percorso non in minuscolo | T-145 |
+| Percorso chiesto ripulito con `sanitize_text_field()` | T-145 |
 | Barra finale non tolta | T-145 |
 | Contenuto nel cestino che rinvia | T-145 |
 | Voce che non c'è più usata come destinazione | T-145 |
