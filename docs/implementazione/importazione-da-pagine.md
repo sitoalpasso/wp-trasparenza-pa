@@ -242,7 +242,10 @@ trattino basso davanti come gli altri metadati della sezione, così WordPress no
 campi personalizzati. Una chiave del modulo con uno zero davanti (`0123`) non vale come la pagina
 123: è scartata, perché due chiavi diverse per la stessa pagina porterebbero due contenuti.
 
-Suite completa in locale: 346 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+Dopo la rilettura si è aggiunto T-134: il titolo con le barre inverse arrivava senza, e il
+rientro delle pagine figlie usava il trattino lungo.
+
+Suite completa in locale: 347 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
 GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
 
 **Rotture volute (passo 2a)**, una per volta, con le prove di `ImportazioneBozzeTest`. Tutte
@@ -276,6 +279,8 @@ rosse, salvo un'equivalenza dichiarata sotto.
 | Titolo senza escaping nel modulo | T-133 |
 | Esito mostrato più di una volta | T-133 |
 | Pagina già portata con la sua scelta | T-133 |
+| Titolo passato senza `wp_slash()` | T-134 |
+| Rientro con il trattino lungo | T-134 |
 
 Equivalenza: togliere il controllo "la voce è un testo" e confrontare le voci in modo non stretto
 non fa diventare rossa nessuna prova. Un valore che arriva da un modulo è un testo o un elenco, e
