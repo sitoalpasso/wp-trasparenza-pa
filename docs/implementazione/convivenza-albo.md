@@ -68,15 +68,22 @@ componente comune: un cambiamento dell'albo entra in queste prove con una modifi
   due i codici brevi porta il divieto: vince l'albo (sezione 6).
 - **T-150, mappa del sito.** La pagina della sezione è nella mappa del sito delle pagine, quella
   dell'albo no.
-- **T-151, la trasparenza non cambia con l'albo acceso.** Tutte le prove della suite normale
-  girano anche nella suite della convivenza, tranne quelle dell'avvio (`AvvioTest`), che
-  controllano che la bacheca resti vuota e troverebbero gli avvisi di configurazione dell'albo;
-  per la convivenza le sostituisce T-148.
+- **T-151, cicli di vita indipendenti.** Con l'albo registrato accanto, un contenuto della
+  trasparenza con la fine della pubblicazione nel futuro compare negli elenchi; con la fine a
+  ieri risulta scaduto e sparisce, e la sua politica resta quella della trasparenza. Il
+  componente comune governa la scadenza per tipo di contenuto, quindi un atto dell'albo e un
+  contenuto della trasparenza scadono ciascuno con la sua data e la sua regola.
 
-I cicli di vita indipendenti sono provati da T-151: le prove della fine della pubblicazione,
-dei cinque anni, della cessazione e dei documenti scaduti girano con l'albo acceso. Il componente
-comune governa la scadenza per tipo di contenuto, quindi un atto dell'albo e un contenuto della
-trasparenza scadono ciascuno con la sua data e la sua regola.
+**In più, un controllo largo ma più debole.** Tutte le prove della suite normale girano anche con
+il codice dell'albo caricato (`phpunit-con-albo-tutte.xml.dist`), tranne quelle dell'avvio
+(`AvvioTest`), che controllano che la bacheca resti vuota e troverebbero gli avvisi di
+configurazione dell'albo. Qui l'albo è presente con i suoi agganci a WordPress (interrogazioni,
+contenuti, motori, mappe, salvataggi), che restano attaccati per tutto l'avvio, ma **non sempre
+con le sue registrazioni nel componente comune**: molte prove azzerano le sezioni e i tipi
+registrati e riavviano solo la trasparenza, e da lì in poi l'albo non risulta più registrato.
+Riaccenderlo dopo ogni azzeramento vorrebbe dire ripetere nelle prove della trasparenza la
+procedura interna d'avvio dell'albo, che non è un'interfaccia pubblica. Per questo la convivenza
+con le registrazioni di tutti e due la provano solo T-148..T-151, nel loro avvio.
 
 ## 5. Modi di guasto
 
@@ -110,14 +117,16 @@ devono, e questa unità non cambia niente in `src/`. Due cose venute dal lavoro:
 
 - la convivenza gira in **due avvii** e non in uno: molte prove della suite normale azzerano le
   sezioni del componente comune e riavviano solo la trasparenza, quindi dopo di loro l'albo non
-  risulta più registrato. Le righe T-148..T-150 girano in un avvio loro, prima di qualunque
-  azzeramento; T-151 è l'altro avvio;
+  risulta più registrato. Le righe T-148..T-151 girano in un avvio loro, prima di qualunque
+  azzeramento; il controllo largo è l'altro avvio, con il limite dichiarato in sezione 4 (rilievo
+  della rilettura: in una prima versione T-151 era il controllo largo, e prometteva più di quanto
+  provasse);
 - il divieto ai motori del componente comune vale per tipo di contenuto, e le pagine con i codici
   brevi sono pagine di WordPress: per questo T-149 non vede una trasparenza dichiarata "vietata",
   che resta compito di T-148. Il divieto sulla pagina dell'albo lo mette l'albo stesso.
 
-Suite in locale: 366 prove verdi nella suite normale, più le due separate; convivenza 3 prove
-(T-148..T-150) più 353 (T-151: le 366 senza le 13 dell'avvio). PHPCS e T-32 puliti. GitHub
+Suite in locale: 366 prove verdi nella suite normale, più le due separate; convivenza 4 prove
+(T-148..T-151) più 353 del controllo largo (le 366 senza le 13 dell'avvio). PHPCS e T-32 puliti. GitHub
 Actions è fermo per la fatturazione, quindi la verifica in CI manca, compreso il nuovo passo.
 
 **Rotture volute**, una per volta, in tutti e tre i componenti (quelle sull'albo e sul componente
@@ -132,7 +141,9 @@ comune nella copia dell'ambiente di prova, mai nei loro repository). Tutte rosse
 | Pagina dell'albo nella mappa del sito | albo | T-150 |
 | Albo che toglie dalla mappa tutte le pagine | albo | T-150 |
 | Componente comune che vieta ogni richiesta | componente comune | T-149 |
-| Albo che nasconde i contenuti della trasparenza dagli elenchi | albo | T-151 |
+| Albo che nasconde i contenuti della trasparenza dagli elenchi | albo | controllo largo |
+| Contenuto scaduto della trasparenza ancora negli elenchi | componente comune | T-151 |
+| Albo che nasconde i contenuti della trasparenza solo quando è registrato | albo | T-151 |
 | Suite della convivenza senza l'albo caricato | prove | T-148..T-150 (errore) |
 
 ## Norme e fonti

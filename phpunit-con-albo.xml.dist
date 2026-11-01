@@ -10,9 +10,9 @@
 	>
 	<testsuites>
 		<!--
-			Righe T-148..T-150, in un avvio loro: nessuna prova prima di queste
-			azzera le sezioni registrate da albo e trasparenza. La riga T-151 e
-			in phpunit-con-albo-tutte.xml.dist.
+			Righe T-148..T-151, in un avvio loro: nessuna prova prima di queste
+			azzera le sezioni registrate da albo e trasparenza. Il controllo
+			largo e in phpunit-con-albo-tutte.xml.dist.
 		-->
 		<testsuite name="trasparenza-pa-con-albo">
 			<file>./tests/ConAlboTest.php</file>

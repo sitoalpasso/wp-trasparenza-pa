@@ -403,7 +403,7 @@ procurato da `bin/installa-albo.sh` a una revisione fissata. Scheda:
 | T-148 | fatto | Avvio con componente comune, albo e trasparenza | tre sezioni registrate, ciascuna con la sua politica (albo e storico: indicizzazione vietata, scaduti irraggiungibili; trasparenza: indicizzazione consentita, scaduti in archivio); ogni tipo nella sua sezione; nessun avviso in bacheca dalla trasparenza o dal componente comune |
 | T-149 | fatto | Pagina dell'albo; pagina della sezione, anche aperta su una voce; pagina con tutti e due i codici brevi | albo: `noindex` nel sorgente e `X-Robots-Tag` nell'intestazione; sezione: nessun divieto né nel sorgente né nell'intestazione; pagina con tutti e due: divieto (vince l'albo, dubbio annotato nella scheda) |
 | T-150 | fatto | Mappa del sito delle pagine | la pagina della sezione c'è, quella dell'albo no |
-| T-151 | fatto | Tutte le prove della suite normale, con l'albo acceso | verdi; escluse solo quelle dell'avvio, che contano gli avvisi in bacheca e troverebbero quelli dell'albo, sostituite da T-148 |
+| T-151 | fatto | Con l'albo registrato accanto: contenuto della trasparenza con fine della pubblicazione futura, poi ieri | prima compare negli elenchi, poi è scaduto e sparisce; la politica resta quella della trasparenza. In più, in un avvio a parte, tutte le prove della suite normale con il codice dell'albo caricato (escluse quelle dell'avvio): controllo largo, senza le registrazioni dell'albo dopo che una prova le azzera |
 
 ## Note di costruzione
 

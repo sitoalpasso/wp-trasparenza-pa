@@ -12,13 +12,14 @@
 		<testsuite name="trasparenza-pa-tutte-con-albo">
 			<directory suffix="Test.php">./tests</directory>
 			<!--
-				Riga T-151: tutte le prove della suite normale, con l'albo acceso.
-				Le prove dell'avvio contano gli avvisi in bacheca e troverebbero
-				quelli di configurazione dell'albo: per la convivenza le sostituisce
-				la riga T-148. ConAlboTest gira in un avvio suo, perche' molte prove
-				di questa suite azzerano le sezioni del componente comune e
-				riavviano solo la trasparenza. Le altre due girano con un componente
-				comune diverso.
+				Controllo largo: tutte le prove della suite normale con il codice
+				dell'albo caricato e i suoi agganci attaccati. Non con le sue
+				registrazioni nel componente comune: molte prove le azzerano e
+				riavviano solo la trasparenza (limite dichiarato nella scheda
+				convivenza-albo.md). La convivenza con le registrazioni la provano
+				le righe T-148..T-151, nel loro avvio. Le prove dell'avvio contano
+				gli avvisi in bacheca e troverebbero quelli di configurazione
+				dell'albo. Le ultime due girano con un componente comune diverso.
 			-->
 			<exclude>./tests/AvvioTest.php</exclude>
 			<exclude>./tests/ConAlboTest.php</exclude>
