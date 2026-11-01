@@ -93,6 +93,11 @@ final class ControlloRobots {
 		$dopo_regole = false;
 		$per_tutti   = false;
 
+		// Il segno BOM in testa, che alcuni programmi aggiungono salvando, non fa parte della prima riga.
+		if ( 0 === strncmp( $testo, "\xEF\xBB\xBF", 3 ) ) {
+			$testo = substr( $testo, 3 );
+		}
+
 		foreach ( preg_split( '/\r\n|\r|\n/', $testo ) as $riga ) {
 			$riga = trim( (string) preg_replace( '/#.*/', '', $riga ) );
 
@@ -186,7 +191,16 @@ final class ControlloRobots {
 		$albero = PaginaPubblica::albero();
 		$pagine = IndicizzazioneVoci::pagine();
 
-		if ( null === $albero || null === $pagine || array() === $pagine ) {
+		if ( null === $albero ) {
+			return array();
+		}
+
+		// Una lettura fallita non vale come nessuna pagina: il controllo non e fatto, e lo si dice.
+		if ( null === $pagine ) {
+			return new WP_Error( 'trasparenza_robots_pagine_illeggibili', __( 'le pagine della sezione non si sono potute leggere, e il controllo del file robots.txt non è stato fatto.', 'trasparenza-pa' ) );
+		}
+
+		if ( array() === $pagine ) {
 			return array();
 		}
 
