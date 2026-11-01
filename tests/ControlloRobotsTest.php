@@ -69,8 +69,12 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 	 * Toglie i file di prova e rimette il file predefinito.
 	 */
 	public function tear_down(): void {
+		global $wpdb;
+
 		ControlloRobots::fissa_file( null );
 		remove_all_filters( 'robots_txt' );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
 
 		foreach ( $this->da_togliere as $percorso ) {
 			if ( is_dir( $percorso ) ) {
@@ -126,6 +130,7 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 			'maiuscole nel percorso contano'  => array( "User-agent: *\nDisallow: /Sezione/", '/sezione/', null ),
 			'righe finite con a capo windows' => array( "User-agent: *\r\nDisallow: /sezione/\r\n", '/sezione/', 'Disallow: /sezione/' ),
 			'punto nel percorso'              => array( "User-agent: *\nDisallow: /s.zione/", '/sezione/', null ),
+			'segno bom in testa'              => array( "\xEF\xBB\xBFUser-agent: *\nDisallow: /sezione/", '/sezione/', 'Disallow: /sezione/' ),
 		);
 
 		foreach ( $casi as $nome => $caso ) {
@@ -137,6 +142,8 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 	 * T-155. L'avviso, dal file virtuale e dal file vero.
 	 */
 	public function test_t155_avviso() {
+		global $wpdb;
+
 		$this->assertStringNotContainsString( 'robots.txt', $this->avvisi_in_bacheca(), 'Il file predefinito di WordPress non chiude la sezione.' );
 
 		// Riga aggiunta dal filtro di WordPress: chiude le voci.
@@ -184,6 +191,19 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 		mkdir( $cartella ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- file di prova.
 		ControlloRobots::fissa_file( $cartella );
 		$this->assertStringContainsString( 'non si è potuto leggere', $this->avvisi_in_bacheca() );
+
+		// Pagine della sezione non lette: il controllo non e fatto, e lo si dice.
+		ControlloRobots::fissa_file( $this->file( "User-agent: *\nDisallow:\n" ) );
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb ) {
+				return false !== strpos( (string) $sql, 'post_content LIKE' ) ? 'SELECT ID FROM ' . $wpdb->posts . '_inesistente' : $sql;
+			}
+		);
+		$this->assertStringContainsString( 'pagine della sezione non si sono potute leggere', $this->avvisi_in_bacheca() );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
 
 		// A chi non puo rimediare, niente.
 		ControlloRobots::fissa_file( $this->file( "User-agent: *\nDisallow: /\n" ) );
