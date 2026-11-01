@@ -124,6 +124,11 @@ class IndicizzazioneVociTest extends WP_UnitTestCase {
 		rel_canonical();
 		$this->assertSame( '<link rel="canonical" href="' . esc_url( $voce ) . '" />' . "\n", ob_get_clean() );
 
+		// Da una voce, il canonico di un'altra pagina della sezione resta il suo.
+		$seconda = $this->pagina( 'Seconda', '[' . PaginaPubblica::CODICE_BREVE . ']' );
+		$this->go_to( $voce );
+		$this->assertSame( get_permalink( $seconda ), wp_get_canonical_url( $seconda ) );
+
 		// Una pagina senza il codice breve non cambia.
 		$altra = $this->pagina( 'Altra', 'Testo' );
 		$base2 = (string) get_permalink( $altra );
@@ -159,6 +164,8 @@ class IndicizzazioneVociTest extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attesi );
 		$this->assertSame( $attesi, $this->mappa() );
+		$this->assertSame( array(), wp_sitemaps_get_server()->registry->get_provider( IndicizzazioneVoci::FORNITORE )->get_url_list( 2 ) );
+		$this->assertSame( 1, wp_sitemaps_get_server()->registry->get_provider( IndicizzazioneVoci::FORNITORE )->get_max_num_pages() );
 		$this->assertContains( IndicizzazioneVoci::FORNITORE, array_keys( wp_get_sitemap_providers() ) );
 
 		// Lettura fallita: nessun indirizzo.
@@ -170,6 +177,7 @@ class IndicizzazioneVociTest extends WP_UnitTestCase {
 			}
 		);
 		$this->assertSame( array(), $this->mappa() );
+		$this->assertSame( 0, wp_sitemaps_get_server()->registry->get_provider( IndicizzazioneVoci::FORNITORE )->get_max_num_pages() );
 		remove_all_filters( 'query' );
 		$wpdb->suppress_errors( false );
 
