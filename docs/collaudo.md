@@ -33,7 +33,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 |---|---|---|---|
 | TRASP-01 | da fare | Si controllano denominazione e collegamento in home | dicitura esatta, link presente |
 | TRASP-02 | in corso | Si visita ogni pagina della sezione da utente anonimo (righe T-71, T-79 per i contenuti delle voci e i loro documenti) | tutto accessibile senza autenticazione |
-| TRASP-03 | da fare | Si ispezionano meta robots, robots.txt e sitemap della sezione | nessun noindex, nessun blocco, URL in sitemap |
+| TRASP-03 | in corso | Si ispezionano meta robots, robots.txt e sitemap della sezione (righe T-18, T-152, T-153) | nessun noindex, nessun blocco, URL in sitemap |
 | TRASP-04 | fatto | Si confronta l'alberatura generata con l'Allegato A, voce per voce (righe T-20..T-25) | ogni nodo previsto esiste, denominazione conforme; esiste "Controlli sulle attività economiche" e non esiste "Controlli sulle imprese" |
 | TRASP-05 | da fare | Si compilano i tre obblighi; si caricano le fixture ufficiali ANAC, integre e corrotte | solo campi strutturati; il dato valida; le fixture integre passano, le corrotte no con errore sul campo |
 | TRASP-06 | da fare | Si aggiunge uno schema come solo file di definizione | funziona senza modifiche al PHP |
@@ -404,6 +404,15 @@ procurato da `bin/installa-albo.sh` a una revisione fissata. Scheda:
 | T-149 | fatto | Pagina dell'albo; pagina della sezione, anche aperta su una voce; pagina con tutti e due i codici brevi | albo: `noindex` nel sorgente e `X-Robots-Tag` nell'intestazione; sezione: nessun divieto né nel sorgente né nell'intestazione; pagina con tutti e due: divieto (vince l'albo, dubbio annotato nella scheda) |
 | T-150 | fatto | Mappa del sito delle pagine | la pagina della sezione c'è, quella dell'albo no |
 | T-151 | fatto | Con l'albo registrato accanto: contenuto della trasparenza con fine della pubblicazione futura, poi ieri | prima compare negli elenchi, poi è scaduto e sparisce; la politica resta quella della trasparenza. In più, in un avvio a parte, tutte le prove della suite normale con il codice dell'albo caricato (escluse quelle dell'avvio): controllo largo, senza le registrazioni dell'albo dopo che una prova le azzera |
+
+## Voci della sezione visibili ai motori di ricerca (righe T-152..T-153)
+
+Scheda: `docs/implementazione/sezione-indicizzabile.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-152 | fatto | Indirizzo canonico: voce, radice, nessun parametro, voce sconosciuta, pagina senza codice breve, albero non disponibile; [attacco] parametro con codice | la voce ha come canonico il proprio indirizzo; negli altri casi resta quello di WordPress; il componente continua a non agganciare `wp_robots` |
+| T-153 | fatto | Mappa del sito della sezione: due pagine con il codice breve, una in bozza, una con password; albero non disponibile; [guasto] lettura delle pagine fallita | ogni voce tranne la radice, per ogni pagina pubblicata senza password, una volta; con l'albero assente o la lettura fallita nessun indirizzo |
 
 ## Note di costruzione
 

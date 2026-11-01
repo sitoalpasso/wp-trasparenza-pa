@@ -69,6 +69,7 @@ viene segnalato.
 | `Opzione` | Lettura di un'opzione dalla banca dati che distingue l'assenza dalla lettura fallita, per chi deve riscriverla | trasversale |
 | `Responsabile` | I dati del responsabile della prevenzione della corruzione e della trasparenza: controllo e riquadro pubblico nella voce che l'albero indica | TRASP-13 |
 | `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
+| `IndicizzazioneVoci`, `MappaVoci` | Indirizzo canonico di ogni voce e mappa del sito delle voci, senza toccare `wp_robots` | TRASP-03 |
 | `AccessoCivico` | A chi si chiede l'accesso civico: ufficio e titolare del potere sostitutivo con i loro recapiti, indirizzo del modulo; controllo e lettura che distingue l'assente dalla lettura fallita; riquadro pubblico "Come si chiede l'accesso civico" nella voce che l'albero indica, con il responsabile preso dai suoi dati | TRASP-12 |
 | `SchermataAccessoCivico` | La schermata "Accesso civico": le regole della schermata del responsabile, voce di registro senza dati personali, avviso finché i dati mancano | TRASP-12, TRASP-19 |
 | `RegistroAccessi` | Il registro degli accessi: controllo di una riga (tipo, argomento, date della richiesta e della decisione, esito), numeri mai riusati, lettura che distingue la lettura fallita; tabella pubblica nella voce dell'accesso civico, con le righe dei cinque anni calcolate in lettura | TRASP-12, TRASP-08 |
