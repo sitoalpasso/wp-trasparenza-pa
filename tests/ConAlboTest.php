@@ -1,10 +1,10 @@
 <?php
 /**
- * Prove della convivenza con l'albo pretorio: righe T-148..T-150.
+ * Prove della convivenza con l'albo pretorio: righe T-148..T-151.
  *
- * Girano solo nella suite della convivenza (`composer test:con-albo`), dove
- * componente comune, albo e trasparenza sono caricati insieme. La riga T-151 e
- * la suite stessa: tutte le altre prove, con l'albo acceso.
+ * Girano solo nella suite della convivenza (`composer test:con-albo`), in un
+ * avvio loro, dove componente comune, albo e trasparenza sono caricati e
+ * registrati insieme e nessuna prova prima di queste azzera le registrazioni.
  *
  * @package TrasparenzaPa
  */
@@ -188,6 +188,46 @@ class ConAlboTest extends WP_UnitTestCase {
 		$entrambe = $this->divieti( (string) get_permalink( $insieme ) );
 		$this->assertTrue( $entrambe['robots']['noindex'] ?? false );
 		$this->assertStringContainsString( 'noindex', $entrambe['intestazione'] );
+	}
+
+	/**
+	 * T-151. Con l'albo registrato, un contenuto della trasparenza scade con la sua data.
+	 */
+	public function test_t151_cicli_di_vita() {
+		$contenuto = (int) self::factory()->post->create(
+			array(
+				'post_type'   => \TrasparenzaPa\TIPO_CONTENUTO,
+				'post_status' => 'publish',
+				'post_title'  => 'Contenuto',
+			)
+		);
+		$elenco    = static function (): array {
+			return wp_list_pluck(
+				get_posts(
+					array(
+						'post_type'        => \TrasparenzaPa\TIPO_CONTENUTO,
+						'post_status'      => 'publish',
+						'suppress_filters' => false,
+						'posts_per_page'   => -1,
+					)
+				),
+				'ID'
+			);
+		};
+
+		$this->assertTrue( conformita_core_sezione_registrata( \AlboPretorioPa\SEZIONE ) );
+		$this->assertTrue( conformita_core_imposta_fine_pubblicazione( $contenuto, '2099-12-31' ) );
+		$this->assertFalse( conformita_core_scaduto( $contenuto ) );
+		$this->assertContains( $contenuto, $elenco() );
+
+		$ieri = ( new \DateTimeImmutable( 'yesterday', wp_timezone() ) )->format( 'Y-m-d' );
+		$this->assertTrue( conformita_core_imposta_fine_pubblicazione( $contenuto, $ieri ) );
+		$this->assertTrue( conformita_core_scaduto( $contenuto ) );
+		$this->assertNotContains( $contenuto, $elenco() );
+
+		// La politica della trasparenza resta la sua, con l'albo accanto.
+		$this->assertSame( 'archivio', conformita_core_politica_tipo( \TrasparenzaPa\TIPO_CONTENUTO )->scadenza() );
+		$this->assertTrue( conformita_core_sezione_registrata( \AlboPretorioPa\SEZIONE ) );
 	}
 
 	/**
