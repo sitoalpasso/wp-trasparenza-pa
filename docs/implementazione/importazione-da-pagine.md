@@ -54,6 +54,10 @@ elencata in fondo a lavoro finito.
 | 2b | `src/class-scheda-documenti.php` | Il deposito diviso in due: la parte che prende il blocco e quella che deposita, che `copia()` chiama tenendo già il blocco |
 | 2b | `src/class-schermata-importazione.php` | Il modulo "file da copiare nelle bozze", la risposta e l'esito |
 | 2b | `tests/ImportazioneFileTest.php` | Nuovo. Righe T-135..T-139 |
+| 3 | `src/class-vecchi-indirizzi.php` | Nuovo. La pagina della sezione scelta, gli indirizzi registrati, il rinvio dalla pagina vecchia alla voce |
+| 3 | `src/class-schermata-importazione.php` | Il modulo "vecchi indirizzi", la risposta e l'esito |
+| 3 | `trasparenza-pa.php` | Caricamento e agganci |
+| 3 | `tests/VecchiIndirizziTest.php` | Nuovo. Righe T-143..T-147 |
 | tutti | `docs/` | Collaudo, architettura, dati |
 
 ## 2. Requisiti serviti
@@ -334,6 +338,198 @@ file, che il deposito controlla.
 | Un file senza data trattato come oltre il termine | Regolamento (UE) 2016/679, art. 5 (TRASP-16) | `docs/requisiti.md`. Scelta prudente, non prescritta così dalla norma |
 | File serviti solo dalla cartella protetta del componente comune | regola di costruzione del progetto (consegna degli allegati) | istruzioni di sviluppo del repository; nessuna norma la prescrive in questa forma |
 | Nessun file aggiunto da qui a un contenuto pubblicato | nessuna norma: scelta di costruzione, prudente verso TRASP-09 | `docs/requisiti.md` |
+
+## 7-quater. I vecchi indirizzi (passo 3)
+
+**In parole semplici.** Le pagine vecchie hanno indirizzi già in giro: nei collegamenti di altri
+siti, nei motori di ricerca, nei segnalibri. Quando l'ente toglie una pagina vecchia, chi apre il
+suo indirizzo trova "pagina non trovata". Con questo passo, chi fa il passaggio registra
+l'indirizzo di ogni pagina portata, e da quando la pagina vecchia non risponde più il suo indirizzo
+porta alla voce nuova del contenuto, nella pagina della sezione. Finché la pagina vecchia è
+pubblicata non cambia niente: il rinvio scatta solo al posto di un "pagina non trovata".
+
+**La pagina della sezione.** È la pagina pubblicata che contiene il codice breve della sezione. Il
+modulo la fa scegliere fra le pagine pubblicate che lo contengono, e la scelta si conserva
+(opzione `trasparenza_pa_pagina_sezione`). Alla lettura vale solo se è ancora una pagina pubblicata
+con il codice breve; altrimenti nessun rinvio, e la schermata lo dice.
+
+**Il modulo.** Sotto quello dei file compare "Vecchi indirizzi":
+
+- la scelta della pagina della sezione;
+- per ogni pagina del rapporto già portata, con il contenuto fuori dal cestino, il suo indirizzo e
+  la voce di destinazione, con una casella **già spuntata** per registrarlo; la pagina della
+  sezione stessa non ha casella, perché un rinvio verso sé stessa girerebbe in tondo;
+- gli indirizzi già registrati, anche di pagine non più pubblicate, ciascuno con la casella
+  "togli".
+
+Il modulo compare anche nella schermata iniziale e quando la pagina d'ingresso vecchia è stata
+ritirata, senza pagine da registrare: togliere un indirizzo e cambiare la pagina della sezione
+servono proprio dopo il passaggio, quando la sezione vecchia non c'è più.
+
+Il pulsante "Registra i vecchi indirizzi" manda il modulo per POST, con il suo nonce.
+
+**Le regole di controllo.** Con il blocco della sezione preso:
+
+1. la pagina della sezione scelta deve essere una pagina pubblicata con il codice breve; dopo il
+   salvataggio si rilegge dalla banca dati e, se non coincide, non si registra e non si toglie
+   niente;
+2. ogni indirizzo da registrare si ricava dal rapporto rifatto al momento (che si chiede solo se ci
+   sono pagine da registrare), non dal modulo: il
+   modulo dice solo quale pagina. La pagina deve essere nel rapporto, già portata, con il contenuto
+   fuori dal cestino, e diversa dalla pagina della sezione;
+3. l'indirizzo è il percorso della pagina rispetto all'indirizzo del sito, senza barre all'inizio e
+   alla fine, in minuscolo. Si conserva sul contenuto (metadato `_trasparenza_pa_indirizzo_origine`),
+   una volta: un contenuto che lo ha già non ne prende un secondo;
+4. due contenuti non possono avere lo stesso indirizzo: il secondo è scartato;
+5. togliere un indirizzo vale solo per un contenuto della sezione che lo ha.
+
+Ogni registrazione e ogni rimozione ha la sua voce di registro `importazione_indirizzo`, con la
+pagina d'origine e l'indirizzo. Se il registro rifiuta, il metadato non si scrive, o non si toglie.
+
+**Il rinvio.** Su `template_redirect`, prima delle ipotesi di WordPress sugli indirizzi sbagliati,
+e solo quando la richiesta finisce in "pagina non trovata":
+
+1. il percorso chiesto, senza parametri e senza la parte dell'indirizzo del sito, in minuscolo, si
+   cerca fra gli indirizzi registrati, sui contenuti della sezione fuori dal cestino. Il percorso
+   resta com'è arrivato, caratteri codificati (`%xx`) compresi, perché così è scritto nel permalink
+   registrato; il minuscolo rende uguali anche `%C3%A0` e `%c3%a0`. Non passa da una funzione di
+   pulizia del testo, che toglierebbe le sequenze `%xx`: va solo come parametro di
+   un'interrogazione preparata, e non si stampa mai (T-145);
+2. la destinazione è la voce del contenuto **adesso**, non quella del momento del passaggio: se un
+   addetto sposta il contenuto, il rinvio lo segue. Una voce assente o che non c'è più nell'albero
+   porta alla pagina della sezione; una voce che non si è potuta leggere non porta da nessuna parte,
+   perché il 301 verso la pagina della sezione resterebbe nei browser anche dopo;
+3. il rinvio è permanente (301), perché la pagina vecchia non tornerà e i motori di ricerca devono
+   aggiornare il loro indice;
+4. nessun rinvio se la pagina della sezione non vale, se la lettura fallisce, o se la destinazione
+   coincide con l'indirizzo chiesto.
+
+Il rinvio porta alla voce e mai al contenuto o ai suoi file: un contenuto scaduto non torna
+raggiungibile da un indirizzo vecchio (TRASP-09).
+
+**Permessi.** Gli stessi del passo 2a. Il rinvio è pubblico e non legge niente che non sia già
+pubblico: la voce di un contenuto è visibile nella pagina della sezione.
+
+**Modi di guasto (passo 3).**
+
+| Guasto | Comportamento |
+|---|---|
+| Lettura delle pagine o degli indirizzi registrati fallita, nel passaggio | niente registrato, il motivo |
+| Pagina della sezione che non resta scritta | niente registrato e niente tolto, il motivo |
+| Lettura delle pagine con il codice breve fallita, nella schermata | avviso d'errore, nessun modulo, nessun invito a creare la pagina |
+| Blocco della sezione occupato | niente registrato, riprovare fra qualche secondo |
+| Registro che rifiuta | quell'indirizzo non registrato, o non tolto |
+| Lettura degli indirizzi o della voce del contenuto fallita, nel rinvio | nessun rinvio: resta "pagina non trovata" |
+| Pagina della sezione tolta o senza codice breve | nessun rinvio; la schermata lo dice |
+
+**Cosa deliberatamente non fa (passo 3).**
+
+- Non toglie, non mette in bozza e non cambia le pagine vecchie: lo decide l'ente, quando il
+  contenuto nuovo è pronto.
+- Non rinvia gli indirizzi dei file: il file nuovo si consegna dal componente comune con un indirizzo
+  suo, e un file vecchio scaduto non deve tornare raggiungibile.
+- Non registra indirizzi scritti a mano: solo quelli delle pagine del rapporto.
+- Non può richiamare un rinvio già seguito: i browser conservano un rinvio permanente, quindi chi
+  lo ha già seguito continua ad andare alla vecchia destinazione anche dopo un "togli" o uno
+  spostamento di voce, finché non svuota la memoria del browser. È il prezzo del 301; con un rinvio
+  temporaneo (302) non ci sarebbe, ma i motori di ricerca terrebbero l'indirizzo vecchio.
+
+**Norme e fonti (passo 3).**
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Ogni indirizzo registrato o tolto ha la sua riga di registro | d.lgs. 33/2013, art. 6 (TRASP-19) | `docs/requisiti.md` di questo repository |
+| Il rinvio porta alla voce, mai al contenuto o ai file | d.lgs. 33/2013, art. 8 (TRASP-09) | `docs/requisiti.md` |
+| Rinvio permanente, perché gli indici dei motori di ricerca seguano la sezione | d.lgs. 33/2013, art. 9 (TRASP-03, indicizzazione della sezione) | `docs/requisiti.md`. Il legame è indiretto: la norma vieta di impedire l'indicizzazione, non prescrive i rinvii. È una scelta di costruzione |
+| Il rinvio scatta solo al posto di "pagina non trovata" | nessuna norma: scelta di costruzione, per non nascondere una pagina che l'ente tiene pubblicata | |
+
+## Com'è andata (passo 3)
+
+Costruito come scritto sopra. Tre cose venute dal lavoro:
+
+- il confronto dell'indirizzo nella banca dati di solito non distingue le maiuscole; il minuscolo
+  resta nel codice, perché il controllo dei doppioni avviene in PHP e perché non tutte le
+  installazioni usano la stessa collazione, e una prova lo verifica direttamente su `percorso()`;
+- un indirizzo registrato resta fra i registrati anche quando il contenuto va nel cestino: la
+  schermata lo segna "nessun rinvio", e il doppione si controlla contro tutti, così un contenuto
+  rimesso dal cestino non trova il suo indirizzo preso da un altro;
+- la scelta della pagina della sezione non ha una voce di registro sua: è un'impostazione, non un
+  cambio di un contenuto, e ogni registrazione che ne dipende ha la sua voce;
+- la rilettura ha trovato che il percorso chiesto passava da `sanitize_text_field()`, che toglie le
+  sequenze `%xx`: un vecchio indirizzo con caratteri codificati non sarebbe mai stato rinviato.
+  Ora il percorso si legge com'è arrivato (serve solo al confronto con gli indirizzi registrati),
+  con una prova in T-145 su uno slug codificato; la ricerca esce prima se manca la pagina della
+  sezione;
+- la seconda rilettura ha trovato tre cose: la pagina della sezione si salvava senza rileggerla;
+  una lettura fallita delle pagine con il codice breve diventava "nessuna pagina, crearla"; e,
+  soprattutto, togliere un indirizzo o cambiare la pagina della sezione chiedeva il rapporto, che
+  non si fa più quando l'ente ritira la pagina d'ingresso vecchia, cioè proprio quando i rinvii
+  lavorano. Ora il rapporto serve solo per registrare, e il modulo resta senza pagina d'ingresso;
+- la terza rilettura ha trovato che la voce del contenuto, nel rinvio, si leggeva con
+  `get_post_meta()`: una lettura fallita diventava "voce assente" e mandava alla pagina della
+  sezione con un 301 che i browser conservano. Ora si legge con `Metadato::leggi()` e, se fallisce,
+  nessun rinvio.
+
+Suite completa in locale: 366 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute (passo 3)**, una per volta, con le prove di `VecchiIndirizziTest`. Tutte rosse, salvo
+l'equivalenza dichiarata sotto. Tre erano verdi alla prima prova e hanno avuto la loro prova:
+percorso non in minuscolo, lettura fallita degli indirizzi registrati, motivo della pagina non
+portata. Nella seconda rilettura una quarta, il modulo senza pagina d'ingresso mostrato a chi non
+può creare contenuti, ha avuto la sua prova.
+
+| Rottura | Prova rossa |
+|---|---|
+| Rinvio anche senza "pagina non trovata" | T-145 |
+| Percorso non in minuscolo | T-145 |
+| Percorso chiesto ripulito con `sanitize_text_field()` | T-145 |
+| Barra finale non tolta | T-145 |
+| Contenuto nel cestino che rinvia | T-145 |
+| Voce che non c'è più usata come destinazione | T-145 |
+| Voce non letta trattata come assente | T-145 |
+| Destinazione uguale all'indirizzo chiesto | T-145 |
+| Pagina della sezione non controllata alla lettura | T-145 |
+| Pagina della sezione senza codice breve accettata | T-143, T-145 |
+| Pagina della sezione in bozza accettata | T-143 |
+| Articolo accettato come pagina della sezione | T-143 |
+| Aggancio dopo le ipotesi di WordPress | T-146 |
+| Blocco della sezione non preso | T-144 |
+| Lettura fallita degli indirizzi registrati non fermata | T-144 |
+| Pagina della sezione non riletta dopo il salvataggio | T-144 |
+| Rapporto chiesto anche senza pagine da registrare | T-144 |
+| Rapporto mai chiesto | T-144 |
+| Pagina d'ingresso obbligatoria nella richiesta | T-144 |
+| Lettura fallita delle pagine con il codice breve non fermata | T-147 |
+| Modulo assente nella schermata iniziale | T-147 |
+| Modulo assente con la pagina d'ingresso ritirata | T-147 |
+| Modulo senza pagina d'ingresso mostrato a chi non può creare contenuti | T-147 |
+| Identificativo preso con `(int)` | T-143 |
+| Pagina non portata accettata | T-143 |
+| Pagina della sezione che registra sé stessa | T-143 |
+| Contenuto nel cestino che registra | T-143 |
+| Secondo indirizzo sullo stesso contenuto | T-144 |
+| Stesso indirizzo su due contenuti | T-144 |
+| Registro che rifiuta ignorato nella registrazione | T-144 |
+| Registro che rifiuta ignorato nella rimozione | T-144 |
+| Rimozione da un contenuto senza indirizzo | T-144 |
+| Pagina d'origine non scritta nel registro | T-144 |
+| Pagina della sezione non conservata | T-143 |
+| Modulo senza permesso della sezione o di creare contenuti | T-143 |
+| Nonce di un'altra azione accettato | T-143 |
+| Campo "togli" non controllato come elenco | T-143 |
+| Pagina della sezione non controllata nella forma | T-143 |
+| Pagina già registrata con la sua casella | T-147 |
+| Titolo senza escaping nel modulo | T-147 |
+| Pagina della sezione non valida senza avviso | T-147 |
+| Pagina della sezione non preselezionata | T-147 |
+| Pagine senza codice breve fra le scelte | T-147 |
+| Modulo a chi non può creare contenuti | T-147 |
+| Modulo senza aggancio | T-147 |
+
+Equivalenza: togliere, nel rinvio, il controllo dell'errore di lettura non fa diventare rossa
+nessuna prova, perché una lettura fallita restituisce comunque "nessun contenuto" e quindi nessun
+rinvio. Il controllo resta come difesa esplicita.
 
 ## Com'è andata (passo 2b)
 
