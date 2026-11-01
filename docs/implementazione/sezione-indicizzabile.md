@@ -77,6 +77,41 @@ Nessuno: sono indirizzi di pagine pubbliche, che chiunque può già aprire.
   dalla portata di WordPress.
 - Non dà un titolo proprio a ogni voce nella scheda del browser.
 
+## Com'è andata
+
+Costruito come scritto sopra. Il fornitore della mappa sta in una classe sua (`MappaVoci`),
+perché estende la classe di WordPress per le mappe; la regola su quali pagine valgono come pagine
+della sezione è una sola (`IndicizzazioneVoci::della_sezione()`), per il canonico e per la mappa.
+
+Suite completa in locale: 368 prove verdi, più le due suite separate; PHPCS e T-32 puliti.
+GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute**, una per volta, con le prove di `IndicizzazioneVociTest`. Tre erano verdi alla
+prima prova e hanno avuto la loro prova (canonico di un'altra pagina, seconda pagina dell'elenco,
+numero di pagine con l'elenco vuoto); tre sono equivalenze, dichiarate sotto.
+
+| Rottura | Prova rossa |
+|---|---|
+| Filtro del canonico non agganciato | T-152 |
+| Canonico cambiato anche su pagine senza codice breve | T-152 |
+| Canonico cambiato anche per un altro contenuto della pagina aperta | T-152 |
+| Mappa non registrata | T-153 |
+| Radice nella mappa delle voci | T-153 |
+| Pagine con un codice breve somigliante nella mappa | T-153 |
+| Elenco anche oltre la prima pagina | T-153 |
+| Una pagina d'elenco anche quando non c'è niente | T-153 |
+
+Equivalenze:
+
+- **Canonico senza il controllo dell'albero.** Senza albero `PaginaPubblica::voce_chiesta()`
+  restituisce già nullo, e il canonico non cambia; il controllo resta perché subito dopo serve
+  la radice dell'albero.
+- **Stato e password non controllati in `della_sezione()`, per la mappa.** La lettura dalla
+  banca dati prende già solo le pagine pubblicate e senza password; il controllo resta per il
+  canonico, che parte dal contenuto aperto.
+- **Lettura fallita senza guardare `last_error`.** Con l'interrogazione guasta `get_col()`
+  restituisce già un elenco vuoto; il controllo resta, come in ogni altra lettura del componente.
+
 ## Norme e fonti
 
 | Regola | Norma | Fonte, e se è verificata |
