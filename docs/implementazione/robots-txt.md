@@ -81,6 +81,41 @@ disponibile o se non ci sono pagine della sezione.
 - Non scarica il file dal sito: lo legge dove sta, così funziona anche su una copia di prova non
   raggiungibile da fuori.
 
+## Com'è andata
+
+Costruito come scritto sopra, con due cambi rispetto alla prima stesura, entrambi per non
+disturbare la bacheca: l'azione `do_robotstxt` non si lancia (chi la usa può mandare intestazioni o
+chiudere la risposta), e il controllo gira solo nella bacheca iniziale. Le pagine della sezione si
+leggono con la stessa funzione della mappa del sito (`IndicizzazioneVoci::pagine()`), così la
+regola su quali pagine contano è una sola.
+
+Suite completa in locale: 371 prove verdi, più le due suite separate e quelle con l'albo; PHPCS e
+T-32 puliti. GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
+
+**Rotture volute**, una per volta, con le prove di `ControlloRobotsTest`. Tutte rosse.
+
+| Rottura | Prova rossa |
+|---|---|
+| A parità vince `Disallow` | T-154 |
+| Vince la prima regola, non la più lunga | T-154 |
+| `Disallow` vuoto che chiude tutto | T-154 |
+| `$` finale ignorato | T-154 |
+| `*` letto come carattere | T-154 |
+| Valore della regola non protetto nell'espressione (il punto vale qualunque carattere) | T-154 |
+| Regole di ogni gruppo, non solo di quelli per tutti | T-154 |
+| Gruppo che non si chiude quando dopo le regole arriva un altro `User-agent` | T-154 |
+| Commenti letti come regole | T-154 |
+| Nomi delle righe con le maiuscole non riconosciuti | T-154 |
+| Percorso confrontato senza badare alle maiuscole | T-154 |
+| Solo la pagina controllata, non le voci | T-155 |
+| File vero ignorato | T-155 |
+| File vero non leggibile trattato come vuoto | T-155 |
+| Filtro `robots_txt` ignorato | T-155 |
+| Avviso in ogni schermata | T-155 |
+| Avviso a chi non può attivare componenti | T-155 |
+| Avviso senza escaping | T-155 |
+| Avviso non agganciato | T-155 |
+
 ## Norme e fonti
 
 | Regola | Norma | Fonte, e se è verificata |
