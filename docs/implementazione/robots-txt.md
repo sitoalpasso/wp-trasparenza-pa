@@ -84,8 +84,9 @@ disponibile o se non ci sono pagine della sezione.
   stare fuori da quella cartella: il controllo allora legge un file diverso, o quello virtuale, e
   il suo esito non vale per il file che i motori vedono.
 - Non normalizza la codifica percentuale (RFC 9309, 2.2.2): una regola scritta in chiaro su uno
-  slug non ASCII, o con `%XX` su caratteri non riservati, può sfuggire al controllo. Con gli slug
-  di WordPress, che toglie gli accenti, il caso non si presenta.
+  slug non ASCII, o con `%XX` su caratteri non riservati, può sfuggire al controllo. Con slug in
+  caratteri latini il caso non si presenta, perché WordPress toglie gli accenti; resta possibile
+  solo con slug in alfabeti non latini.
 - Non scarica il file dal sito: lo legge dove sta, così funziona anche su una copia di prova non
   raggiungibile da fuori.
 
