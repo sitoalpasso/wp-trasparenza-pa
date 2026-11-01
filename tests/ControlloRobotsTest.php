@@ -62,6 +62,7 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 
 		ControlloRobots::fissa_file( $this->file( null ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		set_current_screen( 'dashboard' );
 	}
 
 	/**
@@ -70,7 +71,6 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 	public function tear_down(): void {
 		ControlloRobots::fissa_file( null );
 		remove_all_filters( 'robots_txt' );
-		remove_all_actions( 'do_robotstxt' );
 
 		foreach ( $this->da_togliere as $percorso ) {
 			if ( is_dir( $percorso ) ) {
@@ -150,20 +150,20 @@ class ControlloRobotsTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'robots.txt', $avvisi );
 		$this->assertStringContainsString( 'Sezione', $avvisi );
 		$this->assertStringContainsString( 'Disallow: /*?', $avvisi );
-		$this->assertStringContainsString( 'le sue voci', $avvisi );
+		$this->assertStringContainsString( 'non visitare le voci', $avvisi );
 		remove_all_filters( 'robots_txt' );
 
-		// Riga scritta da un componente sull'azione di WordPress: chiude la pagina.
-		add_action(
-			'do_robotstxt',
-			static function () {
-				echo "User-agent: *\nDisallow: /sezione/\n";
-			}
-		);
+		// File vero che chiude la pagina.
+		ControlloRobots::fissa_file( $this->file( "User-agent: *\nDisallow: /sezione/\n" ) );
 		$avvisi = $this->avvisi_in_bacheca();
 		$this->assertStringContainsString( 'Disallow: /sezione/', $avvisi );
-		$this->assertStringContainsString( 'la pagina', $avvisi );
-		remove_all_actions( 'do_robotstxt' );
+		$this->assertStringContainsString( 'non visitare la pagina', $avvisi );
+
+		// Solo nella bacheca iniziale.
+		set_current_screen( 'edit-post' );
+		$this->assertStringNotContainsString( 'robots.txt', $this->avvisi_in_bacheca() );
+		set_current_screen( 'dashboard' );
+		ControlloRobots::fissa_file( $this->file( null ) );
 
 		// Il file vero vince su quello virtuale.
 		add_filter(

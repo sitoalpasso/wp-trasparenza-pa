@@ -52,12 +52,14 @@ voce (con il parametro `voce`), perché una regola sui parametri chiude solo le 
 
 **Quale file.** Se nella cartella di WordPress c'è un file `robots.txt`, il server manda quello e
 WordPress non entra in gioco: si legge il file. Altrimenti si ricostruisce il file che WordPress
-manda: le righe predefinite, quello che i componenti scrivono sull'azione `do_robotstxt` e il
-filtro `robots_txt`.
+manda: le righe predefinite e il filtro `robots_txt`, che è il modo in cui i componenti aggiungono
+righe. L'azione `do_robotstxt` non si lancia: chi la usa lo fa per rispondere alla richiesta del
+file e può mandare intestazioni o chiudere la risposta, cosa che in bacheca romperebbe la pagina.
 
 ## 4. L'avviso (T-155)
 
-In bacheca, a chi può attivare i componenti, come l'avviso di T-18 sul sito che chiede di non
+Nella bacheca iniziale (non in ogni schermata: il controllo legge file e pagine), a chi può
+attivare i componenti, come l'avviso di T-18 sul sito che chiede di non
 farsi indicizzare: per ogni pagina chiusa, il titolo della pagina, se è chiusa la pagina o solo
 le sue voci, e la riga che la chiude. Nessun avviso se nessuna pagina è chiusa, se l'albero non è
 disponibile o se non ci sono pagine della sezione.
@@ -75,6 +77,7 @@ disponibile o se non ci sono pagine della sezione.
   quando è virtuale vorrebbe dire scavalcare un altro componente senza che l'ente lo sappia.
 - Non controlla i gruppi dedicati a un motore preciso (`User-agent: Googlebot`): il controllo
   guarda la regola valida per tutti.
+- Non vede le righe scritte da un componente sull'azione `do_robotstxt` (vedi sezione 3).
 - Non scarica il file dal sito: lo legge dove sta, così funziona anche su una copia di prova non
   raggiungibile da fuori.
 
