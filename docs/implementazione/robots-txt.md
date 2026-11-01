@@ -69,7 +69,8 @@ disponibile o se non ci sono pagine della sezione.
 | Guasto | Comportamento |
 |---|---|
 | File `robots.txt` presente ma non leggibile | avviso: il file non si è potuto leggere e il controllo non è stato fatto |
-| Lettura delle pagine della sezione fallita | nessun avviso del controllo: le pagine non si conoscono |
+| Lettura delle pagine della sezione fallita | avviso: le pagine della sezione non si sono potute leggere e il controllo non è stato fatto |
+| File salvato con il segno BOM in testa (lo aggiungono alcuni programmi di scrittura) | il segno si toglie prima di leggere le righe |
 
 ## 6. Cosa deliberatamente non fa
 
@@ -78,6 +79,10 @@ disponibile o se non ci sono pagine della sezione.
 - Non controlla i gruppi dedicati a un motore preciso (`User-agent: Googlebot`): il controllo
   guarda la regola valida per tutti.
 - Non vede le righe scritte da un componente sull'azione `do_robotstxt` (vedi sezione 3).
+- Cerca il file vero nella cartella di WordPress. Se WordPress sta in una sottocartella, o il sito
+  sta in un sottopercorso del dominio, i motori leggono il file alla radice del dominio, che può
+  stare fuori da quella cartella: il controllo allora legge un file diverso, o quello virtuale, e
+  il suo esito non vale per il file che i motori vedono.
 - Non scarica il file dal sito: lo legge dove sta, così funziona anche su una copia di prova non
   raggiungibile da fuori.
 
@@ -88,6 +93,12 @@ disturbare la bacheca: l'azione `do_robotstxt` non si lancia (chi la usa può ma
 chiudere la risposta), e il controllo gira solo nella bacheca iniziale. Le pagine della sezione si
 leggono con la stessa funzione della mappa del sito (`IndicizzazioneVoci::pagine()`), così la
 regola su quali pagine contano è una sola.
+
+Dopo la rilettura, due correzioni: il segno BOM in testa al file faceva saltare il primo gruppo,
+e quindi le sue righe, dando un falso "tutto a posto"; una lettura fallita delle pagine della
+sezione taceva come se non ci fossero pagine, e ora dà l'avviso di controllo non fatto, come il
+file illeggibile. Aggiunto fra i limiti il caso del file alla radice del dominio fuori dalla
+cartella di WordPress.
 
 Suite completa in locale: 371 prove verdi, più le due suite separate e quelle con l'albo; PHPCS e
 T-32 puliti. GitHub Actions è fermo per la fatturazione, quindi la verifica in CI manca.
@@ -110,6 +121,8 @@ T-32 puliti. GitHub Actions è fermo per la fatturazione, quindi la verifica in 
 | Solo la pagina controllata, non le voci | T-155 |
 | File vero ignorato | T-155 |
 | File vero non leggibile trattato come vuoto | T-155 |
+| Segno BOM in testa non tolto | T-154 |
+| Pagine della sezione non lette trattate come nessuna pagina | T-155 |
 | Filtro `robots_txt` ignorato | T-155 |
 | Avviso in ogni schermata | T-155 |
 | Avviso a chi non può attivare componenti | T-155 |
