@@ -30,8 +30,8 @@ che cambia il comportamento dell'altro) non lo vede nessuno.
   repository pubblico, come `bin/installa-core.sh` fa con il componente comune.
 - `tests/avvio-comune.php`: un parametro in più per caricare l'albo fra il componente comune e
   la trasparenza.
-- `tests/bootstrap-con-albo.php`, `phpunit-con-albo.xml.dist` (nuovi): la suite della
-  convivenza.
+- `tests/bootstrap-con-albo.php`, `phpunit-con-albo.xml.dist`, `phpunit-con-albo-tutte.xml.dist`
+  (nuovi): la suite della convivenza, in due avvii.
 - `tests/ConAlboTest.php` (nuovo): le prove proprie.
 - `phpunit.xml.dist`: esclude `ConAlboTest.php` dalla suite normale, dove l'albo non c'è.
 - `composer.json`: comando `test:con-albo`.
@@ -102,6 +102,38 @@ funzione nuova e la decide l'utente.
   TRASP-17 resta quindi "in corso".
 - Non prova l'albo con la trasparenza accesa: è il lavoro del repository dell'albo.
 - Non cambia nessun comportamento dei due plugin.
+
+## Com'è andata
+
+Le prove della convivenza sono verdi alla prima esecuzione: oggi i due plugin convivono come
+devono, e questa unità non cambia niente in `src/`. Due cose venute dal lavoro:
+
+- la convivenza gira in **due avvii** e non in uno: molte prove della suite normale azzerano le
+  sezioni del componente comune e riavviano solo la trasparenza, quindi dopo di loro l'albo non
+  risulta più registrato. Le righe T-148..T-150 girano in un avvio loro, prima di qualunque
+  azzeramento; T-151 è l'altro avvio;
+- il divieto ai motori del componente comune vale per tipo di contenuto, e le pagine con i codici
+  brevi sono pagine di WordPress: per questo T-149 non vede una trasparenza dichiarata "vietata",
+  che resta compito di T-148. Il divieto sulla pagina dell'albo lo mette l'albo stesso.
+
+Suite in locale: 366 prove verdi nella suite normale, più le due separate; convivenza 3 prove
+(T-148..T-150) più 353 (T-151: le 366 senza le 13 dell'avvio). PHPCS e T-32 puliti. GitHub
+Actions è fermo per la fatturazione, quindi la verifica in CI manca, compreso il nuovo passo.
+
+**Rotture volute**, una per volta, in tutti e tre i componenti (quelle sull'albo e sul componente
+comune nella copia dell'ambiente di prova, mai nei loro repository). Tutte rosse.
+
+| Rottura | Dove | Prova rossa |
+|---|---|---|
+| Trasparenza dichiarata con indicizzazione vietata | trasparenza | T-148 |
+| Un avviso in bacheca all'avvio della trasparenza | trasparenza | T-148 |
+| Albo senza divieto nel sorgente della sua pagina | albo | T-149 |
+| Albo che mette il divieto su ogni pagina | albo | T-149 |
+| Pagina dell'albo nella mappa del sito | albo | T-150 |
+| Albo che toglie dalla mappa tutte le pagine | albo | T-150 |
+| Componente comune che vieta ogni richiesta | componente comune | T-149 |
+| Albo che nasconde i contenuti della trasparenza dagli elenchi | albo | T-151 |
+| Suite della convivenza senza l'albo caricato | prove | T-148..T-150 (errore) |
 
 ## Norme e fonti
 

@@ -153,7 +153,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-14 | da fare | PIAO al posto del vecchio piano autonomo | d.l. 80/2021 art. 6 |
 | TRASP-15 | da fare | Documenti accessibili | l. 4/2004 |
 | TRASP-16 | da fare | Minimizzazione dei dati personali | GDPR art. 5 |
-| TRASP-17 | da fare | Separazione dall'albo, politiche opposte | d.lgs. 33/2013 |
+| TRASP-17 | in corso | Separazione dall'albo, politiche opposte | d.lgs. 33/2013 |
 | TRASP-18 | da fare | Sottosezione accessibilità | d.lgs. 179/2016 art. 9 |
 | TRASP-19 | in corso | Tracciamento delle modifiche | art. 6 |
 | TRASP-20 | da fare | Formato aperto, niente PDF da scansione | specifiche tecniche ANAC |

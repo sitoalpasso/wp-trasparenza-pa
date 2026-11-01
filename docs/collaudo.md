@@ -48,7 +48,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-14 | da fare | Campo PIAO | configurabile e mostrato dove previsto |
 | TRASP-15 | da fare | Si carica un PDF che sembra una scansione | avviso al redattore, dichiarato come indizio |
 | TRASP-16 | da fare | Flusso di pubblicazione senza la conferma sui dati personali | non si conclude |
-| TRASP-17 | da fare | Collaudo congiunto con l'albo (righe T-148..T-151); lo stesso documento in tutte e due le sezioni senza duplicare il file resta da costruire nel componente comune | politiche invertite entrambe corrette |
+| TRASP-17 | in corso | Collaudo congiunto con l'albo (righe T-148..T-151); lo stesso documento in tutte e due le sezioni senza duplicare il file resta da costruire nel componente comune | politiche invertite entrambe corrette |
 | TRASP-18 | da fare | Sottosezione "Altri contenuti - Accessibilità" | presente con dichiarazione e obiettivi |
 | TRASP-19 | da fare | Pubblicazione e rimozione di una voce | voci nel registro di core |
 | TRASP-21 | da fare | Nome del file generato per una sottosezione | contiene anno, due date, codice sottosezione e versione, confrontato con i template ufficiali |
@@ -400,10 +400,10 @@ procurato da `bin/installa-albo.sh` a una revisione fissata. Scheda:
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-148 | da fare | Avvio con componente comune, albo e trasparenza | tre sezioni registrate, ciascuna con la sua politica (albo e storico: indicizzazione vietata, scaduti irraggiungibili; trasparenza: indicizzazione consentita, scaduti in archivio); ogni tipo nella sua sezione; nessun avviso in bacheca dalla trasparenza o dal componente comune |
-| T-149 | da fare | Pagina dell'albo; pagina della sezione, anche aperta su una voce; pagina con tutti e due i codici brevi | albo: `noindex` nel sorgente e `X-Robots-Tag` nell'intestazione; sezione: nessun divieto né nel sorgente né nell'intestazione; pagina con tutti e due: divieto (vince l'albo, dubbio annotato nella scheda) |
-| T-150 | da fare | Mappa del sito delle pagine | la pagina della sezione c'è, quella dell'albo no |
-| T-151 | da fare | Tutte le prove della suite normale, con l'albo acceso | verdi; escluse solo quelle dell'avvio, che contano gli avvisi in bacheca e troverebbero quelli dell'albo, sostituite da T-148 |
+| T-148 | fatto | Avvio con componente comune, albo e trasparenza | tre sezioni registrate, ciascuna con la sua politica (albo e storico: indicizzazione vietata, scaduti irraggiungibili; trasparenza: indicizzazione consentita, scaduti in archivio); ogni tipo nella sua sezione; nessun avviso in bacheca dalla trasparenza o dal componente comune |
+| T-149 | fatto | Pagina dell'albo; pagina della sezione, anche aperta su una voce; pagina con tutti e due i codici brevi | albo: `noindex` nel sorgente e `X-Robots-Tag` nell'intestazione; sezione: nessun divieto né nel sorgente né nell'intestazione; pagina con tutti e due: divieto (vince l'albo, dubbio annotato nella scheda) |
+| T-150 | fatto | Mappa del sito delle pagine | la pagina della sezione c'è, quella dell'albo no |
+| T-151 | fatto | Tutte le prove della suite normale, con l'albo acceso | verdi; escluse solo quelle dell'avvio, che contano gli avvisi in bacheca e troverebbero quelli dell'albo, sostituite da T-148 |
 
 ## Note di costruzione
 
