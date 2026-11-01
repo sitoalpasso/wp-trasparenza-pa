@@ -41,6 +41,8 @@ mai nei sorgenti PHP: fino ad allora quel controllo esiste solo nella rilettura.
   `bin/installa-core.sh`) e `composer lint` (PHPCS con le WordPress Coding Standards).
 - Due avvii separati con un componente comune diverso: `composer test:senza-core` e
   `composer test:core-incompatibile`. Le loro prove non girano nella suite principale.
+- La convivenza con l'albo pretorio, procurato da `bin/installa-albo.sh`: `composer test:con-albo`,
+  che fa due avvii (le prove proprie della convivenza e tutte le altre con l'albo acceso).
 - Ambiente locale: `npx wp-env start` (configurazione in `.wp-env.json`).
 - La CI è in `.github/workflows/ci.yml`.
 

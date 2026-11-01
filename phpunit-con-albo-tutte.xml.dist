@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<phpunit
+	bootstrap="tests/bootstrap-con-albo.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	>
+	<testsuites>
+		<testsuite name="trasparenza-pa-tutte-con-albo">
+			<directory suffix="Test.php">./tests</directory>
+			<!--
+				Controllo largo: tutte le prove della suite normale con il codice
+				dell'albo caricato e i suoi agganci attaccati. Non con le sue
+				registrazioni nel componente comune: molte prove le azzerano e
+				riavviano solo la trasparenza (limite dichiarato nella scheda
+				convivenza-albo.md). La convivenza con le registrazioni la provano
+				le righe T-148..T-151, nel loro avvio. Le prove dell'avvio contano
+				gli avvisi in bacheca e troverebbero quelli di configurazione
+				dell'albo. Le ultime due girano con un componente comune diverso.
+			-->
+			<exclude>./tests/AvvioTest.php</exclude>
+			<exclude>./tests/ConAlboTest.php</exclude>
+			<exclude>./tests/SenzaCoreTest.php</exclude>
+			<exclude>./tests/CoreIncompatibileTest.php</exclude>
+		</testsuite>
+	</testsuites>
+</phpunit>

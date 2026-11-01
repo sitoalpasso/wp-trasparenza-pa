@@ -52,6 +52,26 @@ function trasparenza_pa_file_core(): string {
 }
 
 /**
+ * Il file principale dell'albo pretorio, o stringa vuota se non c'e.
+ *
+ * Serve solo alla suite della convivenza: l'albo si procura con
+ * `bin/installa-albo.sh`, nella cartella dei plugin dell'installazione di prova,
+ * oppure si indica con ALBO_PRETORIO_FILE.
+ *
+ * @return string
+ */
+function trasparenza_pa_file_albo(): string {
+	$albo = getenv( 'ALBO_PRETORIO_FILE' );
+
+	if ( ! $albo ) {
+		$radice = getenv( 'WP_CORE_DIR' ) ? getenv( 'WP_CORE_DIR' ) : '/tmp/wordpress';
+		$albo   = $radice . '/wp-content/plugins/albo-pretorio-pa/albo-pretorio-pa.php';
+	}
+
+	return file_exists( $albo ) ? $albo : '';
+}
+
+/**
  * Prepara la suite, con o senza il componente comune.
  *
  * L'avvio automatico si puo spegnere. Nel caso della versione incompatibile
@@ -63,8 +83,9 @@ function trasparenza_pa_file_core(): string {
  *
  * @param bool $con_core         Carica il componente comune prima di questo.
  * @param bool $avvio_automatico Lascia agganciata la procedura di avvio a plugins_loaded.
+ * @param bool $con_albo         Carica anche l'albo pretorio, fra il componente comune e questo.
  */
-function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = true ): void {
+function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = true, bool $con_albo = false ): void {
 	$dir_test = trasparenza_pa_dir_test();
 
 	$polyfills = dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
@@ -77,7 +98,7 @@ function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = 
 
 	tests_add_filter(
 		'muplugins_loaded',
-		static function () use ( $con_core, $avvio_automatico ): void {
+		static function () use ( $con_core, $avvio_automatico, $con_albo ): void {
 			if ( $con_core ) {
 				$core = trasparenza_pa_file_core();
 
@@ -88,6 +109,18 @@ function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = 
 				}
 
 				require_once $core;
+			}
+
+			if ( $con_albo ) {
+				$albo = trasparenza_pa_file_albo();
+
+				if ( '' === $albo ) {
+					fwrite( STDERR, "Albo pretorio non trovato: eseguire bin/installa-albo.sh.\n" );
+
+					exit( 1 );
+				}
+
+				require_once $albo;
 			}
 
 			require dirname( __DIR__ ) . '/trasparenza-pa.php';
