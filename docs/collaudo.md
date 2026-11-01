@@ -420,8 +420,8 @@ Scheda: `docs/implementazione/robots-txt.md`.
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
-| T-154 | fatto | Lettura del file: regola sulla pagina, regola sui parametri, `Allow` più lungo, parità fra `Allow` e `Disallow`, `*` e `$`, `Disallow` vuoto, gruppo di un solo motore, più `User-agent` in fila, commenti, maiuscole nei nomi delle righe | si trova la riga che chiude la pagina o le sue voci secondo RFC 9309; nessuna riga se vince `Allow`, se il `Disallow` è vuoto o se la regola è solo di un motore |
-| T-155 | fatto | Avviso: file virtuale con una riga aggiunta dal filtro di WordPress, file vero nella cartella di WordPress, file vero non leggibile, nessuna pagina chiusa, schermata diversa dalla bacheca iniziale, utente senza il permesso di attivare componenti; [attacco] titolo della pagina con codice | avviso con pagina, cosa è chiuso e riga; il file vero vince su quello virtuale; nessun avviso se niente è chiuso, fuori dalla bacheca iniziale o a chi non può rimediare; ogni valore con escaping |
+| T-154 | fatto | Lettura del file: regola sulla pagina, regola sui parametri, `Allow` più lungo, parità fra `Allow` e `Disallow`, `*` e `$`, `Disallow` vuoto, gruppo di un solo motore, più `User-agent` in fila, commenti, maiuscole nei nomi delle righe, file salvato con il segno BOM in testa | si trova la riga che chiude la pagina o le sue voci secondo RFC 9309; nessuna riga se vince `Allow`, se il `Disallow` è vuoto o se la regola è solo di un motore |
+| T-155 | fatto | Avviso: file virtuale con una riga aggiunta dal filtro di WordPress, file vero nella cartella di WordPress, file vero non leggibile, lettura delle pagine della sezione fallita, nessuna pagina chiusa, schermata diversa dalla bacheca iniziale, utente senza il permesso di attivare componenti; [attacco] titolo della pagina con codice | avviso con pagina, cosa è chiuso e riga; il file vero vince su quello virtuale; file illeggibile o pagine non lette danno un avviso di controllo non fatto; nessun avviso se niente è chiuso, fuori dalla bacheca iniziale o a chi non può rimediare; ogni valore con escaping |
 
 ## Note di costruzione
 
