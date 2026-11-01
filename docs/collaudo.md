@@ -48,7 +48,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-14 | da fare | Campo PIAO | configurabile e mostrato dove previsto |
 | TRASP-15 | da fare | Si carica un PDF che sembra una scansione | avviso al redattore, dichiarato come indizio |
 | TRASP-16 | da fare | Flusso di pubblicazione senza la conferma sui dati personali | non si conclude |
-| TRASP-17 | da fare | Collaudo congiunto con l'albo (vedi sotto) | politiche invertite entrambe corrette |
+| TRASP-17 | in corso | Collaudo congiunto con l'albo (righe T-148..T-151); lo stesso documento in tutte e due le sezioni senza duplicare il file resta da costruire nel componente comune | politiche invertite entrambe corrette |
 | TRASP-18 | da fare | Sottosezione "Altri contenuti - Accessibilità" | presente con dichiarazione e obiettivi |
 | TRASP-19 | da fare | Pubblicazione e rimozione di una voce | voci nel registro di core |
 | TRASP-21 | da fare | Nome del file generato per una sottosezione | contiene anno, due date, codice sottosezione e versione, confrontato con i template ufficiali |
@@ -390,21 +390,29 @@ nuovo: proteggono TRASP-09 e TRASP-19 durante il passaggio. Scheda:
 | T-146 | fatto | Il rinvio arriva prima delle ipotesi di WordPress sugli indirizzi sbagliati | aggancio su `template_redirect` con priorità minore di quella di `redirect_canonical` |
 | T-147 | fatto | Schermata: modulo dei vecchi indirizzi, scelta della pagina della sezione fra quelle con il codice breve, caselle, indirizzi già registrati con "togli", pagina della sezione non valida; pagina d'ingresso non scelta o ritirata; esito; chi non può creare contenuti; [guasto] lettura fallita delle pagine con il codice breve; [attacco] titoli e indirizzi con codice | modulo per POST con nonce; senza pagina d'ingresso valida il modulo resta, con i già registrati e la scelta della sezione; con la lettura fallita un avviso d'errore e non l'invito a creare la pagina; ogni valore con escaping; senza permesso di creare contenuti nessun modulo |
 
-## Voci della sezione visibili ai motori di ricerca (righe da T-152)
+## Collaudo congiunto con l'albo pretorio (righe T-148..T-151)
 
-Scheda: `docs/implementazione/sezione-indicizzabile.md`. Le righe T-148..T-151 sono della
-convivenza con l'albo.
+Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
+sitemap, quelle dell'albo hanno noindex e sono fuori. È il controllo dell'errore
+invisibile a occhio. Girano in un avvio separato (`composer test:con-albo`), con l'albo
+procurato da `bin/installa-albo.sh` a una revisione fissata. Scheda:
+`docs/implementazione/convivenza-albo.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-148 | fatto | Avvio con componente comune, albo e trasparenza | tre sezioni registrate, ciascuna con la sua politica (albo e storico: indicizzazione vietata, scaduti irraggiungibili; trasparenza: indicizzazione consentita, scaduti in archivio); ogni tipo nella sua sezione; nessun avviso in bacheca dalla trasparenza o dal componente comune |
+| T-149 | fatto | Pagina dell'albo; pagina della sezione, anche aperta su una voce; pagina con tutti e due i codici brevi | albo: `noindex` nel sorgente e `X-Robots-Tag` nell'intestazione; sezione: nessun divieto né nel sorgente né nell'intestazione; pagina con tutti e due: divieto (vince l'albo, dubbio annotato nella scheda) |
+| T-150 | fatto | Mappa del sito delle pagine | la pagina della sezione c'è, quella dell'albo no |
+| T-151 | fatto | Con l'albo registrato accanto: contenuto della trasparenza con fine della pubblicazione futura, poi ieri | prima compare negli elenchi, poi è scaduto e sparisce; la politica resta quella della trasparenza. In più, in un avvio a parte, tutte le prove della suite normale con il codice dell'albo caricato (escluse quelle dell'avvio): controllo largo, senza le registrazioni dell'albo dopo che una prova le azzera |
+
+## Voci della sezione visibili ai motori di ricerca (righe T-152..T-153)
+
+Scheda: `docs/implementazione/sezione-indicizzabile.md`.
 
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
 | T-152 | fatto | Indirizzo canonico: voce, radice, nessun parametro, voce sconosciuta, pagina senza codice breve, albero non disponibile; [attacco] parametro con codice | la voce ha come canonico il proprio indirizzo; negli altri casi resta quello di WordPress; il componente continua a non agganciare `wp_robots` |
 | T-153 | fatto | Mappa del sito della sezione: due pagine con il codice breve, una in bozza, una con password; albero non disponibile; [guasto] lettura delle pagine fallita | ogni voce tranne la radice, per ogni pagina pubblicata senza password, una volta; con l'albero assente o la lettura fallita nessun indirizzo |
-
-## Collaudo congiunto con l'albo pretorio
-
-Con entrambi i plugin attivi: le pagine della trasparenza sono indicizzabili e in
-sitemap, quelle dell'albo hanno noindex e sono fuori. Un test, due asserzioni, eseguito
-su un'installazione con tutti e due: è il controllo dell'errore invisibile a occhio.
 
 ## Note di costruzione
 

@@ -80,10 +80,14 @@ jobs:
       - name: Procura il componente comune alla revisione fissata
         run: bin/installa-core.sh
 
-      # Tre avvii separati e non uno: la versione dell'interfaccia del componente
+      - name: Procura l'albo pretorio alla revisione fissata
+        run: bin/installa-albo.sh
+
+      # Avvii separati e non uno: la versione dell'interfaccia del componente
       # comune la dichiara una costante, e una costante si definisce una volta sola
       # per processo. I tre ambienti non possono quindi convivere nella stessa
-      # esecuzione.
+      # esecuzione. La convivenza con l'albo ha il suo avvio per la stessa ragione:
+      # caricato una volta, l'albo resta acceso per tutto il processo.
       - name: Esegue PHPUnit, componente comune presente e compatibile
         env:
           WP_TESTS_DIR: /tmp/wordpress-tests-lib
@@ -98,6 +102,11 @@ jobs:
         env:
           WP_TESTS_DIR: /tmp/wordpress-tests-lib
         run: composer test:core-incompatibile
+
+      - name: Esegue PHPUnit, con l'albo pretorio acceso
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        run: composer test:con-albo
 
   publiccode:
     name: Validazione publiccode.yml

@@ -13,7 +13,8 @@ supportato.
 - Ambiente: `npx wp-env start` (configurazione in `.wp-env.json`)
 - Test: `composer test` (PHPUnit sulla suite di test di WordPress, con il componente comune
   procurato da `bin/installa-core.sh`), piu `composer test:senza-core` e
-  `composer test:core-incompatibile`, che girano in avvii separati
+  `composer test:core-incompatibile`, che girano in avvii separati, e `composer test:con-albo`
+  (convivenza con l'albo pretorio procurato da `bin/installa-albo.sh`)
 - Standard: `composer lint` (PHPCS, WordPress Coding Standards)
 
 ## Regole di lavoro
