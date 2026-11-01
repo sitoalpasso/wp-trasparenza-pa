@@ -29,6 +29,10 @@
         "test": "phpunit",
         "test:senza-core": "phpunit --configuration phpunit-senza-core.xml.dist",
         "test:core-incompatibile": "phpunit --configuration phpunit-core-incompatibile.xml.dist",
+        "test:con-albo": [
+            "phpunit --configuration phpunit-con-albo.xml.dist",
+            "phpunit --configuration phpunit-con-albo-tutte.xml.dist"
+        ],
         "prefissa": [
             "strauss",
             "@php bin/avvisi-librerie.php"

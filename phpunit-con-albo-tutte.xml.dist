@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<phpunit
+	bootstrap="tests/bootstrap-con-albo.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	>
+	<testsuites>
+		<testsuite name="trasparenza-pa-tutte-con-albo">
+			<directory suffix="Test.php">./tests</directory>
+			<!--
+				Riga T-151: tutte le prove della suite normale, con l'albo acceso.
+				Le prove dell'avvio contano gli avvisi in bacheca e troverebbero
+				quelli di configurazione dell'albo: per la convivenza le sostituisce
+				la riga T-148. ConAlboTest gira in un avvio suo, perche' molte prove
+				di questa suite azzerano le sezioni del componente comune e
+				riavviano solo la trasparenza. Le altre due girano con un componente
+				comune diverso.
+			-->
+			<exclude>./tests/AvvioTest.php</exclude>
+			<exclude>./tests/ConAlboTest.php</exclude>
+			<exclude>./tests/SenzaCoreTest.php</exclude>
+			<exclude>./tests/CoreIncompatibileTest.php</exclude>
+		</testsuite>
+	</testsuites>
+</phpunit>

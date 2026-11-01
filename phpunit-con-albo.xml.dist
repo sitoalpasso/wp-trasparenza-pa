@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<phpunit
+	bootstrap="tests/bootstrap-con-albo.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	>
+	<testsuites>
+		<!--
+			Righe T-148..T-150, in un avvio loro: nessuna prova prima di queste
+			azzera le sezioni registrate da albo e trasparenza. La riga T-151 e
+			in phpunit-con-albo-tutte.xml.dist.
+		-->
+		<testsuite name="trasparenza-pa-con-albo">
+			<file>./tests/ConAlboTest.php</file>
+		</testsuite>
+	</testsuites>
+</phpunit>

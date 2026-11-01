@@ -12,11 +12,13 @@
 		<testsuite name="trasparenza-pa">
 			<directory suffix="Test.php">./tests</directory>
 			<!--
-				Questi due girano in avvii separati, con un componente comune
-				diverso: raccolti qui girerebbero contro l'ambiente sbagliato.
+				Questi girano in avvii separati, con un componente comune
+				diverso o con l'albo pretorio caricato: raccolti qui girerebbero
+				contro l'ambiente sbagliato.
 			-->
 			<exclude>./tests/SenzaCoreTest.php</exclude>
 			<exclude>./tests/CoreIncompatibileTest.php</exclude>
+			<exclude>./tests/ConAlboTest.php</exclude>
 		</testsuite>
 	</testsuites>
 </phpunit>
