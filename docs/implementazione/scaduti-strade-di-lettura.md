@@ -42,7 +42,7 @@ pubblicazione passata; accanto, un contenuto uguale in vigore, per vedere che la
 | Strada | Riga del componente comune | Cosa si controlla |
 |---|---|---|
 | Pagina della sezione | | lo scaduto non c'è, quello in vigore sì |
-| Punto pubblico dei documenti | | il documento dello scaduto risponde 404 |
+| Punto pubblico dei documenti | | il documento in vigore si scarica (200), quello dello scaduto risponde 404 |
 | Contenuto singolo, elenchi, interrogazioni di terzi | C-10, C-11, C-21 | lo scaduto non si trova, quello in vigore sì |
 | Ricerca chiedendo il tipo | C-12 | trova quello in vigore, non lo scaduto |
 | Feed del tipo | C-13 | c'è quello in vigore, non lo scaduto |
@@ -80,7 +80,7 @@ amministra.
 
 Dopo la rilettura, ogni strada provata ha accanto il contenuto in vigore che compare, così la
 prova distingue la scadenza dal tipo escluso: il feed si chiede per il tipo, la ricerca con il
-tipo deve trovare quello in vigore, la pagina dell'allegato in vigore deve esistere. Le strade che
+tipo deve trovare quello in vigore, la pagina dell'allegato in vigore deve esistere, il documento in vigore si deve scaricare dal punto pubblico. Le strade che
 per il tipo non esistono sono uscite dalla prova e sono elencate al punto 3.
 
 TRASP-09 resta in corso: manca la parte "mai cancellato".
@@ -89,7 +89,8 @@ TRASP-09 resta in corso: manca la parte "mai cancellato".
 
 | Rottura | Prova rossa |
 |---|---|
-| Il componente comune non considera mai scaduto niente | T-156 |
+| Il componente comune non considera mai scaduto niente | T-156 (già al controllo iniziale sul dato) |
+| Il punto pubblico del componente comune consegna anche i documenti degli scaduti | T-156 |
 | Tolto il secondo strato del componente comune (`the_posts`) | T-156 |
 | Tolto il filtro di XML-RPC del componente comune | T-156 |
 | Tolto il filtro sul singolo dell'interfaccia informatica del componente comune | T-156 |

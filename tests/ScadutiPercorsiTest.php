@@ -206,7 +206,8 @@ class ScadutiPercorsiTest extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Bilancio scaduto', $pagina );
 		$this->assertStringNotContainsString( 'bilancio-scaduto', $pagina );
 
-		// Il documento non si scarica dal punto pubblico.
+		// Dal punto pubblico si scarica il documento in vigore, non quello dello scaduto.
+		$this->assertSame( 200, $this->scarica( $this->documento_in_vigore ) );
 		$this->assertSame( 404, $this->scarica( $this->documento ) );
 
 		// Contenuto singolo e elenchi (C-10, C-11, C-21).
