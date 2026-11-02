@@ -79,3 +79,62 @@ Poi la frase sui dati relativi alla salute, e la casella.
 - Non legge i documenti per cercare dati personali.
 - Non riguarda le voci compilate sugli schemi, che oggi non si pubblicano (T-40): quando si
   apriranno con gli stati editoriali, la conferma andrà nel loro passaggio.
+
+## Com'è andata
+
+Costruito come scritto sopra, con tre cose venute dalle prove.
+
+- Il cambio di stato fatto direttamente riporta in bozza, ma gli agganci di WordPress che
+  seguono l'annuncio della pubblicazione partono lo stesso, come per le voci (T-40). Per questo la
+  scrittura del contenuto ha il suo sbarramento: da lì il contenuto non passa neppure un istante da
+  pubblicato, e la prova conta gli annunci di pubblicazione.
+- La casella non spuntata manda comunque il gettone, perché il gettone sta nel modulo: la prova
+  lo verifica.
+- Con la lettura dello stato fallita, la conservazione degli scaduti (T-158) trattava una bozza
+  come contenuto fermo e la forzava a pubblicata. Corretto lì, con una prova sua: la forzatura
+  chiede ora uno stato letto e pubblicato, mentre il fermo sulla cancellazione resta.
+
+Le altre prove della suite pubblicano contenuti senza occuparsi della conferma: l'avvio delle
+prove la considera data, e solo `ControlloPreventivoTest` la chiede davvero.
+
+**Rotture volute**, una per volta, con le prove di `ControlloPreventivoTest`.
+
+| Rottura | Prova rossa |
+|---|---|
+| La scrittura non riporta in bozza | T-159 (annunci di pubblicazione) |
+| Cambio di stato diretto non fermato | T-159 |
+| Stato di partenza sempre considerato già visibile | T-159 |
+| Lettura dello stato fallita considerata già visibile | T-159 |
+| Casella non guardata | T-159 |
+| Gettone non verificato | T-159 |
+| Permesso di pubblicare non verificato | T-159 |
+| Registro che rifiuta ignorato | T-159 |
+| Conferma che resta valida per un secondo cambio di stato | T-159 |
+| Programmato che arriva alla data fermato | T-159 |
+| Motivo non ricordato, o mostrato più di una volta | T-159 |
+| Riquadro sul contenuto pubblicato o programmato | T-160 |
+| Riquadro a chi non può pubblicare | T-160 |
+| Riquadro senza gettone | T-160 |
+| Riquadro non agganciato | T-160 |
+| Anche gli altri tipi del sito fermati | T-159 |
+| Conferma delle prove non considerata | T-156, nelle altre prove |
+| Conservazione che forza a pubblicato con la lettura fallita | T-158 |
+
+Una rottura resta verde, per equivalenza dichiarata: accettare una casella con il numero di un
+altro contenuto. Il gettone è legato al contenuto, quindi una casella diversa arriva solo con il
+gettone di quell'altro contenuto, che la verifica rifiuta (prova "conferma per un altro
+contenuto").
+
+TRASP-16 è fatto: ogni strada di pubblicazione di un contenuto passa dalla conferma, e le voci non
+si pubblicano (T-40). Quando le voci si apriranno, la conferma andrà nel loro passaggio.
+
+## Norme e fonti
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Dati personali adeguati, pertinenti e limitati a quanto necessario | Regolamento (UE) 2016/679 (GDPR), art. 5, par. 1, lett. c | `docs/requisiti.md`; testo citato a memoria |
+| Non intelligibili i dati personali non pertinenti o eccedenti | d.lgs. 33/2013, art. 7-bis, c. 4 | citato a memoria |
+| Niente dati da cui ricavare salute o disagio economico e sociale dei destinatari di contributi | d.lgs. 33/2013, art. 26, c. 4 | citato a memoria |
+| I dati relativi alla salute non si diffondono | d.lgs. 196/2003, art. 2-septies, c. 8 | citato a memoria |
+| Casi tipici del riquadro | linee guida del Garante in materia di trasparenza (provvedimento del 15 maggio 2014) | citate a memoria, non verificate: elenco orientativo, la valutazione resta dell'ente |
+| Agganci di scrittura e di cambio di stato | funzioni `wp_insert_post()`, `wp_publish_post()`, `wp_transition_post_status()` di WordPress | lette nel codice dell'ambiente di prova |
