@@ -49,14 +49,20 @@ padre è fermo:
 
 - il permesso di cancellare (`delete_post`) è negato a chiunque, così i collegamenti spariscono
   dalle schermate;
+- il permesso di modificare l'allegato (`edit_post`) è negato a chiunque: dalla libreria dei file
+  l'azione "Scollega" riscrive il padre direttamente nella banca dati, e un documento scollegato
+  non sarebbe più protetto; lo stesso vale per "Collega" verso un altro contenuto. La consegna
+  dei file chiede la lettura, non la modifica;
 - `wp_trash_post()` e `wp_delete_post()`, che non guardano i permessi, si fermano lo stesso
   (agganci `pre_trash_post` e `pre_delete_post`);
 - cancellare l'utente autore non porta via il contenuto (il tipo è registrato con
   `delete_with_user` falso; la prova lo tiene fermo).
 
 **Stato (T-158).** Una scrittura che chiede per un contenuto fermo uno stato diverso da
-pubblicato lo lascia pubblicato (aggancio `wp_insert_post_data`); il resto della scrittura
-passa, quindi una correzione del testo si salva. Il motivo si mostra una volta a chi ha tentato.
+pubblicato, o un altro tipo, lo lascia pubblicato e del suo tipo (aggancio `wp_insert_post_data`;
+il tipo si legge dalla banca dati); una scrittura che cambia il padre di un suo allegato lo lascia
+legato (aggancio `wp_insert_attachment_data`, che WordPress usa per gli allegati al posto
+dell'altro). Il resto della scrittura passa, quindi una correzione del testo si salva. Il motivo si mostra una volta a chi ha tentato.
 
 ## 4. Modi di guasto
 
@@ -90,6 +96,9 @@ componente comune lo tratta come scaduto: la suite completa ha mostrato che cos�
 contenuti mai visibili (il registro delle modifiche, la rimozione di un documento dopo il
 ritorno in bozza, l'importazione). Ora la data di fine deve esserci.
 
+Dopo la rilettura: chiusa la strada "scollega dalla libreria, poi cancella" negando la modifica
+degli allegati, e il cambio di padre o di tipo fatto da codice.
+
 Gli articoli e gli altri tipi del sito non sono toccati: la prova lo verifica cestinando un
 articolo pubblicato.
 
@@ -110,6 +119,11 @@ aperta.
 | Fermo anche sui contenuti in vigore | T-157 |
 | Fermo anche sugli altri tipi | T-157 |
 | Fermo anche senza data di fine | T-157 |
+| Modifica dell'allegato non negata (scollega dalla libreria) | T-157 |
+| Scrittura degli allegati non agganciata | T-157 |
+| Padre dell'allegato non trattenuto | T-157 |
+| Tipo non trattenuto | T-157 |
+| Tipo letto dalla scrittura invece che dalla banca dati | T-157 |
 | Data di fine illeggibile trattata come non fermo | T-157 |
 | Stato non trattenuto | T-158 |
 | Data non trattenuta | T-158 |
