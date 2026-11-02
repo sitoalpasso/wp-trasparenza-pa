@@ -168,6 +168,41 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'si conserva', $this->avvisi_in_bacheca() );
 		$this->assertStringNotContainsString( 'si conserva', $this->avvisi_in_bacheca(), 'Il motivo si mostra una volta.' );
 
+		// Scollegare o ricollegare il documento dalla libreria, poi cancellarlo: il documento resta legato.
+		$this->assertFalse( current_user_can( 'edit_post', $documento ) );
+		$altro = (int) self::factory()->post->create(
+			array(
+				'post_type'   => TIPO_CONTENUTO,
+				'post_status' => 'draft',
+			)
+		);
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		$_REQUEST['media'] = array( $documento );
+		wp_media_attach_action( $scaduto, 'detach' );
+		wp_media_attach_action( $altro, 'attach' );
+		unset( $_REQUEST['media'] );
+		$this->assertFalse( wp_delete_attachment( $documento, true ) );
+		$this->intero( $scaduto, $documento );
+
+		// Da codice: cambiare il padre del documento, o il tipo del contenuto, non passa.
+		wp_update_post(
+			array(
+				'ID'          => $documento,
+				'post_parent' => 0,
+			)
+		);
+		$this->intero( $scaduto, $documento );
+		wp_update_post(
+			array(
+				'ID'          => $scaduto,
+				'post_type'   => 'post',
+				'post_status' => 'draft',
+			)
+		);
+		$this->intero( $scaduto, $documento );
+		$this->assertSame( TIPO_CONTENUTO, get_post_type( $scaduto ) );
+		$this->avvisi_in_bacheca();
+
 		// La cancellazione dell'autore non porta via niente.
 		$autore                      = (int) self::factory()->user->create( array( 'role' => 'editor' ) );
 		list( $suo, $suo_documento ) = $this->con_documento( 'publish', '2000-01-01', $autore );
@@ -197,6 +232,7 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		}
 
 		$this->assertTrue( current_user_can( 'delete_post', $documento_bozza ) );
+		$this->assertTrue( current_user_can( 'edit_post', $documento_bozza ) );
 		$this->assertInstanceOf( \WP_Post::class, wp_delete_attachment( $documento_bozza, true ) );
 		$this->assertInstanceOf( \WP_Post::class, wp_trash_post( $in_vigore ) );
 		$this->assertInstanceOf( \WP_Post::class, wp_delete_post( $bozza, true ) );
