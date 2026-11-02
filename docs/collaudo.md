@@ -40,7 +40,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-06 | da fare | [attacco, statico] si cercano i nomi dei campi degli schemi nei sorgenti PHP | assenti |
 | TRASP-07/20 | da fare | Si esporta uno schema popolato | formato aperto, condizioni di riutilizzo come parametro, nessun PDF da scansione |
 | TRASP-08 | in corso | Dato con obbligo decorrente nell'anno X (righe T-63..T-66 per i contenuti delle voci); atto che produce effetti oltre (righe T-81..T-83); dati di titolari e consulenti (righe T-84..T-89) | scadenza al 31 dicembre di X+5; casi a cavallo d'anno inclusi; oltre, fino all'ultimo giorno degli effetti, mai prima di quella di legge; per titolari e consulenti, tre anni dopo la cessazione; per i dati patrimoniali, il giorno della cessazione |
-| TRASP-09 | in corso | Dato scaduto, cron fermo, tutti i percorsi C-10..C-21 (riga T-156) | fuori dalla sezione, non cancellato, in archivio controllato |
+| TRASP-09 | in corso | Dato scaduto, cron fermo, tutti i percorsi C-10..C-21 (riga T-156); cestino, cancellazione e cambio di stato (righe T-157..T-158) | fuori dalla sezione, non cancellato, in archivio controllato |
 | TRASP-10 | in corso | Ogni sottosezione e ogni voce (righe T-71..T-74 per i contenuti delle voci, T-119 e T-120 per il registro degli accessi) | data di ultimo aggiornamento esposta |
 | TRASP-11 | da fare | Voce assolta per collegamento | il link porta al dato reale, non a una pagina vuota |
 | TRASP-12 | da fare | Si invia una richiesta di accesso civico di prova | modulo raggiungibile, destinatari indicati, richiesta nel registro |
@@ -442,3 +442,12 @@ Scheda: `docs/implementazione/scaduti-strade-di-lettura.md`.
 | # | Stato | Il test, in parole | Esito atteso |
 |---|---|---|---|
 | T-156 | fatto | Contenuto pubblicato con documento e fine passata, accanto a uno in vigore, compito pianificato mai eseguito: pagina della sezione, punto pubblico dei documenti, interrogazioni del singolo e degli elenchi, ricerca e feed del tipo, documento dall'interfaccia informatica, anteprima incorporata, XML-RPC, pagina dell'allegato; mappa del sito | lo scaduto non compare su nessuna strada e il suo documento non si scarica né risponde, mentre quello in vigore compare su ogni strada provata; il tipo non ha una mappa del sito; il contenuto resta pubblicato, con testo, documento e file |
+
+## Il contenuto scaduto non si cancella (righe T-157..T-158)
+
+Scheda: `docs/implementazione/scaduti-conservati.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-157 | in corso | Contenuto pubblicato e scaduto, con documento: permesso di cancellare per amministratore e redattore, cestino, cancellazione definitiva, cancellazione e cestino del documento, cancellazione dell'utente autore; accanto, un contenuto pubblicato in vigore e una bozza con documento; [guasto] lettura dello stato fallita | sullo scaduto e sul suo documento nessun permesso di cancellare, niente cestino, niente cancellazione, e il motivo; contenuto e documento restano dopo la cancellazione dell'autore; il contenuto in vigore e la bozza si cestinano e si cancellano come prima; con la lettura fallita il contenuto non si cancella |
+| T-158 | in corso | Contenuto pubblicato e scaduto riscritto in bozza, in revisione, privato, programmato, con il testo corretto; accanto, un contenuto in vigore rimesso in bozza | lo scaduto resta pubblicato e il testo corretto si salva; il motivo si mostra una volta; quello in vigore torna in bozza come prima |
