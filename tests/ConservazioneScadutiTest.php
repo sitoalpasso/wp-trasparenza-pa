@@ -152,6 +152,8 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 	 * T-157. Lo scaduto e il suo documento non vanno nel cestino e non si cancellano.
 	 */
 	public function test_t157_cestino_e_cancellazione() {
+		global $wpdb;
+
 		list( $scaduto, $documento ) = $this->con_documento( 'publish', '2000-01-01' );
 		$this->assertTrue( conformita_core_scaduto( $scaduto ) );
 
@@ -203,6 +205,21 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->assertSame( TIPO_CONTENUTO, get_post_type( $scaduto ) );
 		$this->avvisi_in_bacheca();
 
+		// Nessun documento nuovo su uno scaduto, nemmeno con il registro che rifiuta: niente da annullare.
+		$tabella = $wpdb->prefix . 'conformita_core_registro';
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $tabella ) {
+				return 0 === strpos( ltrim( (string) $sql ), 'INSERT INTO `' . $tabella . '`' ) ? 'INSERT INTO `' . $tabella . '_inesistente` VALUES (1)' : $sql;
+			}
+		);
+		$this->assertSame( 'scaduto', SchedaDocumenti::deposita( $scaduto, $this->file_temporaneo( 'nuovo.pdf' ), 'percorso_locale' )['codice'] );
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+		$this->assertSame( 'scaduto', SchedaDocumenti::deposita( $scaduto, $this->file_temporaneo( 'nuovo.pdf' ), 'percorso_locale' )['codice'] );
+		$this->assertSame( array( $documento ), SchedaDocumenti::documenti( $scaduto ) );
+
 		// La cancellazione dell'autore non porta via niente.
 		$autore                      = (int) self::factory()->user->create( array( 'role' => 'editor' ) );
 		list( $suo, $suo_documento ) = $this->con_documento( 'publish', '2000-01-01', $autore );
@@ -210,7 +227,6 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->intero( $suo, $suo_documento );
 
 		// Lettura dello stato fallita: vale come fermo.
-		global $wpdb;
 		$wpdb->suppress_errors( true );
 		add_filter(
 			'query',
