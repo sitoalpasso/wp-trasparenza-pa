@@ -62,3 +62,41 @@ Alla fine: il contenuto è ancora pubblicato, con il suo testo, il suo documento
   identificativo, interrogazioni SQL dirette, `suppress_filters`, memorie di pagina davanti a
   WordPress.
 - Non impedisce la cancellazione: è l'unità successiva di TRASP-09.
+
+## Com'è andata
+
+La prova è passata alla prima esecuzione senza toccare il codice: il comportamento c'era già,
+messo insieme dal componente comune e dalle scelte di registrazione del tipo (non pubblico, non
+interrogabile dall'indirizzo, fuori dall'interfaccia informatica). Ora una prova lo tiene fermo
+da questo lato. Lungo la strada: il documento chiesto all'interfaccia informatica risponde 404,
+come un contenuto che non esiste, e non 401; XML-RPC restituisce un dato vuoto anche a chi
+amministra.
+
+TRASP-09 resta in corso: manca la parte "mai cancellato".
+
+**Rotture volute**, una per volta.
+
+| Rottura | Prova rossa |
+|---|---|
+| Il componente comune non considera mai scaduto niente | T-156 |
+| Tolto il secondo strato del componente comune (`the_posts`) | T-156 |
+| Tolto il filtro di XML-RPC del componente comune | T-156 |
+| Tolto il filtro sul singolo dell'interfaccia informatica del componente comune | T-156 |
+| Tipo dichiarato nell'interfaccia informatica | T-156 |
+| Tipo interrogabile dall'indirizzo | T-156 |
+
+Equivalenze, rotture rimaste verdi per una ragione detta:
+
+- **Tolto il primo strato del componente comune (`pre_get_posts`).** Il secondo strato toglie lo
+  scaduto dai risultati: è la ragione per cui gli strati sono due.
+- **Tolto il filtro delle anteprime incorporate, o quello della mappa del sito.** Il tipo non è
+  consultabile dall'indirizzo: WordPress non fa anteprime né mappe dei tipi che non lo sono.
+- **Tipo dichiarato pubblico, con le altre voci invariate.** Le voci scritte una per una
+  (non interrogabile, fuori dalla ricerca, fuori dall'interfaccia informatica) prevalgono.
+
+## Norme e fonti
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Alla scadenza i dati escono dalla sezione e restano ottenibili con l'accesso civico | d.lgs. 33/2013, art. 8, c. 3 (TRASP-09) | `docs/requisiti.md`; testo dell'articolo citato a memoria |
+| Elenco delle strade di lettura | righe C-10..C-21 del componente comune | scheda del motore di scadenza del componente comune, letta |
