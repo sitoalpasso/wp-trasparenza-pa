@@ -143,7 +143,7 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		clean_post_cache( $documento );
 
 		$this->assertSame( 'publish', get_post_status( $contenuto ) );
-		$this->assertSame( 'inherit', get_post_status( $documento ) );
+		$this->assertSame( 'inherit', get_post_field( 'post_status', $documento ) );
 		$this->assertSame( $contenuto, (int) get_post_field( 'post_parent', $documento ) );
 		$this->assertFileExists( (string) get_attached_file( $documento, true ) );
 	}
