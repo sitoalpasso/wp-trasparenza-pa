@@ -125,6 +125,9 @@ function trasparenza_pa_prepara_suite( bool $con_core, bool $avvio_automatico = 
 
 			require dirname( __DIR__ ) . '/trasparenza-pa.php';
 
+			// La conferma sui dati personali si prova in ControlloPreventivoTest: le altre prove pubblicano senza.
+			\TrasparenzaPa\ControlloPreventivo::fissa_conferma_per_prove( true );
+
 			\TrasparenzaPa\PaginaPubblica::fissa_file( __DIR__ . '/dati/albero-finto.json' );
 
 			require_once __DIR__ . '/ambiente-trasparenza.php';
