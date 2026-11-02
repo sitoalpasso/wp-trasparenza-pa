@@ -59,16 +59,13 @@ final class ConservazioneScaduti {
 	 * @return bool
 	 */
 	public static function fermo( int $id ): bool {
-		global $wpdb;
-
 		if ( TIPO_CONTENUTO !== get_post_type( $id ) ) {
 			return false;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lo stato decide una cancellazione: si legge dalla banca dati, non dalla memoria.
-		$stato = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		$stato = self::stato_scritto( $id );
 
-		if ( '' !== $wpdb->last_error || ! is_string( $stato ) ) {
+		if ( null === $stato ) {
 			return true;
 		}
 
@@ -93,6 +90,21 @@ final class ConservazioneScaduti {
 		}
 
 		return is_wp_error( $fine ) || conformita_core_scaduto( $id );
+	}
+
+	/**
+	 * Lo stato scritto nella banca dati, nullo se la lettura fallisce.
+	 *
+	 * @param int $id Identificativo.
+	 * @return string|null
+	 */
+	private static function stato_scritto( int $id ): ?string {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lo stato decide una cancellazione: si legge dalla banca dati, non dalla memoria.
+		$stato = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+		return '' !== $wpdb->last_error || ! is_string( $stato ) ? null : $stato;
 	}
 
 	/**
@@ -184,6 +196,28 @@ final class ConservazioneScaduti {
 		}
 
 		if ( ! self::fermo( $id ) || ( 'publish' === ( $dati['post_status'] ?? '' ) && TIPO_CONTENUTO === ( $dati['post_type'] ?? '' ) ) ) {
+			return $dati;
+		}
+
+		/*
+		 * Con la lettura dello stato fallita non si sa se il contenuto e
+		 * pubblicato: forzarlo a pubblicato puo pubblicare una bozza, lasciar
+		 * passare la scrittura puo mettere in bozza uno scaduto, che poi si
+		 * cancella. Lo stato non cambia: restano stato, tipo e data del
+		 * contenuto che WordPress ha caricato per la scrittura.
+		 */
+		if ( null === self::stato_scritto( $id ) ) {
+			$caricato = get_post( $id );
+
+			if ( $caricato instanceof \WP_Post && ( ( $dati['post_status'] ?? '' ) !== $caricato->post_status || ( $dati['post_type'] ?? '' ) !== $caricato->post_type ) ) {
+				$dati['post_status']   = $caricato->post_status;
+				$dati['post_type']     = $caricato->post_type;
+				$dati['post_date']     = $caricato->post_date;
+				$dati['post_date_gmt'] = $caricato->post_date_gmt;
+
+				self::ricorda_motivo();
+			}
+
 			return $dati;
 		}
 
