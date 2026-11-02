@@ -47,7 +47,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 | TRASP-13 | fatto | Responsabile della trasparenza (righe T-54..T-58) | indicato da chi ha il permesso della sezione, con nome e recapiti controllati; mostrato nella voce prevista dall'Allegato 1 della delibera ANAC 1310/2016; se manca, chi può rimediare lo vede |
 | TRASP-14 | da fare | Campo PIAO | configurabile e mostrato dove previsto |
 | TRASP-15 | da fare | Si carica un PDF che sembra una scansione | avviso al redattore, dichiarato come indizio |
-| TRASP-16 | da fare | Flusso di pubblicazione senza la conferma sui dati personali | non si conclude |
+| TRASP-16 | in corso | Flusso di pubblicazione senza la conferma sui dati personali (righe T-159..T-160) | non si conclude |
 | TRASP-17 | in corso | Collaudo congiunto con l'albo (righe T-148..T-151); lo stesso documento in tutte e due le sezioni senza duplicare il file resta da costruire nel componente comune | politiche invertite entrambe corrette |
 | TRASP-18 | da fare | Sottosezione "Altri contenuti - Accessibilità" | presente con dichiarazione e obiettivi |
 | TRASP-19 | da fare | Pubblicazione e rimozione di una voce | voci nel registro di core |
@@ -451,3 +451,12 @@ Scheda: `docs/implementazione/scaduti-conservati.md`.
 |---|---|---|---|
 | T-157 | fatto | Contenuto pubblicato e scaduto, con documento: permesso di cancellare il contenuto e di modificare o cancellare il documento, cestino, cancellazione definitiva, cancellazione e cestino del documento, documento scollegato o ricollegato dalla libreria e poi cancellato, padre del documento o tipo del contenuto cambiati da codice, documento nuovo con il registro che rifiuta e senza, cancellazione dell'utente autore, documento già legato con il componente comune assente; accanto, un contenuto pubblicato in vigore, una bozza con documento, un contenuto pubblicato senza data di fine, un articolo pubblicato; [guasto] lettura dello stato fallita, data di fine doppia | sullo scaduto e sul suo documento nessun permesso di cancellare o modificare, niente cestino, niente cancellazione, nessun documento nuovo, e il motivo; senza componente comune lo stesso, senza errori; contenuto e documento restano dopo la cancellazione dell'autore; il contenuto in vigore, la bozza, quello senza data di fine e l'articolo si cestinano e si cancellano come prima; con la lettura fallita o la data doppia il contenuto non si cancella |
 | T-158 | fatto | Contenuto pubblicato e scaduto riscritto in bozza, in revisione, privato, programmato, con il testo corretto; accanto, un contenuto in vigore rimesso in bozza | lo scaduto resta pubblicato e il testo corretto si salva; il motivo si mostra una volta; quello in vigore torna in bozza come prima |
+
+## La conferma sui dati personali prima di pubblicare (righe T-159..T-160)
+
+Scheda: `docs/implementazione/dati-personali.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-159 | in corso | Contenuto in bozza pubblicato o programmato senza conferma, dal modulo, con `wp_update_post()`, con `wp_publish_post()`, con un contenuto nuovo; con conferma; contenuto già pubblicato modificato; programmato che arriva alla data; [attacco] conferma per un altro contenuto, gettone sbagliato, utente che non può pubblicare; [guasto] registro che rifiuta, lettura dello stato fallita | senza conferma resta in bozza, con il motivo una volta; con conferma si pubblica e il registro ha la conferma con chi l'ha data; il già pubblicato e il programmato non la chiedono; ogni attacco e guasto: resta in bozza |
+| T-160 | in corso | Riquadro sul contenuto in bozza, pubblicato, programmato, per chi può pubblicare e per chi no; [attacco] titolo con codice | in bozza, a chi può pubblicare: i casi tipici, la frase sui dati relativi alla salute, la casella con il gettone; altrimenti niente |
