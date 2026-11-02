@@ -145,7 +145,7 @@ test verde è la sola scorrettezza che rende inutile tutta la tabella.
 | TRASP-06 | in corso | Estensibilità dichiarativa ai nuovi schemi | delibere ANAC 495/2024 e 497/2025 |
 | TRASP-07 | da fare | Formato aperto e riutilizzabile | art. 7 |
 | TRASP-08 | in corso | Durata quinquennale calcolata dall'obbligo | art. 8 |
-| TRASP-09 | da fare | Scaduto: fuori dalla sezione, mai cancellato | art. 8 |
+| TRASP-09 | in corso | Scaduto: fuori dalla sezione, mai cancellato | art. 8 |
 | TRASP-10 | in corso | Data di ultimo aggiornamento visibile | art. 6 |
 | TRASP-11 | da fare | Collegamento ammesso se porta al dato vero | art. 9 |
 | TRASP-12 | fatto | Accesso civico con registro | art. 5 |
