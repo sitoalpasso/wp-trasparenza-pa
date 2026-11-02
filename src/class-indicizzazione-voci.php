@@ -79,6 +79,34 @@ final class IndicizzazioneVoci {
 	}
 
 	/**
+	 * Le pagine della sezione: pubblicate, senza password, con il codice breve.
+	 *
+	 * @return array<int, \WP_Post>|null Nullo se la lettura e fallita.
+	 */
+	public static function pagine(): ?array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- ricerca del codice breve nel testo, che get_posts() non offre.
+		$righe = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND post_password = '' AND post_content LIKE %s ORDER BY ID ASC", 'page', 'publish', '%' . $wpdb->esc_like( '[' . PaginaPubblica::CODICE_BREVE ) . '%' ) );
+
+		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
+			return null;
+		}
+
+		$pagine = array();
+
+		foreach ( $righe as $id ) {
+			$pagina = get_post( (int) $id );
+
+			if ( $pagina instanceof \WP_Post && self::della_sezione( $pagina ) ) {
+				$pagine[] = $pagina;
+			}
+		}
+
+		return $pagine;
+	}
+
+	/**
 	 * Gli indirizzi di tutte le voci, tranne la radice, di ogni pagina della sezione.
 	 *
 	 * Una lettura fallita da un elenco vuoto: meglio nessun indirizzo per una
@@ -87,31 +115,16 @@ final class IndicizzazioneVoci {
 	 * @return array<int, string>
 	 */
 	public static function indirizzi(): array {
-		global $wpdb;
-
 		$albero = PaginaPubblica::albero();
 
 		if ( null === $albero ) {
 			return array();
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- ricerca del codice breve nel testo, che get_posts() non offre.
-		$righe = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND post_password = '' AND post_content LIKE %s ORDER BY ID ASC", 'page', 'publish', '%' . $wpdb->esc_like( '[' . PaginaPubblica::CODICE_BREVE ) . '%' ) );
-
-		if ( ! is_array( $righe ) || '' !== $wpdb->last_error ) {
-			return array();
-		}
-
 		$radice    = $albero->radice();
 		$indirizzi = array();
 
-		foreach ( $righe as $id ) {
-			$pagina = get_post( (int) $id );
-
-			if ( ! $pagina instanceof \WP_Post || ! self::della_sezione( $pagina ) ) {
-				continue;
-			}
-
+		foreach ( self::pagine() ?? array() as $pagina ) {
 			$base = (string) get_permalink( $pagina );
 
 			foreach ( $albero->identificativi() as $voce ) {

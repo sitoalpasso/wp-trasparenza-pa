@@ -33,7 +33,7 @@ il comportamento non c'è ancora), **fatto** (scritto e verde in CI). Un requisi
 |---|---|---|---|
 | TRASP-01 | da fare | Si controllano denominazione e collegamento in home | dicitura esatta, link presente |
 | TRASP-02 | in corso | Si visita ogni pagina della sezione da utente anonimo (righe T-71, T-79 per i contenuti delle voci e i loro documenti) | tutto accessibile senza autenticazione |
-| TRASP-03 | in corso | Si ispezionano meta robots, robots.txt e sitemap della sezione (righe T-18, T-152, T-153) | nessun noindex, nessun blocco, URL in sitemap |
+| TRASP-03 | in corso | Si ispezionano meta robots, robots.txt e sitemap della sezione (righe T-18, T-152..T-155) | nessun noindex, nessun blocco, URL in sitemap |
 | TRASP-04 | fatto | Si confronta l'alberatura generata con l'Allegato A, voce per voce (righe T-20..T-25) | ogni nodo previsto esiste, denominazione conforme; esiste "Controlli sulle attività economiche" e non esiste "Controlli sulle imprese" |
 | TRASP-05 | da fare | Si compilano i tre obblighi; si caricano le fixture ufficiali ANAC, integre e corrotte | solo campi strutturati; il dato valida; le fixture integre passano, le corrotte no con errore sul campo |
 | TRASP-06 | da fare | Si aggiunge uno schema come solo file di definizione | funziona senza modifiche al PHP |
@@ -413,6 +413,15 @@ Scheda: `docs/implementazione/sezione-indicizzabile.md`.
 |---|---|---|---|
 | T-152 | fatto | Indirizzo canonico: voce, radice, nessun parametro, voce sconosciuta, pagina senza codice breve, albero non disponibile; [attacco] parametro con codice | la voce ha come canonico il proprio indirizzo; negli altri casi resta quello di WordPress; il componente continua a non agganciare `wp_robots` |
 | T-153 | fatto | Mappa del sito della sezione: due pagine con il codice breve, una in bozza, una con password; albero non disponibile; [guasto] lettura delle pagine fallita | ogni voce tranne la radice, per ogni pagina pubblicata senza password, una volta; con l'albero assente o la lettura fallita nessun indirizzo |
+
+## Il file robots.txt non chiude la sezione (righe T-154..T-155)
+
+Scheda: `docs/implementazione/robots-txt.md`.
+
+| # | Stato | Il test, in parole | Esito atteso |
+|---|---|---|---|
+| T-154 | fatto | Lettura del file: regola sulla pagina, regola sui parametri, `Allow` più lungo, parità fra `Allow` e `Disallow`, `*` e `$`, `Disallow` vuoto, gruppo di un solo motore, più `User-agent` in fila, commenti, maiuscole nei nomi delle righe, file salvato con il segno BOM in testa | si trova la riga che chiude la pagina o le sue voci secondo RFC 9309; nessuna riga se vince `Allow`, se il `Disallow` è vuoto o se la regola è solo di un motore |
+| T-155 | fatto | Avviso: file virtuale con una riga aggiunta dal filtro di WordPress, file vero nella cartella di WordPress, file vero non leggibile, lettura delle pagine della sezione fallita, nessuna pagina chiusa, schermata diversa dalla bacheca iniziale, utente senza il permesso di attivare componenti; [attacco] titolo della pagina con codice | avviso con pagina, cosa è chiuso e riga; il file vero vince su quello virtuale; file illeggibile o pagine non lette danno un avviso di controllo non fatto; nessun avviso se niente è chiuso, fuori dalla bacheca iniziale o a chi non può rimediare; ogni valore con escaping |
 
 ## Note di costruzione
 
