@@ -31,7 +31,7 @@ riprova alla richiesta successiva.
 | Requisito | Cosa copre questa unità |
 |---|---|
 | TRASP-05, TRASP-26 | il dato della voce e la versione a cui è legato non si perdono per una lettura fallita |
-| T-39 (permessi) | i permessi si assegnano al cambio di versione, non a ogni lettura fallita |
+| TRASP-27 (riga T-39) | i permessi si assegnano al cambio di versione, non a ogni lettura fallita |
 
 ## 3. Le regole
 
@@ -61,3 +61,42 @@ quella del componente, niente da fare.
 - Non cambia la lettura dell'esito dell'ultimo controllo: serve solo a mostrare il riassunto, e
   una lettura fallita lo fa vedere come "non controllato"; il salvataggio successivo lo rifà.
 - Non cambia le letture usate solo per mostrare dati sulla pagina pubblica.
+
+## Com'è andata
+
+Costruito come scritto sopra. Due cose venute dalle prove e dal codice:
+
+- WordPress tiene in memoria i metadati della voce: con `get_post_meta()` una lettura fallita
+  della banca dati spesso non si vede neppure, e il salvataggio parte da quello che la memoria
+  ricorda. `Metadato::leggi()` legge sempre dalla banca dati.
+- La funzione `SchedaVoce::dato()`, che leggeva il dato con `get_post_meta()`, non aveva altri
+  usi oltre al riquadro: è stata tolta, e il riquadro decodifica il dato letto.
+
+L'installazione legge prima la versione in memoria, come oggi: se è quella del componente non
+fa nessuna lettura in più. Solo quando la memoria dice che serve aggiornare, la versione si
+conferma sulla banca dati.
+
+**Rotture volute**, una per volta, con le prove di `LettureFalliteTest`. Tutte rosse.
+
+| Rottura | Prova rossa |
+|---|---|
+| Riquadro: obbligo non letto trattato come assente | T-161 |
+| Riquadro: dato non letto non guardato | T-161 |
+| Riquadro: versione non letta non guardata | T-161 |
+| Riquadro senza il campo che ferma il salvataggio | T-161 |
+| Obbligo registrato due volte ammesso | T-161 |
+| Salvataggio: campo "senza modulo" ignorato | T-161 |
+| Salvataggio: obbligo non letto ignorato | T-161 |
+| Salvataggio: versione non letta senza avviso | T-161 |
+| Avviso del salvataggio mostrato più di una volta | T-161 |
+| Installazione: lettura fallita trattata come mai installato | T-162 |
+| Installazione: avviso assente, o non azzerato quando la lettura riesce | T-162 |
+| Installazione: versione scritta non guardata | T-162 |
+| Installazione: avviso non agganciato alla bacheca | T-162 |
+
+## Norme e fonti
+
+Nessuna norma nuova: l'unità protegge dati già previsti da TRASP-05 e TRASP-26 (schemi ANAC
+dell'art. 13, 4-bis e 31 del d.lgs. 33/2013) e i permessi di TRASP-27 (riga T-39). La regola viene da
+AGENTS.md, punto 7, e dal residuo della rilettura del 28/10. Le funzioni `get_post_meta()`,
+`get_option()` e `add_metadata()` di WordPress sono lette nel codice dell'ambiente di prova.
