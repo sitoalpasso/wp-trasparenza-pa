@@ -324,6 +324,27 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'draft', get_post_status( $in_vigore ) );
 		$this->assertStringNotContainsString( 'si conserva', $this->avvisi_in_bacheca() );
+
+		// [guasto] Una bozza riscritta con la lettura dello stato fallita resta bozza: il fermo non pubblica.
+		global $wpdb;
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb, $in_vigore ) {
+				return false !== strpos( (string) $sql, 'SELECT post_status FROM ' . $wpdb->posts . ' WHERE ID = ' . $in_vigore ) ? 'SELECT post_status FROM ' . $wpdb->posts . '_inesistente' : $sql;
+			}
+		);
+		wp_update_post(
+			array(
+				'ID'           => $in_vigore,
+				'post_content' => 'Bozza corretta.',
+			)
+		);
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+		clean_post_cache( $in_vigore );
+		$this->assertSame( 'draft', get_post_status( $in_vigore ) );
+		$this->assertSame( 'Bozza corretta.', get_post_field( 'post_content', $in_vigore ) );
 		$this->assertTrue( class_exists( ConservazioneScaduti::class ) );
 	}
 }
