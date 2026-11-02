@@ -54,6 +54,13 @@ class ScadutiPercorsiTest extends WP_UnitTestCase {
 	private $in_vigore = 0;
 
 	/**
+	 * Documento del contenuto in vigore.
+	 *
+	 * @var int
+	 */
+	private $documento_in_vigore = 0;
+
+	/**
 	 * Sezione e tipi registrati, permessi, un contenuto scaduto e uno in vigore, nessun compito pianificato eseguito.
 	 */
 	public function set_up(): void {
@@ -85,8 +92,8 @@ class ScadutiPercorsiTest extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$this->aggancia_server_finto();
 
-		list( $this->scaduto, $this->documento ) = $this->con_documento( 'Bilancio scaduto' );
-		list( $this->in_vigore )                 = $this->con_documento( 'Bilancio in vigore' );
+		list( $this->scaduto, $this->documento )             = $this->con_documento( 'Bilancio scaduto' );
+		list( $this->in_vigore, $this->documento_in_vigore ) = $this->con_documento( 'Bilancio in vigore' );
 
 		$this->assertTrue( conformita_core_imposta_fine_pubblicazione( $this->scaduto, '2000-01-01' ) );
 
@@ -214,10 +221,9 @@ class ScadutiPercorsiTest extends WP_UnitTestCase {
 		);
 		$this->assertSame( array( $this->in_vigore ), $this->trovati( array( 'post_type' => TIPO_CONTENUTO ) ) );
 
-		// Ricerca (C-12): ne il testo ne il titolo trovano lo scaduto, nemmeno chiedendo il tipo.
-		$this->assertSame( array(), $this->trovati( array( 's' => 'Bilancio scaduto' ) ) );
-		$this->assertNotContains(
-			$this->scaduto,
+		// Ricerca chiedendo il tipo (C-12): trova quello in vigore, non lo scaduto.
+		$this->assertSame(
+			array( $this->in_vigore ),
 			$this->trovati(
 				array(
 					's'         => 'Bilancio',
@@ -226,21 +232,26 @@ class ScadutiPercorsiTest extends WP_UnitTestCase {
 			)
 		);
 
-		// Feed (C-13).
-		$this->go_to( add_query_arg( 'feed', 'rss2', home_url( '/' ) ) );
-		$this->assertNotContains( $this->scaduto, array_map( 'intval', wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) ) );
-		$this->go_to( add_query_arg( 's', 'Bilancio scaduto', home_url( '/' ) ) );
-		$this->assertSame( array(), $GLOBALS['wp_query']->posts );
+		// Feed del tipo (C-13): c'e quello in vigore, non lo scaduto.
+		$this->go_to(
+			add_query_arg(
+				array(
+					'post_type' => TIPO_CONTENUTO,
+					'feed'      => 'rss2',
+				),
+				home_url( '/' )
+			)
+		);
+		$nel_feed = array_map( 'intval', wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertContains( $this->in_vigore, $nel_feed );
+		$this->assertNotContains( $this->scaduto, $nel_feed );
 
 		// Mappa del sito (C-14): il tipo non ha una mappa, e la mappa delle voci elenca voci, non contenuti.
 		$this->assertArrayNotHasKey( TIPO_CONTENUTO, wp_sitemaps_get_server()->registry->get_provider( 'posts' )->get_object_subtypes() );
 
-		// Interfaccia informatica (C-15, C-16): il tipo non c'e, e il documento non si legge.
-		$this->assertSame( 404, $this->rest( '/wp/v2/' . TIPO_CONTENUTO )->get_status() );
-		$this->assertSame( 404, $this->rest( '/wp/v2/' . TIPO_CONTENUTO . '/' . $this->scaduto )->get_status() );
+		// Interfaccia informatica (C-16): il documento dello scaduto risponde come inesistente, quello in vigore no.
 		$this->assertSame( 404, $this->rest( '/wp/v2/media/' . $this->documento )->get_status() );
-		$this->assertSame( array(), $this->rest( '/wp/v2/media', array( 'parent' => $this->scaduto ) )->get_data() );
-		$this->assertSame( array(), $this->rest( '/wp/v2/search', array( 'search' => 'Bilancio scaduto' ) )->get_data() );
+		$this->assertSame( 401, $this->rest( '/wp/v2/media/' . $this->documento_in_vigore )->get_status() );
 
 		// Anteprima incorporata (C-17).
 		$this->assertFalse( get_oembed_response_data( $this->scaduto, 600 ) );
@@ -259,7 +270,9 @@ class ScadutiPercorsiTest extends WP_UnitTestCase {
 		$this->assertSame( 'Bilancio in vigore', $server->wp_getPost( array( 1, $utente, 'parola-di-prova', $this->in_vigore ) )['post_title'] ?? null );
 		wp_set_current_user( 0 );
 
-		// Pagina dell'allegato (C-19): il documento non ha pagina.
+		// Pagina dell'allegato (C-19): quella del documento in vigore esiste, quella dello scaduto no.
+		$this->go_to( get_attachment_link( $this->documento_in_vigore ) );
+		$this->assertContains( $this->documento_in_vigore, array_map( 'intval', wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) ) );
 		$this->go_to( get_attachment_link( $this->documento ) );
 		$this->assertNotContains( $this->documento, array_map( 'intval', wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) ) );
 		$this->assertSame(

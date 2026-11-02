@@ -44,13 +44,19 @@ pubblicazione passata; accanto, un contenuto uguale in vigore, per vedere che la
 | Pagina della sezione | | lo scaduto non c'è, quello in vigore sì |
 | Punto pubblico dei documenti | | il documento dello scaduto risponde 404 |
 | Contenuto singolo, elenchi, interrogazioni di terzi | C-10, C-11, C-21 | lo scaduto non si trova, quello in vigore sì |
-| Ricerca | C-12 | lo scaduto non si trova, nemmeno chiedendo il tipo |
-| Feed e ricerca dall'indirizzo del sito | C-13 | lo scaduto non c'è |
-| Mappa del sito | C-14 | il tipo non ha una mappa |
-| Interfaccia informatica | C-15, C-16 | il tipo non c'è; il documento risponde 404; la ricerca non lo trova |
+| Ricerca chiedendo il tipo | C-12 | trova quello in vigore, non lo scaduto |
+| Feed del tipo | C-13 | c'è quello in vigore, non lo scaduto |
+| Documento dall'interfaccia informatica | C-16 | quello dello scaduto risponde 404 come un documento che non esiste; quello in vigore 401 |
 | Anteprima incorporata | C-17 | nessuna anteprima |
 | XML-RPC | C-18 | anche chi amministra, da lì, non legge lo scaduto; legge quello in vigore |
-| Pagina dell'allegato | C-19 | il documento non ha pagina |
+| Pagina dell'allegato | C-19 | quella del documento in vigore si trova, quella dello scaduto no |
+
+Strade che per questo tipo non esistono, e che quindi non provano la scadenza: la ricerca generale
+dall'indirizzo del sito (il tipo è fuori dalla ricerca), la mappa del sito (C-14: il tipo non è
+consultabile dall'indirizzo), le rotte del tipo nell'interfaccia informatica, la sua ricerca e
+l'elenco dei documenti per contenuto (C-15: il tipo non è nell'interfaccia). La prova controlla
+solo che la mappa del sito non abbia il tipo; le altre le tengono ferme le prove sulla
+registrazione del tipo.
 
 Alla fine: il contenuto è ancora pubblicato, con il suo testo, il suo documento e il file.
 
@@ -71,6 +77,11 @@ interrogabile dall'indirizzo, fuori dall'interfaccia informatica). Ora una prova
 da questo lato. Lungo la strada: il documento chiesto all'interfaccia informatica risponde 404,
 come un contenuto che non esiste, e non 401; XML-RPC restituisce un dato vuoto anche a chi
 amministra.
+
+Dopo la rilettura, ogni strada provata ha accanto il contenuto in vigore che compare, così la
+prova distingue la scadenza dal tipo escluso: il feed si chiede per il tipo, la ricerca con il
+tipo deve trovare quello in vigore, la pagina dell'allegato in vigore deve esistere. Le strade che
+per il tipo non esistono sono uscite dalla prova e sono elencate al punto 3.
 
 TRASP-09 resta in corso: manca la parte "mai cancellato".
 
