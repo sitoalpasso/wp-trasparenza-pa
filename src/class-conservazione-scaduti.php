@@ -36,6 +36,7 @@ final class ConservazioneScaduti {
 		add_filter( 'pre_delete_post', array( self::class, 'da_pre_rimozione' ), PHP_INT_MAX, 2 );
 		add_filter( 'pre_delete_attachment', array( self::class, 'da_pre_rimozione' ), PHP_INT_MAX, 2 );
 		add_filter( 'wp_insert_post_data', array( self::class, 'da_wp_insert_post_data' ), PHP_INT_MAX, 2 );
+		add_filter( 'wp_insert_attachment_data', array( self::class, 'da_wp_insert_post_data' ), PHP_INT_MAX, 2 );
 		add_action( 'admin_notices', array( self::class, 'mostra_motivo' ) );
 	}
 
@@ -106,7 +107,7 @@ final class ConservazioneScaduti {
 	}
 
 	/**
-	 * Aggancio a `map_meta_cap`: nessuno ha il permesso di cancellare un contenuto fermo o un suo allegato.
+	 * Aggancio a `map_meta_cap`: nessuno cancella un contenuto fermo o un suo allegato, e nessuno modifica l'allegato.
 	 *
 	 * @param array<int, string> $permessi  Permessi richiesti.
 	 * @param string             $permesso  Permesso chiesto.
@@ -117,7 +118,14 @@ final class ConservazioneScaduti {
 	public static function da_map_meta_cap( $permessi, $permesso, $utente, $argomenti ) {
 		unset( $utente );
 
-		if ( 'delete_post' === $permesso && isset( $argomenti[0] ) && is_numeric( $argomenti[0] ) && self::fermo_o_suo_allegato( (int) $argomenti[0] ) ) {
+		/*
+		 * Anche la modifica dell'allegato: dalla libreria si scollega con una
+		 * scrittura diretta del padre, e un allegato scollegato non e piu
+		 * protetto. La consegna dei file chiede la lettura, non la modifica.
+		 */
+		$allegato = 'edit_post' === $permesso && isset( $argomenti[0] ) && is_numeric( $argomenti[0] ) && 'attachment' === get_post_type( (int) $argomenti[0] );
+
+		if ( ( 'delete_post' === $permesso || $allegato ) && isset( $argomenti[0] ) && is_numeric( $argomenti[0] ) && self::fermo_o_suo_allegato( (int) $argomenti[0] ) ) {
 			return array( 'do_not_allow' );
 		}
 
@@ -142,7 +150,7 @@ final class ConservazioneScaduti {
 	}
 
 	/**
-	 * Aggancio a `wp_insert_post_data`: un contenuto fermo resta pubblicato, il resto della scrittura passa.
+	 * Aggancio a `wp_insert_post_data` e `wp_insert_attachment_data`: un contenuto fermo resta pubblicato e del suo tipo, un suo allegato resta legato, il resto della scrittura passa.
 	 *
 	 * @param array<string, mixed> $dati      Dati che WordPress sta per scrivere.
 	 * @param array<string, mixed> $richiesti Dati richiesti da chi scrive.
@@ -151,22 +159,42 @@ final class ConservazioneScaduti {
 	public static function da_wp_insert_post_data( $dati, $richiesti ) {
 		$id = isset( $richiesti['ID'] ) ? (int) $richiesti['ID'] : 0;
 
-		if ( $id > 0 && TIPO_CONTENUTO === ( $dati['post_type'] ?? '' ) && 'publish' !== ( $dati['post_status'] ?? '' ) && self::fermo( $id ) ) {
-			$dati['post_status'] = 'publish';
+		if ( $id <= 0 ) {
+			return $dati;
+		}
 
-			// Anche la data resta quella della pubblicazione: una data futura chiedeva la programmazione.
-			global $wpdb;
+		global $wpdb;
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- la data scritta, non quella della memoria.
-			$scritto = $wpdb->get_row( $wpdb->prepare( "SELECT post_date, post_date_gmt FROM {$wpdb->posts} WHERE ID = %d", $id ), ARRAY_A );
+		// Il tipo e il padre si leggono dalla banca dati, non da quello che la scrittura chiede.
+		if ( 'attachment' === get_post_type( $id ) ) {
+			$padre = (int) get_post_field( 'post_parent', $id, 'raw' );
 
-			if ( is_array( $scritto ) ) {
-				$dati['post_date']     = $scritto['post_date'];
-				$dati['post_date_gmt'] = $scritto['post_date_gmt'];
+			if ( $padre > 0 && (int) ( $dati['post_parent'] ?? 0 ) !== $padre && self::fermo( $padre ) ) {
+				$dati['post_parent'] = $padre;
+
+				self::ricorda_motivo();
 			}
 
-			self::ricorda_motivo();
+			return $dati;
 		}
+
+		if ( ! self::fermo( $id ) || ( 'publish' === ( $dati['post_status'] ?? '' ) && TIPO_CONTENUTO === ( $dati['post_type'] ?? '' ) ) ) {
+			return $dati;
+		}
+
+		$dati['post_status'] = 'publish';
+		$dati['post_type']   = TIPO_CONTENUTO;
+
+		// Anche la data resta quella della pubblicazione: una data futura chiedeva la programmazione.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- la data scritta, non quella della memoria.
+		$scritto = $wpdb->get_row( $wpdb->prepare( "SELECT post_date, post_date_gmt FROM {$wpdb->posts} WHERE ID = %d", $id ), ARRAY_A );
+
+		if ( is_array( $scritto ) ) {
+			$dati['post_date']     = $scritto['post_date'];
+			$dati['post_date_gmt'] = $scritto['post_date_gmt'];
+		}
+
+		self::ricorda_motivo();
 
 		return $dati;
 	}
