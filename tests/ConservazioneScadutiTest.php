@@ -215,6 +215,13 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->assertTrue( current_user_can( 'delete_post', $senza_fine ) );
 		$this->assertInstanceOf( \WP_Post::class, wp_trash_post( $senza_fine ) );
 
+		// Data di fine doppia, che non si sa leggere: vale come fermo.
+		list( $doppio ) = $this->con_documento( 'publish', '2099-12-31' );
+		add_post_meta( $doppio, conformita_core_chiave_fine_pubblicazione(), '2000-01-01' );
+		$this->assertWPError( conformita_core_fine_pubblicazione( $doppio ) );
+		$this->assertFalse( wp_trash_post( $doppio ) );
+		$this->assertSame( 'publish', get_post_status( $doppio ) );
+
 		// Gli altri tipi non c'entrano: un articolo pubblicato si cestina come prima.
 		$articolo = (int) self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$this->assertTrue( current_user_can( 'delete_post', $articolo ) );
