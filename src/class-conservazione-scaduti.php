@@ -200,11 +200,24 @@ final class ConservazioneScaduti {
 		}
 
 		/*
-		 * Con la lettura dello stato fallita il contenuto e fermo per la
-		 * cancellazione, ma non si forza a pubblicato: potrebbe essere una
-		 * bozza, e una bozza pubblicata per errore non si disfa.
+		 * Con la lettura dello stato fallita non si sa se il contenuto e
+		 * pubblicato: forzarlo a pubblicato puo pubblicare una bozza, lasciar
+		 * passare la scrittura puo mettere in bozza uno scaduto, che poi si
+		 * cancella. Lo stato non cambia: restano stato, tipo e data del
+		 * contenuto che WordPress ha caricato per la scrittura.
 		 */
-		if ( 'publish' !== self::stato_scritto( $id ) ) {
+		if ( null === self::stato_scritto( $id ) ) {
+			$caricato = get_post( $id );
+
+			if ( $caricato instanceof \WP_Post && ( ( $dati['post_status'] ?? '' ) !== $caricato->post_status || ( $dati['post_type'] ?? '' ) !== $caricato->post_type ) ) {
+				$dati['post_status']   = $caricato->post_status;
+				$dati['post_type']     = $caricato->post_type;
+				$dati['post_date']     = $caricato->post_date;
+				$dati['post_date_gmt'] = $caricato->post_date_gmt;
+
+				self::ricorda_motivo();
+			}
+
 			return $dati;
 		}
 
