@@ -140,11 +140,14 @@ final class ConservazioneScaduti {
 			$dati['post_status'] = 'publish';
 
 			// Anche la data resta quella della pubblicazione: una data futura chiedeva la programmazione.
-			$scritto = get_post( $id );
+			global $wpdb;
 
-			if ( $scritto instanceof \WP_Post ) {
-				$dati['post_date']     = $scritto->post_date;
-				$dati['post_date_gmt'] = $scritto->post_date_gmt;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- la data scritta, non quella della memoria.
+			$scritto = $wpdb->get_row( $wpdb->prepare( "SELECT post_date, post_date_gmt FROM {$wpdb->posts} WHERE ID = %d", $id ), ARRAY_A );
+
+			if ( is_array( $scritto ) ) {
+				$dati['post_date']     = $scritto['post_date'];
+				$dati['post_date_gmt'] = $scritto['post_date_gmt'];
 			}
 
 			self::ricorda_motivo();
