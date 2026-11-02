@@ -49,7 +49,7 @@ final class ConservazioneScaduti {
 	}
 
 	/**
-	 * Il contenuto e pubblicato e scaduto.
+	 * Il contenuto e pubblicato, ha una data di fine, ed e scaduto.
 	 *
 	 * Lo stato si legge dalla banca dati: una lettura fallita vale come fermo,
 	 * perche una cancellazione rifiutata si riprova e una fatta non si disfa.
@@ -71,7 +71,22 @@ final class ConservazioneScaduti {
 			return true;
 		}
 
-		return 'publish' === $stato && conformita_core_scaduto( $id );
+		if ( 'publish' !== $stato ) {
+			return false;
+		}
+
+		/*
+		 * Senza data di fine il contenuto non e mai stato visibile: non c'e un
+		 * periodo di pubblicazione finito, quindi niente da conservare. Una
+		 * lettura fallita o una data doppia valgono come fermo.
+		 */
+		$fine = conformita_core_fine_pubblicazione( $id );
+
+		if ( '' === $fine ) {
+			return false;
+		}
+
+		return is_wp_error( $fine ) || conformita_core_scaduto( $id );
 	}
 
 	/**
