@@ -59,16 +59,13 @@ final class ConservazioneScaduti {
 	 * @return bool
 	 */
 	public static function fermo( int $id ): bool {
-		global $wpdb;
-
 		if ( TIPO_CONTENUTO !== get_post_type( $id ) ) {
 			return false;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lo stato decide una cancellazione: si legge dalla banca dati, non dalla memoria.
-		$stato = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		$stato = self::stato_scritto( $id );
 
-		if ( '' !== $wpdb->last_error || ! is_string( $stato ) ) {
+		if ( null === $stato ) {
 			return true;
 		}
 
@@ -93,6 +90,21 @@ final class ConservazioneScaduti {
 		}
 
 		return is_wp_error( $fine ) || conformita_core_scaduto( $id );
+	}
+
+	/**
+	 * Lo stato scritto nella banca dati, nullo se la lettura fallisce.
+	 *
+	 * @param int $id Identificativo.
+	 * @return string|null
+	 */
+	private static function stato_scritto( int $id ): ?string {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- lo stato decide una cancellazione: si legge dalla banca dati, non dalla memoria.
+		$stato = $wpdb->get_var( $wpdb->prepare( "SELECT post_status FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+		return '' !== $wpdb->last_error || ! is_string( $stato ) ? null : $stato;
 	}
 
 	/**
@@ -184,6 +196,15 @@ final class ConservazioneScaduti {
 		}
 
 		if ( ! self::fermo( $id ) || ( 'publish' === ( $dati['post_status'] ?? '' ) && TIPO_CONTENUTO === ( $dati['post_type'] ?? '' ) ) ) {
+			return $dati;
+		}
+
+		/*
+		 * Con la lettura dello stato fallita il contenuto e fermo per la
+		 * cancellazione, ma non si forza a pubblicato: potrebbe essere una
+		 * bozza, e una bozza pubblicata per errore non si disfa.
+		 */
+		if ( 'publish' !== self::stato_scritto( $id ) ) {
 			return $dati;
 		}
 
