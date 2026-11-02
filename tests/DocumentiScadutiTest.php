@@ -146,11 +146,13 @@ class DocumentiScadutiTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( conformita_core_imposta_fine_pubblicazione( $contenuto, $fine ) );
+		// Il documento si deposita quando il contenuto e in vigore: uno scaduto non ne riceve di nuovi (T-157).
+		$this->assertTrue( conformita_core_imposta_fine_pubblicazione( $contenuto, '2099-12-31' ) );
 
 		$esito = SchedaDocumenti::deposita( $contenuto, $this->file_temporaneo( 'relazione.pdf' ), 'percorso_locale' );
 
 		$this->assertSame( 'salvato', $esito['codice'], 'Precondizione: il deposito deve riuscire. ' . $esito['messaggio'] );
+		$this->assertTrue( conformita_core_imposta_fine_pubblicazione( $contenuto, $fine ) );
 
 		$documenti = SchedaDocumenti::documenti( $contenuto );
 
