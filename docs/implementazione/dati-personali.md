@@ -91,8 +91,9 @@ Costruito come scritto sopra, con tre cose venute dalle prove.
 - La casella non spuntata manda comunque il gettone, perché il gettone sta nel modulo: la prova
   lo verifica.
 - Con la lettura dello stato fallita, la conservazione degli scaduti (T-158) trattava una bozza
-  come contenuto fermo e la forzava a pubblicata. Corretto lì, con una prova sua: la forzatura
-  chiede ora uno stato letto e pubblicato, mentre il fermo sulla cancellazione resta.
+  come contenuto fermo e la forzava a pubblicata. Corretto lì, con prove sue: con la lettura
+  fallita lo stato non cambia, né verso pubblicato né verso bozza, e il fermo sulla
+  cancellazione resta.
 
 Le altre prove della suite pubblicano contenuti senza occuparsi della conferma: l'avvio delle
 prove la considera data, e solo `ControlloPreventivoTest` la chiede davvero.
@@ -118,7 +119,7 @@ prove la considera data, e solo `ControlloPreventivoTest` la chiede davvero.
 | Riquadro non agganciato | T-160 |
 | Anche gli altri tipi del sito fermati | T-159 |
 | Conferma delle prove non considerata | T-156, nelle altre prove |
-| Conservazione che forza a pubblicato con la lettura fallita | T-158 |
+| Conservazione che, con la lettura fallita, forza a pubblicato o lascia andare in bozza | T-158 |
 
 Una rottura resta verde, per equivalenza dichiarata: accettare una casella con il numero di un
 altro contenuto. Il gettone è legato al contenuto, quindi una casella diversa arriva solo con il

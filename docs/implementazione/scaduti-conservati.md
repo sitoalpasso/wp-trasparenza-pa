@@ -111,8 +111,10 @@ Gli articoli e gli altri tipi del sito non sono toccati: la prova lo verifica ce
 articolo pubblicato.
 
 Dopo l'unione, con il lavoro su TRASP-16: con la lettura dello stato fallita una bozza riscritta
-veniva forzata a pubblicata. Ora la forzatura chiede uno stato letto e pubblicato; il fermo sulla
-cancellazione resta (riga T-158, caso [guasto]).
+veniva forzata a pubblicata. Dopo la rilettura di quella correzione: lasciar passare la scrittura
+metteva in bozza uno scaduto, che a letture riprese si cancellava. Ora con la lettura fallita lo
+stato non cambia: restano stato, tipo e data del contenuto che WordPress ha caricato per la
+scrittura, e il resto si salva (riga T-158, casi [guasto]).
 
 TRASP-09 resta in corso: la scelta se fermare anche i contenuti pubblicati e non scaduti è
 aperta.
@@ -144,7 +146,9 @@ aperta.
 | Motivo non ricordato | T-157, T-158 |
 | Motivo mostrato più di una volta | T-157 |
 | Fermo non agganciato | T-157, T-158 |
-| Bozza forzata a pubblicata con la lettura dello stato fallita | T-158 |
+| Con la lettura dello stato fallita, bozza forzata a pubblicata | T-158 |
+| Con la lettura dello stato fallita, scaduto lasciato andare in bozza | T-158 |
+| Lettura dello stato fallita non guardata nella scrittura | T-158 |
 
 ## Norme e fonti
 
