@@ -344,6 +344,11 @@ final class SchedaDocumenti {
 			return $permesso;
 		}
 
+		// Uno scaduto si conserva com'e: niente documenti nuovi, e quindi niente depositi da annullare.
+		if ( ConservazioneScaduti::fermo( $id ) ) {
+			return self::esito( 'scaduto', __( 'Allegato non aggiunto: il contenuto è scaduto e si conserva com\'è, senza documenti nuovi.', 'trasparenza-pa' ) );
+		}
+
 		$allegato = conformita_core_deposita_allegato( $id, $file, array( 'origine' => $origine ) );
 
 		if ( is_wp_error( $allegato ) ) {

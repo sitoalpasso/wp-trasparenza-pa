@@ -112,4 +112,41 @@ class SenzaCoreTest extends WP_UnitTestCase {
 
 		$this->assertSame( '', $this->avvisi_in_bacheca(), 'Chi non puo attivare i componenti non deve vedere l\'avviso.' );
 	}
+
+	/**
+	 * T-157: senza il componente comune un documento gia legato a un contenuto della sezione non si modifica né si cancella, e niente va in errore.
+	 */
+	public function test_t157_allegato_fermo_senza_core(): void {
+		$this->assertFalse( Avvio::esegui() );
+
+		$contenuto = (int) self::factory()->post->create(
+			array(
+				'post_type'   => \TrasparenzaPa\TIPO_CONTENUTO,
+				'post_status' => 'publish',
+			)
+		);
+		$allegato  = (int) self::factory()->attachment->create(
+			array(
+				'post_parent'    => $contenuto,
+				'post_mime_type' => 'application/pdf',
+			)
+		);
+		$articolo  = (int) self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$suo       = (int) self::factory()->attachment->create(
+			array(
+				'post_parent'    => $articolo,
+				'post_mime_type' => 'application/pdf',
+			)
+		);
+
+		$this->assertFalse( current_user_can( 'edit_post', $allegato ) );
+		$this->assertFalse( current_user_can( 'delete_post', $allegato ) );
+		$this->assertFalse( wp_delete_attachment( $allegato, true ) );
+		$this->assertFalse( wp_delete_post( $contenuto, true ) );
+		$this->assertSame( $contenuto, (int) get_post_field( 'post_parent', $allegato ) );
+
+		// Il resto del sito non c'entra.
+		$this->assertTrue( current_user_can( 'delete_post', $suo ) );
+		$this->assertInstanceOf( \WP_Post::class, wp_delete_attachment( $suo, true ) );
+	}
 }
