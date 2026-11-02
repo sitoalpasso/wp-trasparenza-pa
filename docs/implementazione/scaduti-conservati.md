@@ -71,3 +71,44 @@ passa, quindi una correzione del testo si salva. Il motivo si mostra una volta a
 - Non toglie dal contenuto scaduto un documento caricato per errore: il contenuto non è più
   visibile, e una procedura motivata per toglierlo è un'unità a parte, se serve.
 - Non tocca i contenuti pubblicati e non scaduti: se fermarli anche loro è una scelta aperta.
+
+## Com'è andata
+
+Costruito come scritto sopra, con due aggiunte venute dalle prove:
+
+- WordPress cancella i file della libreria con un aggancio suo (`pre_delete_attachment`), non con
+  quello dei contenuti: il fermo è agganciato anche lì.
+- Una programmazione chiesta su un contenuto fermo lo lascia pubblicato e gli lascia anche la
+  data scritta nella banca dati; senza, il contenuto restava pubblicato con una data futura.
+
+Gli articoli e gli altri tipi del sito non sono toccati: la prova lo verifica cestinando un
+articolo pubblicato.
+
+TRASP-09 resta in corso: la scelta se fermare anche i contenuti pubblicati e non scaduti è
+aperta.
+
+**Rotture volute**, una per volta, con le prove di `ConservazioneScadutiTest`. Tutte rosse.
+
+| Rottura | Prova rossa |
+|---|---|
+| Permesso di cancellare non negato | T-157 |
+| Cestino non fermato | T-157 |
+| Cancellazione non fermata | T-157 |
+| Cancellazione del file dalla libreria non fermata | T-157 |
+| Allegati non guardati | T-157 |
+| Lettura dello stato fallita trattata come contenuto non fermo | T-157 |
+| Fermo anche sulle bozze | T-157 |
+| Fermo anche sui contenuti in vigore | T-157 |
+| Fermo anche sugli altri tipi | T-157 |
+| Stato non trattenuto | T-158 |
+| Data non trattenuta | T-158 |
+| Motivo non ricordato | T-157, T-158 |
+| Motivo mostrato più di una volta | T-157 |
+| Fermo non agganciato | T-157, T-158 |
+
+## Norme e fonti
+
+| Regola | Norma | Fonte, e se è verificata |
+|---|---|---|
+| Alla scadenza i dati escono dalla sezione e restano ottenibili con l'accesso civico, quindi si conservano | d.lgs. 33/2013, art. 8, c. 3, e art. 5 (TRASP-09) | `docs/requisiti.md`; testo citato a memoria |
+| Agganci di cestino e cancellazione | funzioni `wp_trash_post()`, `wp_delete_post()`, `wp_delete_attachment()` di WordPress | lette nel codice dell'ambiente di prova |

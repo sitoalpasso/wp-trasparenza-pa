@@ -70,6 +70,7 @@ viene segnalato.
 | `Responsabile` | I dati del responsabile della prevenzione della corruzione e della trasparenza: controllo e riquadro pubblico nella voce che l'albero indica | TRASP-13 |
 | `SchermataResponsabile` | La schermata "Responsabile": salvataggio tutto o niente con una voce di registro senza dati personali; avviso finché il responsabile manca | TRASP-13, TRASP-19 |
 | `ControlloRobots` | Avviso nella bacheca iniziale quando il file robots.txt chiude la pagina della sezione o le sue voci | TRASP-03 |
+| `ConservazioneScaduti` | Il contenuto pubblicato e scaduto, e i suoi allegati, non vanno nel cestino, non si cancellano e il contenuto non esce dalla pubblicazione | TRASP-09 |
 | `IndicizzazioneVoci`, `MappaVoci` | Indirizzo canonico di ogni voce e mappa del sito delle voci, senza toccare `wp_robots` | TRASP-03 |
 | `AccessoCivico` | A chi si chiede l'accesso civico: ufficio e titolare del potere sostitutivo con i loro recapiti, indirizzo del modulo; controllo e lettura che distingue l'assente dalla lettura fallita; riquadro pubblico "Come si chiede l'accesso civico" nella voce che l'albero indica, con il responsabile preso dai suoi dati | TRASP-12 |
 | `SchermataAccessoCivico` | La schermata "Accesso civico": le regole della schermata del responsabile, voce di registro senza dati personali, avviso finché i dati mancano | TRASP-12, TRASP-19 |
