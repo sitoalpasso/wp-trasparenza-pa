@@ -203,6 +203,11 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->assertNull( get_post( $bozza ) );
 		$this->assertSame( 'trash', get_post_status( $in_vigore ) );
 		$this->assertIsInt( $documento_in_vigore );
+
+		// Gli altri tipi non c'entrano: un articolo pubblicato si cestina come prima.
+		$articolo = (int) self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$this->assertTrue( current_user_can( 'delete_post', $articolo ) );
+		$this->assertInstanceOf( \WP_Post::class, wp_trash_post( $articolo ) );
 	}
 
 	/**
@@ -210,16 +215,20 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 	 */
 	public function test_t158_stato() {
 		list( $scaduto, $documento ) = $this->con_documento( 'publish', '2000-01-01' );
+		$data                        = get_post_field( 'post_date', $scaduto );
 
 		foreach ( array( 'draft', 'pending', 'private', 'future' ) as $stato ) {
 			wp_update_post(
 				array(
-					'ID'          => $scaduto,
-					'post_status' => $stato,
-					'post_date'   => 'future' === $stato ? gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ) : '',
+					'ID'            => $scaduto,
+					'post_status'   => $stato,
+					'post_date'     => 'future' === $stato ? get_date_from_gmt( gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ) ) : '',
+					'post_date_gmt' => 'future' === $stato ? gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ) : '',
+					'edit_date'     => 'future' === $stato,
 				)
 			);
 			$this->intero( $scaduto, $documento );
+			$this->assertSame( $data, get_post_field( 'post_date', $scaduto ), $stato );
 		}
 
 		wp_update_post(
