@@ -55,6 +55,9 @@ padre è fermo:
   dei file chiede la lettura, non la modifica;
 - `wp_trash_post()` e `wp_delete_post()`, che non guardano i permessi, si fermano lo stesso
   (agganci `pre_trash_post` e `pre_delete_post`);
+- un contenuto fermo non riceve documenti nuovi: si conserva com'è, e così non c'è mai un
+  deposito da annullare su un padre fermo (l'annullamento, con il registro che rifiuta, sarebbe
+  fermato a sua volta);
 - cancellare l'utente autore non porta via il contenuto (il tipo è registrato con
   `delete_with_user` falso; la prova lo tiene fermo).
 
@@ -71,6 +74,7 @@ dell'altro). Il resto della scrittura passa, quindi una correzione del testo si 
 | Lettura dello stato fallita | il contenuto vale come fermo |
 | Data di fine assente su un contenuto pubblicato | non è fermo: non è mai stato visibile |
 | Data di fine illeggibile o doppia | il contenuto vale come fermo |
+| Componente comune assente (il componente resta attivo e inerte, T-03) | il contenuto pubblicato vale come fermo, senza errori: la data non si può leggere |
 
 ## 5. Cosa deliberatamente non fa
 
@@ -96,7 +100,11 @@ componente comune lo tratta come scaduto: la suite completa ha mostrato che cos�
 contenuti mai visibili (il registro delle modifiche, la rimozione di un documento dopo il
 ritorno in bozza, l'importazione). Ora la data di fine deve esserci.
 
-Dopo la rilettura: chiusa la strada "scollega dalla libreria, poi cancella" negando la modifica
+Dopo la seconda rilettura: senza il componente comune il fermo non va in errore e vale come
+lettura fallita (prova nell'avvio senza componente comune); un contenuto fermo non riceve
+documenti nuovi, perché l'annullamento di un deposito non registrato sarebbe stato fermato.
+
+Dopo la prima rilettura: chiusa la strada "scollega dalla libreria, poi cancella" negando la modifica
 degli allegati, e il cambio di padre o di tipo fatto da codice.
 
 Gli articoli e gli altri tipi del sito non sono toccati: la prova lo verifica cestinando un
@@ -124,6 +132,8 @@ aperta.
 | Padre dell'allegato non trattenuto | T-157 |
 | Tipo non trattenuto | T-157 |
 | Tipo letto dalla scrittura invece che dalla banca dati | T-157 |
+| Deposito di un documento nuovo su uno scaduto ammesso | T-157 |
+| Senza il componente comune, contenuto non fermo | T-157 (avvio senza componente comune) |
 | Data di fine illeggibile trattata come non fermo | T-157 |
 | Stato non trattenuto | T-158 |
 | Data non trattenuta | T-158 |
