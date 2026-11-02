@@ -91,7 +91,7 @@ final class ConservazioneScaduti {
 	}
 
 	/**
-	 * Aggancio a `map_meta_cap`: nessuno ha il permesso di cancellare un contenuto fermo o un suo documento.
+	 * Aggancio a `map_meta_cap`: nessuno ha il permesso di cancellare un contenuto fermo o un suo allegato.
 	 *
 	 * @param array<int, string> $permessi  Permessi richiesti.
 	 * @param string             $permesso  Permesso chiesto.
