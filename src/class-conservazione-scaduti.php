@@ -76,6 +76,11 @@ final class ConservazioneScaduti {
 			return false;
 		}
 
+		// Senza il componente comune la data non si legge: come per una lettura fallita, il contenuto e fermo.
+		if ( ! function_exists( 'conformita_core_fine_pubblicazione' ) || ! function_exists( 'conformita_core_scaduto' ) ) {
+			return true;
+		}
+
 		/*
 		 * Senza data di fine il contenuto non e mai stato visibile: non c'e un
 		 * periodo di pubblicazione finito, quindi niente da conservare. Una
