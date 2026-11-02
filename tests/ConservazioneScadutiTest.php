@@ -204,6 +204,17 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->assertSame( 'trash', get_post_status( $in_vigore ) );
 		$this->assertIsInt( $documento_in_vigore );
 
+		// Pubblicato senza data di fine: non e mai stato visibile, quindi non e uno scaduto da conservare.
+		$senza_fine = (int) self::factory()->post->create(
+			array(
+				'post_type'   => TIPO_CONTENUTO,
+				'post_status' => 'publish',
+			)
+		);
+		$this->assertSame( '', conformita_core_fine_pubblicazione( $senza_fine ) );
+		$this->assertTrue( current_user_can( 'delete_post', $senza_fine ) );
+		$this->assertInstanceOf( \WP_Post::class, wp_trash_post( $senza_fine ) );
+
 		// Gli altri tipi non c'entrano: un articolo pubblicato si cestina come prima.
 		$articolo = (int) self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$this->assertTrue( current_user_can( 'delete_post', $articolo ) );
