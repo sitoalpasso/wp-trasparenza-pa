@@ -35,6 +35,13 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 	private $amministratore = 0;
 
 	/**
+	 * Passaggi da bozza a pubblicato annunciati per i contenuti.
+	 *
+	 * @var int
+	 */
+	private $annunci = 0;
+
+	/**
 	 * Sezione e tipi registrati, permessi, conferma richiesta davvero.
 	 */
 	public function set_up(): void {
@@ -66,6 +73,16 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 		wp_set_current_user( $this->amministratore );
 
 		ControlloPreventivo::fissa_conferma_per_prove( false );
+
+		$this->annunci = 0;
+		add_action(
+			'draft_to_publish',
+			function ( $articolo ) {
+				if ( TIPO_CONTENUTO === $articolo->post_type ) {
+					++$this->annunci;
+				}
+			}
+		);
 	}
 
 	/**
@@ -107,7 +124,6 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 	private function casella( int $contenuto, ?string $gettone = null ): void {
 		$_POST[ ControlloPreventivo::CAMPO_CONFERMA ] = (string) $contenuto;
 		$_POST[ ControlloPreventivo::CAMPO_GETTONE ]  = $gettone ?? wp_create_nonce( ControlloPreventivo::azione( $contenuto ) );
-		$_REQUEST                                     = $_POST;
 	}
 
 	/**
@@ -159,6 +175,8 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 			$this->assertSame( 'draft', $this->pubblica( $contenuto, $stato ), $stato );
 		}
 
+		// Sulla scrittura il contenuto non passa neppure un istante da pubblicato.
+		$this->assertSame( 0, $this->annunci );
 		$this->assertStringContainsString( 'dati personali', $this->avvisi_in_bacheca() );
 		$this->assertStringNotContainsString( 'dati personali', $this->avvisi_in_bacheca(), 'Il motivo si mostra una volta.' );
 
@@ -223,6 +241,9 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 'draft', $this->pubblica( $contenuto ) );
+		wp_publish_post( $contenuto );
+		clean_post_cache( $contenuto );
+		$this->assertSame( 'draft', get_post_status( $contenuto ) );
 	}
 
 	/**
@@ -235,6 +256,11 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 		$contenuto = $this->bozza();
 		$altro     = $this->bozza();
 		$this->casella( $altro );
+		$this->assertSame( 'draft', $this->pubblica( $contenuto ) );
+
+		// Casella non spuntata: il modulo manda comunque il gettone.
+		$this->casella( $contenuto );
+		unset( $_POST[ ControlloPreventivo::CAMPO_CONFERMA ] );
 		$this->assertSame( 'draft', $this->pubblica( $contenuto ) );
 
 		// Gettone sbagliato, o di un altro contenuto.
@@ -262,7 +288,8 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 		$this->assertSame( 'draft', $this->pubblica( $contenuto ) );
 		remove_all_filters( 'query' );
 
-		// Lettura dello stato di partenza fallita.
+		// Lettura dello stato di partenza fallita, senza conferma: non vale come gia pubblicato.
+		$_POST = array();
 		add_filter(
 			'query',
 			static function ( $sql ) use ( $wpdb, $contenuto ) {
@@ -274,6 +301,7 @@ class ControlloPreventivoTest extends WP_UnitTestCase {
 		$wpdb->suppress_errors( false );
 
 		$this->assertSame( array(), $this->conferme( $contenuto ) );
+		$this->assertSame( 0, $this->annunci );
 
 		// Gli altri tipi non c'entrano.
 		$articolo = (int) self::factory()->post->create( array( 'post_status' => 'draft' ) );
