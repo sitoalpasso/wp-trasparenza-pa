@@ -36,8 +36,11 @@ oggi.
 
 ## 3. Le regole
 
-**Quale contenuto è fermo.** Un contenuto della sezione con stato pubblicato nella banca dati e
-la fine della pubblicazione passata, secondo il componente comune. Lo stato si legge dalla
+**Quale contenuto è fermo.** Un contenuto della sezione con stato pubblicato nella banca dati,
+una data di fine della pubblicazione, e quella data passata secondo il componente comune. Un
+contenuto pubblicato senza data di fine non è mai stato visibile (il componente comune lo tratta
+come scaduto da subito), quindi non ha un periodo di pubblicazione finito da conservare: non è
+fermo. Lo stato si legge dalla
 banca dati; se la lettura fallisce, il contenuto vale come fermo: una cancellazione rifiutata si
 riprova, una fatta non si disfa.
 
@@ -60,7 +63,8 @@ passa, quindi una correzione del testo si salva. Il motivo si mostra una volta a
 | Guasto | Comportamento |
 |---|---|
 | Lettura dello stato fallita | il contenuto vale come fermo |
-| Fine della pubblicazione assente o illeggibile su un contenuto pubblicato | il componente comune lo considera scaduto: il contenuto è fermo |
+| Data di fine assente su un contenuto pubblicato | non è fermo: non è mai stato visibile |
+| Data di fine illeggibile o doppia | il contenuto vale come fermo |
 
 ## 5. Cosa deliberatamente non fa
 
@@ -81,6 +85,11 @@ Costruito come scritto sopra, con due aggiunte venute dalle prove:
 - Una programmazione chiesta su un contenuto fermo lo lascia pubblicato e gli lascia anche la
   data scritta nella banca dati; senza, il contenuto restava pubblicato con una data futura.
 
+La prima stesura considerava fermo anche il contenuto pubblicato senza data di fine, perché il
+componente comune lo tratta come scaduto: la suite completa ha mostrato che così si fermavano
+contenuti mai visibili (il registro delle modifiche, la rimozione di un documento dopo il
+ritorno in bozza, l'importazione). Ora la data di fine deve esserci.
+
 Gli articoli e gli altri tipi del sito non sono toccati: la prova lo verifica cestinando un
 articolo pubblicato.
 
@@ -100,6 +109,8 @@ aperta.
 | Fermo anche sulle bozze | T-157 |
 | Fermo anche sui contenuti in vigore | T-157 |
 | Fermo anche sugli altri tipi | T-157 |
+| Fermo anche senza data di fine | T-157 |
+| Data di fine illeggibile trattata come non fermo | T-157 |
 | Stato non trattenuto | T-158 |
 | Data non trattenuta | T-158 |
 | Motivo non ricordato | T-157, T-158 |
