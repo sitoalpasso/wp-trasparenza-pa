@@ -325,7 +325,7 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		$this->assertSame( 'draft', get_post_status( $in_vigore ) );
 		$this->assertStringNotContainsString( 'si conserva', $this->avvisi_in_bacheca() );
 
-		// [guasto] Una bozza riscritta con la lettura dello stato fallita resta bozza: il fermo non pubblica.
+		// [guasto] Una bozza riscritta con la lettura dello stato fallita resta bozza: lo stato non cambia, il testo si salva.
 		global $wpdb;
 		$wpdb->suppress_errors( true );
 		add_filter(
@@ -337,6 +337,7 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		wp_update_post(
 			array(
 				'ID'           => $in_vigore,
+				'post_status'  => 'pending',
 				'post_content' => 'Bozza corretta.',
 			)
 		);
@@ -345,6 +346,27 @@ class ConservazioneScadutiTest extends WP_UnitTestCase {
 		clean_post_cache( $in_vigore );
 		$this->assertSame( 'draft', get_post_status( $in_vigore ) );
 		$this->assertSame( 'Bozza corretta.', get_post_field( 'post_content', $in_vigore ) );
+
+		// [guasto] Lo scaduto riscritto in bozza con la lettura fallita non cambia stato, e resta fermo quando le letture riprendono.
+		$wpdb->suppress_errors( true );
+		add_filter(
+			'query',
+			static function ( $sql ) use ( $wpdb, $scaduto ) {
+				return false !== strpos( (string) $sql, 'SELECT post_status FROM ' . $wpdb->posts . ' WHERE ID = ' . $scaduto ) ? 'SELECT post_status FROM ' . $wpdb->posts . '_inesistente' : $sql;
+			}
+		);
+		wp_update_post(
+			array(
+				'ID'          => $scaduto,
+				'post_status' => 'draft',
+			)
+		);
+		remove_all_filters( 'query' );
+		$wpdb->suppress_errors( false );
+		$this->intero( $scaduto, $documento );
+		$this->assertFalse( wp_trash_post( $scaduto ) );
+		$this->assertFalse( wp_delete_post( $scaduto, true ) );
+		$this->intero( $scaduto, $documento );
 		$this->assertTrue( class_exists( ConservazioneScaduti::class ) );
 	}
 }
