@@ -33,6 +33,11 @@ final class VerificaRinvii {
 	const INTERVALLO = 1;
 
 	/**
+	 * Codice dell'errore del riallineamento saltato per un salvataggio in corso.
+	 */
+	const OCCUPATO = 'trasparenza_rinvii_occupato';
+
+	/**
 	 * La chiave della voce presso il verificatore.
 	 *
 	 * Il verificatore accetta solo minuscole, le voci ammettono anche le
@@ -69,10 +74,32 @@ final class VerificaRinvii {
 	 * il rinvio valido si affida, gli altri si tolgono. Con la lettura dei
 	 * rinvii fallita non si fa niente, perche si toglierebbero rinvii validi.
 	 *
+	 * Si fa con il blocco dei salvataggi: senza, un salvataggio arrivato fra
+	 * la lettura dei rinvii e l'affidamento verrebbe coperto dal rinvio letto
+	 * prima. Se il blocco e preso, non si fa niente e lo si dice.
+	 *
+	 * @param Alberatura $albero Albero in vigore.
+	 * @return true|WP_Error Errore se il blocco e preso o i rinvii non si sono letti.
+	 */
+	public static function riallinea( Alberatura $albero ) {
+		if ( ! Blocco::prendi() ) {
+			return new WP_Error( self::OCCUPATO, __( 'Un salvataggio dei rinvii è in corso: la verifica periodica si riallinea alla prossima apertura di questa schermata.', 'trasparenza-pa' ) );
+		}
+
+		try {
+			return self::riallinea_con_blocco( $albero );
+		} finally {
+			Blocco::rilascia();
+		}
+	}
+
+	/**
+	 * Il riallineamento, con il blocco gia preso.
+	 *
 	 * @param Alberatura $albero Albero in vigore.
 	 * @return true|WP_Error Errore se i rinvii non si sono letti.
 	 */
-	public static function riallinea( Alberatura $albero ) {
+	private static function riallinea_con_blocco( Alberatura $albero ) {
 		$conservati = Rinvii::conservati();
 
 		if ( is_wp_error( $conservati ) ) {

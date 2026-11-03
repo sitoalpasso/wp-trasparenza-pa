@@ -296,7 +296,11 @@ final class SchermataRinvii {
 			return;
 		}
 
-		if ( is_wp_error( VerificaRinvii::riallinea( $albero ) ) ) {
+		$riallineati = VerificaRinvii::riallinea( $albero );
+
+		if ( is_wp_error( $riallineati ) && VerificaRinvii::OCCUPATO === $riallineati->get_error_code() ) {
+			echo '<div class="notice notice-info inline"><p>' . esc_html( $riallineati->get_error_message() ) . '</p></div>';
+		} elseif ( is_wp_error( $riallineati ) ) {
 			echo '<div class="notice notice-error inline"><p>' . esc_html__( 'I rinvii attuali non si sono potuti leggere dalla banca dati, e quindi non si sono potuti affidare alla verifica periodica dei collegamenti. Riprovare fra qualche minuto.', 'trasparenza-pa' ) . '</p></div>';
 		}
 

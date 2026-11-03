@@ -59,7 +59,10 @@ fra quelle da guardare.
 ha un rinvio conservato o che l'albero lega a una banca dati: se il rinvio conservato è valido con
 l'albero in vigore si registra (la registrazione uguale non cambia niente), altrimenti si toglie.
 Così un rinvio salvato quando il verificatore non rispondeva, o diventato non valido con un albero
-nuovo, si rimette a posto senza un intervento a mano.
+nuovo, si rimette a posto senza un intervento a mano. Il riallineamento prende lo stesso blocco
+dei salvataggi: senza, un salvataggio arrivato fra la lettura dei rinvii e l'affidamento verrebbe
+coperto dall'indirizzo letto prima. Se il blocco è preso, il riallineamento si salta e la schermata
+lo dice.
 
 **Esito (T-165).** Per ogni voce con un rinvio valido, sotto il modulo: "Mai controllato";
 "Risponde", con data e ora dell'ultimo controllo nel fuso del sito; "Non risponde", con data,
@@ -78,6 +81,7 @@ periodico e il ritardo letto sul dato.
 | Registrazione presso il verificatore rifiutata o non scritta, al salvataggio | rinvio salvato, messaggio che lo dice, voce da guardare |
 | Rimozione presso il verificatore non riuscita | rinvio tolto, messaggio che lo dice; il riallineamento ci riprova |
 | Lettura dei rinvii conservati fallita all'apertura | nessun riallineamento, avviso; la schermata si disegna come oggi |
+| Salvataggio in corso all'apertura | riallineamento saltato, avviso; si fa alla prossima apertura |
 | Lettura dell'esito fallita | "esito non leggibile", voce da guardare |
 | Motivo con codice | escaping |
 
@@ -111,7 +115,7 @@ rinvii. Tre cose venute dalle prove:
 - La prova della compatibilità di versione (T-04) usava valori fissi intorno alla versione
   richiesta di prima: aggiornati intorno alla `1.13.0`.
 
-**Rotture volute**, una per volta, con le prove di `VerificaRinviiTest`. 20 rotture, tutte rosse;
+**Rotture volute**, una per volta, con le prove di `VerificaRinviiTest`. 23 rotture, tutte rosse;
 due erano all'inizio verdi e hanno portato la prova dei collegamenti rimasti.
 
 | Rottura | Prova rossa |
@@ -128,6 +132,7 @@ due erano all'inizio verdi e hanno portato la prova dei collegamenti rimasti.
 | Lettura fallita, collegamento rotto o ritardo fuori dalle voci da guardare | T-165 |
 | Ritardo ignorato, data in UTC, motivo senza escaping, elenco da guardare assente | T-165 |
 | Versione richiesta `1.12.0` | T-166 |
+| Riallineamento senza blocco, blocco non rilasciato, avviso del blocco assente | T-164 (rilievo della revisione) |
 
 ## Norme e fonti
 
