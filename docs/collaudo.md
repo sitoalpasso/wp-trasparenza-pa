@@ -460,3 +460,12 @@ Scheda: `docs/implementazione/dati-personali.md`.
 |---|---|---|---|
 | T-159 | fatto | Contenuto in bozza pubblicato o programmato senza conferma, dal modulo, con `wp_update_post()`, con `wp_publish_post()`, con un contenuto nuovo; con conferma; contenuto già pubblicato modificato; programmato che arriva alla data; contenuto rimesso in bozza e ripubblicato; un articolo; [attacco] casella non spuntata con il gettone, conferma per un altro contenuto, gettone sbagliato, utente che non può pubblicare; [guasto] registro che rifiuta, lettura dello stato fallita | senza conferma resta in bozza, con il motivo una volta, e dalla scrittura non passa da pubblicato; con conferma si pubblica e il registro ha la conferma con chi l'ha data; il già pubblicato e il programmato non la chiedono, il rimesso in bozza sì; l'articolo si pubblica come prima; ogni attacco e guasto: resta in bozza |
 | T-160 | fatto | Riquadro sul contenuto in bozza, pubblicato, programmato, per chi può pubblicare e per chi no; aggancio alla schermata del contenuto | in bozza, a chi può pubblicare: i casi tipici, la frase sui dati relativi alla salute, la casella con il gettone; altrimenti niente |
+
+## Le letture fallite nel riquadro della voce e nell'installazione (righe T-161..T-162)
+
+Scheda: `docs/implementazione/letture-fallite-voci.md`.
+
+| Riga | Stato | Caso | Atteso |
+|---|---|---|---|
+| T-161 | fatto | Voce con obbligo, versione e dato salvati; [guasto] lettura fallita dell'obbligo, della versione, del dato, nel riquadro e nel salvataggio; obbligo con due valori; invio dal riquadro senza modulo; accanto, la stessa voce con le letture che riescono | con il guasto il riquadro mostra l'avviso e nessun campo, il salvataggio non scrive e mostra il motivo una volta, il dato salvato resta intero; senza guasto riquadro e salvataggio come prima |
+| T-162 | fatto | Componente con la versione da aggiornare; [guasto] lettura della versione installata fallita, con un permesso tolto a mano a un ruolo; accanto, la versione in memoria rimasta indietro rispetto a quella scritta | con il guasto i permessi non si toccano, il permesso tolto resta tolto e in bacheca c'è l'avviso; a letture riprese l'aggiornamento si fa; con la versione già scritta niente da fare |

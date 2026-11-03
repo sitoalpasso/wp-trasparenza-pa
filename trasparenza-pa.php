@@ -177,6 +177,7 @@ add_action( 'plugins_loaded', array( Avvio::class, 'da_plugins_loaded' ) );
 add_action( 'init', array( TipoVoce::class, 'da_init' ), 5 );
 add_action( 'init', array( TipoContenuto::class, 'da_init' ), 5 );
 add_action( 'init', array( Installazione::class, 'da_init' ), 6 );
+add_action( 'admin_notices', array( Installazione::class, 'mostra_avviso' ) );
 
 ChiusuraPubblicazione::aggancia();
 SchedaVoce::aggancia();

@@ -58,6 +58,16 @@ final class SchedaVoce {
 	const AVVISO_INCOMPLETO = 'trasparenza_pa_invio_incompleto_';
 
 	/**
+	 * Campo che il riquadro manda quando non ha mostrato il modulo: il salvataggio non scrive.
+	 */
+	const CAMPO_SENZA_MODULO = 'trasparenza_pa_senza_modulo';
+
+	/**
+	 * Prefisso del dato temporaneo che conserva l'avviso di lettura fallita per l'utente.
+	 */
+	const AVVISO_LETTURA = 'trasparenza_pa_lettura_fallita_';
+
+	/**
 	 * Quota del limite di campi del server oltre la quale il riquadro avvisa prima dell'invio.
 	 */
 	const QUOTA_LIMITE = 0.8;
@@ -179,6 +189,17 @@ final class SchedaVoce {
 	 * Mostra una volta, a chi ha salvato, l'avviso di invio incompleto.
 	 */
 	public static function mostra_avviso(): void {
+		$lettura = self::AVVISO_LETTURA . get_current_user_id();
+
+		if ( false !== get_transient( $lettura ) ) {
+			delete_transient( $lettura );
+
+			printf(
+				'<div class="notice notice-error trasparenza-lettura-fallita"><p>%s</p></div>',
+				esc_html__( 'I dati della voce non sono stati salvati: quelli già registrati non si sono potuti leggere dalla banca dati, o sono registrati più volte. Il dato salvato prima è rimasto com\'era. Ricaricare la schermata e riprovare; se l\'avviso torna, serve un controllo della banca dati.', 'trasparenza-pa' )
+			);
+		}
+
 		$chiave = self::AVVISO_INCOMPLETO . get_current_user_id();
 		$limite = get_transient( $chiave );
 
@@ -212,18 +233,6 @@ final class SchedaVoce {
 		}
 
 		return self::$motore;
-	}
-
-	/**
-	 * Il dato salvato della voce, decodificato, o nullo.
-	 *
-	 * @param int $voce Voce.
-	 * @return mixed
-	 */
-	public static function dato( int $voce ) {
-		$testo = (string) get_post_meta( $voce, self::META_DATO, true );
-
-		return '' === $testo ? null : json_decode( $testo, false );
 	}
 
 	/**
@@ -280,13 +289,23 @@ final class SchedaVoce {
 			return $html . self::mancante( $motore->get_error_message() );
 		}
 
-		$obbligo = (string) get_post_meta( $voce->ID, self::META_OBBLIGO, true );
+		$obbligo = self::unico( $voce->ID, self::META_OBBLIGO );
+
+		if ( is_wp_error( $obbligo ) ) {
+			return $html . self::senza_modulo();
+		}
 
 		if ( '' === $obbligo ) {
 			return $html . self::scelta_obbligo( $motore );
 		}
 
-		$codice   = (string) get_post_meta( $voce->ID, self::META_VERSIONE, true );
+		$codice = self::unico( $voce->ID, self::META_VERSIONE );
+		$testo  = self::unico( $voce->ID, self::META_DATO );
+
+		if ( is_wp_error( $codice ) || is_wp_error( $testo ) ) {
+			return $html . self::senza_modulo();
+		}
+
 		$versione = $motore->catalogo()->versione( $obbligo, $codice );
 
 		if ( null === $versione ) {
@@ -296,7 +315,7 @@ final class SchedaVoce {
 
 		$esito  = self::esito( $voce->ID );
 		$modulo = new ModuloSchema( $motore->catalogo()->contenuti( $obbligo, $codice ), $versione['id'] );
-		$campi  = $modulo->campi( self::CAMPO_DATO, self::dato( $voce->ID ), null === $esito ? array() : $esito['difetti'] );
+		$campi  = $modulo->campi( self::CAMPO_DATO, '' === $testo ? null : json_decode( $testo, false ), null === $esito ? array() : $esito['difetti'] );
 
 		$html .= sprintf(
 			'<p class="trasparenza-versione">%s</p>',
@@ -339,7 +358,14 @@ final class SchedaVoce {
 			return;
 		}
 
-		$obbligo = (string) get_post_meta( $id, self::META_OBBLIGO, true );
+		$obbligo = self::unico( $id, self::META_OBBLIGO );
+
+		// Il riquadro non ha mostrato il modulo, o i dati gia registrati non si leggono: non si scrive.
+		if ( isset( $_POST[ self::CAMPO_SENZA_MODULO ] ) || is_wp_error( $obbligo ) ) {
+			self::ricorda_lettura_fallita();
+
+			return;
+		}
 
 		/*
 		 * Il legame si scrive una volta sola: dopo, nessun valore inviato lo
@@ -357,7 +383,14 @@ final class SchedaVoce {
 			return;
 		}
 
-		$codice   = (string) get_post_meta( $id, self::META_VERSIONE, true );
+		$codice = self::unico( $id, self::META_VERSIONE );
+
+		if ( is_wp_error( $codice ) ) {
+			self::ricorda_lettura_fallita();
+
+			return;
+		}
+
 		$versione = $motore->catalogo()->versione( $obbligo, $codice );
 
 		if ( null === $versione ) {
@@ -490,6 +523,45 @@ final class SchedaVoce {
 			esc_html( '' === $esito['messaggio'] ? __( 'Il dato non rispetta lo schema.', 'trasparenza-pa' ) : $esito['messaggio'] ),
 			'' === $elenco ? '' : '<ul>' . $elenco . '</ul>'
 		);
+	}
+
+	/**
+	 * L'avviso al posto del modulo, quando i dati della voce non si leggono, con il campo che ferma il salvataggio.
+	 *
+	 * @return string
+	 */
+	private static function senza_modulo(): string {
+		return self::mancante( __( 'I dati della voce non si sono potuti leggere dalla banca dati, o sono registrati più volte: il modulo non si mostra, perché un salvataggio partito da qui potrebbe cancellare il dato salvato. Ricaricare la schermata; se l\'avviso torna, serve un controllo della banca dati.', 'trasparenza-pa' ) )
+			. sprintf( '<input type="hidden" name="%s" value="1" />', esc_attr( self::CAMPO_SENZA_MODULO ) );
+	}
+
+	/**
+	 * Il valore di un metadato della voce letto dalla banca dati: vuoto se manca, errore se la lettura fallisce o i valori sono piu di uno.
+	 *
+	 * @param int    $voce   Voce.
+	 * @param string $chiave Chiave del metadato.
+	 * @return string|WP_Error
+	 */
+	private static function unico( int $voce, string $chiave ) {
+		$valori = Metadato::leggi( $voce, $chiave );
+
+		if ( is_wp_error( $valori ) ) {
+			return $valori;
+		}
+
+		if ( count( $valori ) > 1 ) {
+			/* translators: %s: chiave del metadato. */
+			return new WP_Error( 'trasparenza_dato_doppio', sprintf( __( 'Il dato %s è registrato più volte.', 'trasparenza-pa' ), $chiave ) );
+		}
+
+		return array() === $valori ? '' : $valori[0];
+	}
+
+	/**
+	 * Conserva l'avviso di lettura fallita per l'utente corrente, per cinque minuti.
+	 */
+	private static function ricorda_lettura_fallita(): void {
+		set_transient( self::AVVISO_LETTURA . get_current_user_id(), 1, 5 * MINUTE_IN_SECONDS );
 	}
 
 	/**
