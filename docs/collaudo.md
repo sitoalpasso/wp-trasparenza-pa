@@ -469,3 +469,14 @@ Scheda: `docs/implementazione/letture-fallite-voci.md`.
 |---|---|---|---|
 | T-161 | fatto | Voce con obbligo, versione e dato salvati; [guasto] lettura fallita dell'obbligo, della versione, del dato, nel riquadro e nel salvataggio; obbligo con due valori; invio dal riquadro senza modulo; accanto, la stessa voce con le letture che riescono | con il guasto il riquadro mostra l'avviso e nessun campo, il salvataggio non scrive e mostra il motivo una volta, il dato salvato resta intero; senza guasto riquadro e salvataggio come prima |
 | T-162 | fatto | Componente con la versione da aggiornare; [guasto] lettura della versione installata fallita, con un permesso tolto a mano a un ruolo; accanto, la versione in memoria rimasta indietro rispetto a quella scritta | con il guasto i permessi non si toccano, il permesso tolto resta tolto e in bacheca c'è l'avviso; a letture riprese l'aggiornamento si fa; con la versione già scritta niente da fare |
+
+## La verifica periodica dei rinvii alle banche dati (righe T-163..T-166)
+
+Scheda: `docs/implementazione/verifica-rinvii.md`.
+
+| Riga | Stato | Caso | Atteso |
+|---|---|---|---|
+| T-163 | da fare | Salvataggio di un rinvio: dichiarazione, cambio di indirizzo, rimozione, stesso rinvio; [guasto] verificatore che rifiuta la registrazione, rimozione che non riesce | dopo la dichiarazione il verificatore ha il rinvio con l'indirizzo e l'intervallo di un giorno; dopo il cambio l'indirizzo nuovo con esito mai; dopo la rimozione niente; con il guasto il rinvio resta salvato (o tolto) e il messaggio lo dice |
+| T-164 | da fare | Apertura della schermata: rinvio conservato mai affidato, rinvio conservato non più valido con l'albero in vigore, rinvio uguale già affidato; [guasto] lettura dei rinvii fallita | il primo si registra, il secondo si toglie, il terzo non cambia esito né data; con il guasto nessuna registrazione e nessuna rimozione |
+| T-165 | da fare | Schermata con rinvii mai controllati, che rispondono, che non rispondono, in ritardo, non affidati, con indirizzo diverso nel verificatore; [guasto] lettura dell'esito fallita; [attacco] motivo con codice | per ciascuno l'esito con data e ora nel fuso del sito e il motivo; in testa l'elenco delle voci da guardare (non risponde, in ritardo, non affidata, esito non leggibile) e solo quelle; ogni valore con escaping |
+| T-166 | da fare | Versione richiesta e chiave: voce in minuscolo, voce con maiuscole, due voci che differiscono solo per le maiuscole | interfaccia richiesta `1.13.0`; chiave uguale all'identificativo in minuscolo, `v-` più impronta con le maiuscole; chiavi distinte |
