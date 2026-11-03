@@ -349,6 +349,34 @@ class VerificaRinviiTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-164: con un salvataggio in corso il riallineamento non tocca il verificatore, e lo dice.
+	 */
+	public function test_t164_salvataggio_in_corso(): void {
+		global $wpdb;
+
+		update_option( Rinvii::OPZIONE, array( 'zeta_uno' => $this->rinvio() ) );
+
+		list( $host, $porta, $socket ) = $wpdb->parse_db_host( DB_HOST );
+
+		$altra = mysqli_init(); // phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_init -- serve una seconda connessione, che $wpdb non offre.
+		$this->assertTrue( $altra->real_connect( (string) $host, DB_USER, DB_PASSWORD, DB_NAME, $porta ? (int) $porta : null, $socket ? (string) $socket : null ) );
+
+		try {
+			$this->assertSame( '1', (string) $altra->query( "SELECT GET_LOCK('" . $altra->real_escape_string( \TrasparenzaPa\Blocco::nome() ) . "', 0)" )->fetch_row()[0] );
+			$html = $this->schermata();
+		} finally {
+			$altra->close();
+		}
+
+		$this->assertNull( $this->affidato( 'zeta_uno' ) );
+		$this->assertStringContainsString( 'si riallinea alla prossima apertura', $html );
+
+		// Blocco libero: alla riapertura il riallineamento si fa.
+		$this->schermata();
+		$this->assertNotNull( $this->affidato( 'zeta_uno' ) );
+	}
+
+	/**
 	 * T-164: [guasto] con la lettura dei rinvii fallita non si registra e non si toglie niente.
 	 */
 	public function test_t164_lettura_fallita(): void {
