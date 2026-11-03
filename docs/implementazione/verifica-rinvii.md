@@ -90,6 +90,12 @@ periodico e il ritardo letto sul dato.
 - Non controlla che dall'altra parte ci sia il dato giusto: il verificatore controlla che la
   pagina risponda.
 - Non manda avvisi fuori dalla schermata.
+- Non toglie i collegamenti dal verificatore quando il componente si disattiva. Spegnere non
+  cancella, come per il resto dei dati della sezione. A componente spento la sezione non è
+  registrata presso il componente comune, e il controllo periodico salta i collegamenti delle
+  sezioni non registrate (riga C-307 del componente comune): nessuna richiesta parte verso le
+  banche dati per conto di un componente spento. Alla riattivazione il riallineamento della
+  schermata rimette tutto in linea con i rinvii conservati.
 
 ## Com'è andata
 
