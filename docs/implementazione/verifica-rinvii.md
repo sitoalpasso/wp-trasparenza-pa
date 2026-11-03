@@ -1,6 +1,6 @@
 # Scheda di implementazione: la verifica periodica dei rinvii alle banche dati
 
-Scheda scritta prima del codice e completata a lavoro finito. Chiude la parte di TRASP-25 rimasta
+Scheda scritta prima del codice e completata a lavoro finito. **Stato: costruita, righe T-163..T-166 verdi in locale.** Chiude la parte di TRASP-25 rimasta
 aperta dopo l'unità dei rinvii (`rinvii-banche-dati.md`): la verifica automatica periodica che il
 collegamento risponda, con l'esito datato e la voce segnalata.
 
@@ -90,6 +90,38 @@ periodico e il ritardo letto sul dato.
 - Non controlla che dall'altra parte ci sia il dato giusto: il verificatore controlla che la
   pagina risponda.
 - Non manda avvisi fuori dalla schermata.
+
+## Com'è andata
+
+Costruito come scritto sopra, nella classe `VerificaRinvii` e in due punti della schermata dei
+rinvii. Tre cose venute dalle prove:
+
+- Un guasto del verificatore al salvataggio non rimostra il modulo con i valori inviati: sono già
+  salvati, e un modulo con la partenza vecchia farebbe fallire il salvataggio successivo per
+  conflitto.
+- Il riallineamento guarda sia le voci che hanno un rinvio conservato sia quelle che l'albero lega
+  a una banca dati: così si tolgono anche i collegamenti rimasti da una rimozione non riuscita e
+  quelli di voci che l'albero in vigore non lega più.
+- La prova della compatibilità di versione (T-04) usava valori fissi intorno alla versione
+  richiesta di prima: aggiornati intorno alla `1.13.0`.
+
+**Rotture volute**, una per volta, con le prove di `VerificaRinviiTest`. 20 rotture, tutte rosse;
+due erano all'inizio verdi e hanno portato la prova dei collegamenti rimasti.
+
+| Rottura | Prova rossa |
+|---|---|
+| Chiave sempre in minuscolo, o impronta senza prefisso | T-166 |
+| Intervallo di sette giorni | T-163, T-166 |
+| Rinvio vuoto che non toglie | T-163 |
+| Salvataggio che non affida, guasto ignorato, guasto che rimostra il modulo | T-163 |
+| Riallineamento con la lettura fallita trattata come vuoto | T-164 |
+| Riallineamento senza le voci dell'albero o senza i rinvii conservati | T-164 |
+| Rinvio conservato non ricontrollato con l'albero | T-164 |
+| Schermata che non riallinea | T-164, T-165 |
+| Indirizzo nel verificatore non confrontato | T-165 |
+| Lettura fallita, collegamento rotto o ritardo fuori dalle voci da guardare | T-165 |
+| Ritardo ignorato, data in UTC, motivo senza escaping, elenco da guardare assente | T-165 |
+| Versione richiesta `1.12.0` | T-166 |
 
 ## Norme e fonti
 
