@@ -331,6 +331,24 @@ class VerificaRinviiTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * T-164: si tolgono anche i collegamenti rimasti di voci senza rinvio o che l'albero non lega piu.
+	 */
+	public function test_t164_collegamenti_rimasti(): void {
+		// Zeta Due e nei rinvii conservati, ma l'albero in vigore non la lega a nessuna banca dati.
+		update_option( Rinvii::OPZIONE, array( 'zeta_due' => $this->rinvio( 'https://example.org/banca/zeta-due' ) ) );
+
+		// Alfa non ha rinvio conservato: il suo collegamento e rimasto da una rimozione non riuscita.
+		foreach ( array( 'alfa', 'zeta_due' ) as $voce ) {
+			$this->assertTrue( conformita_core_registra_collegamento( \TrasparenzaPa\SEZIONE, VerificaRinvii::chiave( $voce ), 'https://example.org/banca/' . $voce, 1 ) );
+		}
+
+		$this->schermata();
+
+		$this->assertNull( $this->affidato( 'alfa' ) );
+		$this->assertNull( $this->affidato( 'zeta_due' ) );
+	}
+
+	/**
 	 * T-164: [guasto] con la lettura dei rinvii fallita non si registra e non si toglie niente.
 	 */
 	public function test_t164_lettura_fallita(): void {
@@ -409,7 +427,7 @@ class VerificaRinviiTest extends WP_UnitTestCase {
 		$this->guasta_verificatore( 'SELECT' );
 		$html = $this->schermata();
 		remove_all_filters( 'query' );
-		$this->assertSame( 2, substr_count( $html, 'L\'esito dell\'ultimo controllo non si è potuto leggere' ) );
+		$this->assertSame( 4, substr_count( $html, 'L&#039;esito dell&#039;ultimo controllo non si è potuto leggere' ) ); // Due voci: sotto il modulo e fra quelle da guardare.
 		$guardare = self::da_guardare( $html );
 		$this->assertStringContainsString( 'Voce Alfa', $guardare );
 		$this->assertStringContainsString( 'Voce Zeta Uno', $guardare );
