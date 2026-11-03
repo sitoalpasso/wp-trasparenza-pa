@@ -240,7 +240,26 @@ final class SchermataRinvii {
 			return self::esito( 'scrittura', __( 'Il rinvio non si è potuto scrivere: resta quello di prima. Il registro delle modifiche contiene un cambio che non è avvenuto.', 'trasparenza-pa' ), $voce, $dati, $partenza );
 		}
 
-		return self::esito( 'salvato', $vuoto === $dati ? __( 'Rinvio tolto.', 'trasparenza-pa' ) : __( 'Rinvio salvato.', 'trasparenza-pa' ), $voce );
+		$messaggio = $vuoto === $dati ? __( 'Rinvio tolto.', 'trasparenza-pa' ) : __( 'Rinvio salvato.', 'trasparenza-pa' );
+		$affidato  = VerificaRinvii::affida( $voce, $dati );
+
+		/*
+		 * Il rinvio e la dichiarazione dell'ente ed e gia nel registro: un
+		 * verificatore che non risponde non lo annulla. Lo si dice, e
+		 * l'apertura della schermata riprova.
+		 */
+		if ( is_wp_error( $affidato ) ) {
+			return self::esito(
+				'verifica',
+				$messaggio . ' ' . sprintf(
+					/* translators: %s: motivo riportato dal verificatore. */
+					__( 'Il cambio non si è potuto riportare nella verifica periodica dei collegamenti: si riprova alla prossima apertura di questa schermata. Motivo: %s', 'trasparenza-pa' ),
+					$affidato->get_error_message()
+				)
+			);
+		}
+
+		return self::esito( 'salvato', $messaggio, $voce );
 	}
 
 	/**
@@ -261,7 +280,7 @@ final class SchermataRinvii {
 
 			printf(
 				'<div class="notice %1$s"><p>%2$s</p></div>',
-				'salvato' === $esito['codice'] ? 'notice-success' : 'notice-error',
+				'salvato' === $esito['codice'] ? 'notice-success' : ( 'verifica' === $esito['codice'] ? 'notice-warning' : 'notice-error' ),
 				esc_html( (string) $esito['messaggio'] )
 			);
 		} else {
@@ -277,7 +296,13 @@ final class SchermataRinvii {
 			return;
 		}
 
-		$conservati = Rinvii::dati();
+		if ( is_wp_error( VerificaRinvii::riallinea( $albero ) ) ) {
+			echo '<div class="notice notice-error inline"><p>' . esc_html__( 'I rinvii attuali non si sono potuti leggere dalla banca dati, e quindi non si sono potuti affidare alla verifica periodica dei collegamenti. Riprovare fra qualche minuto.', 'trasparenza-pa' ) . '</p></div>';
+		}
+
+		$conservati  = Rinvii::dati();
+		$moduli      = '';
+		$da_guardare = array();
 
 		foreach ( $albero->identificativi() as $voce ) {
 			$banche = $albero->rinvii( $voce );
@@ -296,10 +321,24 @@ final class SchermataRinvii {
 				$partenza = self::rinvio_testuale( $esito['partenza'] ?? null ) ?? $partenza;
 			}
 
-			echo self::modulo( $albero, $voce, $banche, $valori, $partenza, $attuale ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- costruito con escaping in modulo().
+			$moduli .= self::modulo( $albero, $voce, $banche, $valori, $partenza, $attuale );
+			$valido  = VerificaRinvii::valido( $albero, $voce, $conservati[ $voce ] ?? null );
+
+			if ( null !== $valido ) {
+				$verifica = VerificaRinvii::esito( $voce, $valido );
+				$moduli  .= '<p class="trasparenza-pa-verifica"><strong>' . esc_html__( 'Verifica del collegamento:', 'trasparenza-pa' ) . '</strong> ' . esc_html( $verifica['testo'] ) . '</p>';
+
+				if ( '' !== $verifica['da_guardare'] ) {
+					$da_guardare[] = '<li><strong>' . esc_html( self::percorso( $albero, $voce ) ) . '</strong>: ' . esc_html( $verifica['da_guardare'] ) . '</li>';
+				}
+			}
 		}
 
-		echo '</div>';
+		if ( array() !== $da_guardare ) {
+			echo '<div class="trasparenza-pa-da-guardare notice notice-error inline"><p><strong>' . esc_html__( 'Rinvii da guardare', 'trasparenza-pa' ) . '</strong></p><ul>' . implode( '', $da_guardare ) . '</ul></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- ogni voce costruita con escaping qui sopra.
+		}
+
+		echo $moduli . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- costruito con escaping in modulo() e qui sopra.
 	}
 
 	/**
