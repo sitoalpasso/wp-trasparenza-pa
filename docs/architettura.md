@@ -94,7 +94,7 @@ viene segnalato.
 | `SchedaVoce` | Riquadro dei dati nella schermata della voce: scelta dell'obbligo, legame con la versione in vigore scritto una volta sola, salvataggio con nonce e permesso, esito del controllo e difetti accanto ai campi; con obbligo, versione o dato illeggibili niente modulo e niente scrittura (T-161) | TRASP-05, TRASP-26 |
 | `PoliticaTrasparenza` | Dichiara a core: indicizzazione consentita, scadenza quinquennale con uscita senza cancellazione, calcolo della decorrenza dal 1° gennaio successivo | TRASP-03, TRASP-08, TRASP-09 |
 | `StatiEditoriali` | Bozza, validato, pubblicabile provvisoriamente, non pubblicabile; segnalazione al RPCT nei casi di difformità | TRASP-28 |
-| `VociRinvio` | Le voci assolte per collegamento: etichetta, data, amministrazione titolare, destinatario dell'accesso civico; registra i collegamenti presso il verificatore di core | TRASP-11, TRASP-25, TRASP-29 |
+| `VerificaRinvii` | Affida i rinvii validi al verificatore di core con l'intervallo di un giorno e toglie gli altri, al salvataggio e all'apertura della schermata dei rinvii; esito dell'ultimo controllo e voci da guardare (T-163..T-166) | TRASP-25 |
 | `Esportazione` | Genera i file in formato aperto con la denominazione a date e versione; emette le condizioni di riutilizzo configurate | TRASP-07, TRASP-20, TRASP-21 |
 | `AtMap` | Genera il file at_map con l'URL di ogni nodo, valido contro lo schema ufficiale; riga ATmap nel robots solo se attivata | TRASP-22, TRASP-23 |
 | `AccessoCivico` | Modulo di richiesta, destinatario e titolare del potere sostitutivo, registro delle richieste | TRASP-12 |

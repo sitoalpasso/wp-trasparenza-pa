@@ -45,7 +45,7 @@ const PHP_MINIMO = '8.1';
  * comune e non la sua versione, perche accetta slug e non vincoli di versione:
  * il vincolo di versione vive qui e si verifica a ogni avvio.
  */
-const CORE_API_RICHIESTA = '1.11.0';
+const CORE_API_RICHIESTA = '1.13.0';
 
 /**
  * Nome visibile del componente, come compare negli avvisi della bacheca.
@@ -154,6 +154,7 @@ require_once __DIR__ . '/src/class-blocco.php';
 require_once __DIR__ . '/src/class-responsabile.php';
 require_once __DIR__ . '/src/class-schermata-responsabile.php';
 require_once __DIR__ . '/src/class-rinvii.php';
+require_once __DIR__ . '/src/class-verifica-rinvii.php';
 require_once __DIR__ . '/src/class-schermata-rinvii.php';
 require_once __DIR__ . '/src/class-accesso-civico.php';
 require_once __DIR__ . '/src/class-schermata-accesso-civico.php';

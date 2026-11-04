@@ -49,8 +49,8 @@ prova, elencata in fondo a lavoro finito.
 
 - TRASP-25 (art. 9-bis; d.l. 19/2026, art. 8, cc. 2 e 3): il rinvio è un dato, con data ed
   etichetta. La **verifica periodica automatica** che il collegamento risponda non è in questa
-  unità: è un meccanismo del componente comune, come previsto dal piano, e arriva dopo. Fino ad
-  allora TRASP-25 resta aperto per quella parte, e la scheda lo dice.
+  unità: è un meccanismo del componente comune, collegato ai rinvii dall'unità successiva
+  (`verifica-rinvii.md`, righe T-163..T-166).
 - TRASP-29 (art. 9-bis, cc. 3 e 4): ogni rinvio a una banca dati dell'Allegato B porta con sé
   l'amministrazione titolare e la frase su chi risponde all'accesso civico. Il caso dell'art. 19,
   che nessuna banca dati dell'Allegato B copre, non si può dichiarare come rinvio.
