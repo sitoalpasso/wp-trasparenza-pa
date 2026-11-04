@@ -149,6 +149,7 @@ il responsabile della trasparenza, che arrivano con le unità successive.
 - La prima assegnazione va all'amministratore, che non è un default sbagliato possibile: ha
   già tutti i poteri sul sito. L'alternativa, nessuno, avrebbe lasciato la schermata
   invisibile a tutti fino a un intervento manuale sui ruoli.
-- Il blocco usa `GET_LOCK` della banca dati, presente in MySQL e MariaDB. Un servizio di
+- Il blocco usa `GET_LOCK` della banca dati, presente in MySQL e MariaDB, attraverso i lucchetti
+  del componente comune (`lucchetti-comuni.md`). Un servizio di
   banca dati che lo neghi fa rinunciare ogni salvataggio con il messaggio "un altro
   salvataggio è in corso": il sistema si chiude, non si apre.

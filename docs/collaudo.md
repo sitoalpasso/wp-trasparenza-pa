@@ -487,4 +487,4 @@ Scheda: `docs/implementazione/lucchetti-comuni.md`.
 
 | Riga | Stato | Caso | Atteso |
 |---|---|---|---|
-| T-167 | da fare | Banca dati a blocco unico imitata: salvataggio con il blocco della sezione e, dentro, il lucchetto di un altro componente preso e lasciato; blocco preso da un'altra richiesta; presa e rilascio; interfaccia richiesta | dopo il lucchetto dell'altro componente il blocco resta chiuso per un'altra richiesta, e si apre solo al rilascio del salvataggio; con il blocco tenuto da un'altra richiesta la presa non riesce; la presa passa dal componente comune; interfaccia `1.14.0` |
+| T-167 | fatto | Banca dati a blocco unico imitata: salvataggio con il blocco della sezione e, dentro, il lucchetto di un altro componente preso e lasciato; blocco preso da un'altra richiesta; presa e rilascio; interfaccia richiesta | dopo il lucchetto dell'altro componente il blocco resta chiuso per un'altra richiesta, e si apre solo al rilascio del salvataggio; con il blocco tenuto da un'altra richiesta la presa non riesce dopo l'attesa; la presa passa dal componente comune; interfaccia `1.14.0` |

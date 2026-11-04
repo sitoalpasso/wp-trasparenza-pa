@@ -1,6 +1,6 @@
 # Scheda di implementazione: il blocco dei salvataggi sui lucchetti del componente comune
 
-Scheda scritta prima del codice e completata a lavoro finito.
+Scheda scritta prima del codice e completata a lavoro finito. **Stato: costruita, riga T-167 verde in locale.**
 
 ## In parole semplici
 
@@ -57,6 +57,23 @@ usa per le sue prove.
 - Non cambia le prove che prendono il blocco da una seconda connessione con il nome di sempre: la
   verifica continua gira su una banca dati che tiene più blocchi per connessione, dove il nome è
   quello. Il caso della banca dati vecchia lo prova T-167 con l'imitazione.
+
+## Com'è andata
+
+Costruito come scritto. Presa e rilascio passano dal componente comune; nome e attesa sono quelli
+di prima. La prova della versione richiesta di T-166 ora guarda che sia almeno `1.13.0`, come le
+altre prove di versione.
+
+**Rotture volute**, una per volta, con le prove di `BloccoComuneTest`. Tutte rosse; l'attesa a
+zero era all'inizio verde e ha portato la prova che prima di rinunciare si aspetta.
+
+| Rottura | Prova rossa |
+|---|---|
+| Presa diretta con `GET_LOCK`, come prima | T-167 (lucchetto di un altro componente) |
+| Rilascio diretto con `RELEASE_LOCK`, o rilascio assente | T-167 |
+| Presa considerata sempre riuscita | T-167 (blocco tenuto da altri) |
+| Attesa a zero | T-167 (blocco tenuto da altri) |
+| Interfaccia richiesta `1.13.0` | T-167 |
 
 ## Norme e fonti
 
