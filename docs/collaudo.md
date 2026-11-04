@@ -480,3 +480,11 @@ Scheda: `docs/implementazione/verifica-rinvii.md`.
 | T-164 | fatto | Apertura della schermata: rinvio conservato mai affidato, rinvio conservato non più valido con l'albero in vigore, rinvio uguale già affidato, collegamenti rimasti; [guasto] lettura dei rinvii fallita; salvataggio in corso | il primo si registra, il secondo si toglie, il terzo non cambia esito né data; con il guasto, o con un salvataggio in corso, nessuna registrazione e nessuna rimozione, e la schermata lo dice |
 | T-165 | fatto | Schermata con rinvii mai controllati, che rispondono, che non rispondono, in ritardo, non affidati, con indirizzo diverso nel verificatore; [guasto] lettura dell'esito fallita; [attacco] motivo con codice | per ciascuno l'esito con data e ora nel fuso del sito e il motivo; in testa l'elenco delle voci da guardare (non risponde, in ritardo, non affidata, esito non leggibile) e solo quelle; ogni valore con escaping |
 | T-166 | fatto | Versione richiesta e chiave: voce in minuscolo, voce con maiuscole, due voci che differiscono solo per le maiuscole | interfaccia richiesta `1.13.0`; chiave uguale all'identificativo in minuscolo, `v-` più impronta con le maiuscole; chiavi distinte |
+
+## Il blocco dei salvataggi sui lucchetti del componente comune (riga T-167)
+
+Scheda: `docs/implementazione/lucchetti-comuni.md`.
+
+| Riga | Stato | Caso | Atteso |
+|---|---|---|---|
+| T-167 | da fare | Banca dati a blocco unico imitata: salvataggio con il blocco della sezione e, dentro, il lucchetto di un altro componente preso e lasciato; blocco preso da un'altra richiesta; presa e rilascio; interfaccia richiesta | dopo il lucchetto dell'altro componente il blocco resta chiuso per un'altra richiesta, e si apre solo al rilascio del salvataggio; con il blocco tenuto da un'altra richiesta la presa non riesce; la presa passa dal componente comune; interfaccia `1.14.0` |
