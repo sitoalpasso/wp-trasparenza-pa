@@ -2,7 +2,7 @@
 /**
  * Il blocco della banca dati che tiene in fila i salvataggi della gestione.
  *
- * Righe di collaudo T-53 e T-57.
+ * Righe di collaudo T-53, T-57 e T-167.
  *
  * @package TrasparenzaPa
  */
@@ -22,6 +22,11 @@ defined( 'ABSPATH' ) || exit;
  * la banca dati e il prefisso, perche lo stesso server puo ospitare piu siti.
  * Le schermate della gestione condividono lo stesso blocco: i salvataggi sono
  * rari e brevi, e un solo nome evita di dover ragionare su chi blocca cosa.
+ *
+ * Il blocco si chiede al componente comune: dove la banca dati tiene un solo
+ * blocco per connessione, un altro componente che prende il suo durante un
+ * salvataggio aprirebbe questo senza avviso. Il componente comune tiene il
+ * conto per tutti i componenti del sito.
  */
 final class Blocco {
 
@@ -36,20 +41,14 @@ final class Blocco {
 	 * @return bool
 	 */
 	public static function prendi(): bool {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- un blocco della banca dati non passa da nessuna funzione di WordPress e non si mette in memoria.
-		return '1' === (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', self::nome(), self::ATTESA ) );
+		return conformita_core_prendi_lucchetto( self::nome(), self::ATTESA );
 	}
 
 	/**
 	 * Rilascia il blocco.
 	 */
 	public static function rilascia(): void {
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- come sopra.
-		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', self::nome() ) );
+		conformita_core_lascia_lucchetto( self::nome() );
 	}
 
 	/**

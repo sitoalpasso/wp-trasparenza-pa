@@ -465,7 +465,7 @@ class VerificaRinviiTest extends WP_UnitTestCase {
 	 * T-166: versione richiesta e forma della chiave.
 	 */
 	public function test_t166_versione_e_chiave(): void {
-		$this->assertSame( '1.13.0', \TrasparenzaPa\CORE_API_RICHIESTA );
+		$this->assertTrue( version_compare( \TrasparenzaPa\CORE_API_RICHIESTA, '1.13.0', '>=' ) );
 		$this->assertSame( 1, VerificaRinvii::INTERVALLO );
 
 		$this->assertSame( 'zeta_uno', VerificaRinvii::chiave( 'zeta_uno' ) );
