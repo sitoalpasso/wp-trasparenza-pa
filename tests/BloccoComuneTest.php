@@ -139,7 +139,9 @@ class BloccoComuneTest extends WP_UnitTestCase {
 	public function test_t167_blocco_tenuto_da_altri(): void {
 		$this->assertTrue( $this->da_un_altra_richiesta( static fn() => conformita_core_prendi_lucchetto( Blocco::nome(), 0 ) ) );
 
+		$inizio = microtime( true );
 		$this->assertFalse( Blocco::prendi(), 'Con il blocco tenuto da un\'altra richiesta, dopo l\'attesa si rinuncia.' );
+		$this->assertGreaterThanOrEqual( Blocco::ATTESA - 1, microtime( true ) - $inizio, 'Prima di rinunciare si aspetta.' );
 
 		$this->da_un_altra_richiesta( static fn() => conformita_core_lascia_lucchetto( Blocco::nome() ) );
 
