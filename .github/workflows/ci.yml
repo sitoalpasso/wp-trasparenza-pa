@@ -1,13 +1,18 @@
 name: CI
 
+# Per risparmiare i minuti gratuiti di GitHub Actions nei repository privati,
+# il giro di prova parte solo sulle pull request e a mano, non a ogni push sui
+# rami. Un nuovo push su una pull request ferma il giro precedente.
 on:
-  push:
-    branches:
-      - "**"
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   phpcs:
